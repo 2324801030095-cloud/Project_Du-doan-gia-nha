@@ -106,11 +106,12 @@ Muốn sửa nội dung notebook: sửa trực tiếp trong notebook, hoặc s�
 | Mô hình được chọn | LightGBM | LightGBM Huber + chữ | Ridge | Ridge (căn hộ, nhà) |
 | Kiểm định chéo lặp, chia theo nhóm tin gần trùng | 23,2% (KTC 20,6–26,3) | 12,0% (11,0–13,2) | 26,0% | căn hộ 18,4% · nhà 27,7% |
 | Tập test giữ riêng | 27,5% (KTC 20,8–35,7; 40 căn) | 10,6% | 30,2% (KTC 22,3–39,8; 72 lô) | căn hộ 16,0% · nhà 29,1% |
+| Dự đoán chéo theo nhóm trên toàn bộ căn Phú Hòa | 24,5% (KTC 21,6–27,7; 220 căn, 169 nhóm) | | | |
 | Khoảng giá 80% (độ phủ kiểm tra trên test) | có | có | 79% | – |
 
-Tập test Phú Hòa nhỏ nên khoảng tin cậy rộng; cần trình bày **cả hai** con số kiểm định chéo và test.
+Tập test Phú Hòa nhỏ (40 căn) nên khoảng tin cậy rộng. Cần trình bày **cả ba** con số: test là bằng chứng sạch nhất nhưng bất định; con số trên toàn bộ 220 căn có khoảng tin cậy hẹp hơn nhưng có thể lạc quan nhẹ vì phần lớn các căn đó đã tham gia bước chọn mô hình.
 Khoảng 80% là khoảng hiệu chỉnh thực nghiệm từ sai số ngoài-fold (ý tưởng conformal), không phải bảo đảm lý thuyết.
-Xu hướng giá 6–12 tháng là **kịch bản tham khảo**, chưa phải dự báo đã kiểm định lùi (mới có vài kỳ dữ liệu).
+Xu hướng giá 6–12 tháng là **kịch bản tham khảo**, chưa phải dự báo đã kiểm định lùi: hiện có 3 kỳ ảnh chụp, tin rao chỉ có ngày đăng trong khoảng 2 tháng gần nhất, nên chưa đủ dữ liệu để kiểm định trung thực. Mã kiểm định lùi (`kiem_dinh_lui` trong `src/mo_hinh_gia.py`) đã có kiểm thử tự động và sẽ tự chạy khi đủ 8 kỳ, dự kiến khoảng cuối tháng 12/2026 theo lịch thu thập hằng tuần.
 
 Số liệu chi tiết, khoảng tin cậy và giới hạn: xem phần kết luận của từng notebook.
 

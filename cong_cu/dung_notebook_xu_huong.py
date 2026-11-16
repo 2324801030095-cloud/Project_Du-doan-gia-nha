@@ -330,7 +330,7 @@ Khi có **≥ 8 kỳ**, ô cuối huấn luyện mô hình dự báo xu hướng
 """)
 
 code(r"""
-anh = sorted(glob.glob(str(LICH_SU / "chotot_*.csv")))
+anh = sorted(glob.glob(str(LICH_SU / "chotot_20*.csv")))     # chỉ ảnh chụp NHÀ Ở (bỏ chotot_can_ho_*, chotot_dat_*)
 ky = []
 for f in anh:
     s = pd.read_csv(f); s = s[s["loai_tin"] == "ban"]
@@ -352,24 +352,23 @@ CHI_SO = pd.DataFrame({"ky": [k for k, _ in ky], "chi_so_lap_lai": chi_so})
 BIEN_DONG = pd.DataFrame(bien_dong)
 display(BIEN_DONG.round(3)); display(CHI_SO.round(3))
 
-def holt(y, a=0.5, b=0.3):
-    l, t = y[0], (y[1] - y[0]) if len(y) > 1 else 0.0
-    for v in y[1:]:
-        l_new = a * v + (1 - a) * (l + t); t = b * (l_new - l) + (1 - b) * t; l = l_new
-    return l, t
+from mo_hinh_gia import holt, kiem_dinh_lui        # có kiểm thử tự động trong tests/kiem_tra_mo_hinh.py
 
 KY_TOI_THIEU = 8
 if len(CHI_SO) < KY_TOI_THIEU:
-    print(f"Mới có {len(CHI_SO)} kỳ thật; cần ít nhất {KY_TOI_THIEU} kỳ để huấn luyện và kiểm định lùi mô hình dự báo. "
-          f"Còn thiếu {KY_TOI_THIEU - len(CHI_SO)} kỳ → chạy thu_thap/cap_nhat_dinh_ky.py định kỳ (ví dụ mỗi 2 tuần).")
+    thieu = KY_TOI_THIEU - len(CHI_SO)
+    du_kien = pd.Timestamp(CHI_SO["ky"].iloc[-1]) + pd.Timedelta(weeks=thieu)
+    print(f"Mới có {len(CHI_SO)} kỳ thật; cần ít nhất {KY_TOI_THIEU} kỳ để huấn luyện và kiểm định lùi mô hình dự báo (còn thiếu {thieu} kỳ).\n"
+          f"Lịch thu thập tự động chạy mỗi Chủ nhật -> dự kiến đủ kỳ vào khoảng {du_kien:%d/%m/%Y}. "
+          "Cho tới lúc đó, phần 6–12 tháng ở Bước 6 chỉ là KỊCH BẢN THAM KHẢO, không phải dự báo đã kiểm chứng.")
 else:
     y = np.log(CHI_SO["chi_so_lap_lai"].to_numpy())
-    loi_holt, loi_khong_doi = [], []
-    for t in range(4, len(y) - 1):                  # kiểm định lùi: dự báo 1 kỳ tới từ dữ liệu đến kỳ t
-        l, tr = holt(y[: t + 1]); loi_holt.append(abs(l + tr - y[t + 1])); loi_khong_doi.append(abs(y[t] - y[t + 1]))
-    print(f"MAE kiểm định lùi – Holt: {np.mean(loi_holt) * 100:.2f}% | Không đổi: {np.mean(loi_khong_doi) * 100:.2f}%")
+    kq = kiem_dinh_lui(y)
+    print(f"Kiểm định lùi trên {kq['so_ky_kiem_tra']} kỳ – MAE Holt: {kq['mae_holt'] * 100:.2f}% | baseline không đổi: {kq['mae_khong_doi'] * 100:.2f}%")
+    if kq["so_ky_kiem_tra"] < 6:
+        print("Lưu ý: số kỳ kiểm tra còn ít, kết luận kiểm định lùi chưa vững.")
     l, tr = holt(y)
-    if np.mean(loi_holt) < np.mean(loi_khong_doi):
+    if kq["holt_tot_hon"]:
         print("Holt thắng baseline → dự báo 6 kỳ tới (%):", [round((np.exp(l + tr * h - y[-1]) - 1) * 100, 2) for h in range(1, 7)])
     else:
         print("Holt KHÔNG thắng baseline 'không đổi' → giữ nhận định ở Bước 6.")

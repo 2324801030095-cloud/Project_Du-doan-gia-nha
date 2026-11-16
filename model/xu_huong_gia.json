@@ -364,10 +364,6 @@
   {
    "ky": "2026-11-17",
    "chi_so_lap_lai": 99.9454
-  },
-  {
-   "ky": "2026-11-17",
-   "chi_so_lap_lai": NaN
   }
  ],
  "bien_dong_giua_cac_ky": [
@@ -396,19 +392,6 @@
    "Tin biến mất": 69,
    "% biến mất/ngày": 2.196,
    "Tin mới": 103
-  },
-  {
-   "Từ": "2026-11-17",
-   "Đến": "2026-11-17",
-   "Số ngày": 0,
-   "Tin ở cả hai kỳ": 0,
-   "Giảm giá": 0,
-   "Tăng giá": 0,
-   "Mức đổi trung vị của tin đổi giá (%)": 0.0,
-   "Thay đổi bình quân mọi tin (%)": NaN,
-   "Tin biến mất": 1605,
-   "% biến mất/ngày": 100.0,
-   "Tin mới": 889
   }
  ]
 }

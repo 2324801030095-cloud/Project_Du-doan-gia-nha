@@ -832,7 +832,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
               <div><span>MAPE của cách làm khác</span><b>@@B_MAPE@@%</b><em>baseline · bản 1: @@V1_MAPE@@%</em></div>
               <div><span>Căn có sai số ≤ 20%</span><b>@@T_W20@@%</b><em>baseline @@B_W20@@%</em></div>
             </div>
-            <p class="note"><svg class="ic ic-sm"><use href="#i-info"/></svg><span>Mô hình: @@BEST@@. Mỗi căn được dự đoán bởi mô hình không học căn đó và không học các tin gần trùng với nó. Tập test giữ riêng (@@TEST_N@@ căn Phú Hòa): MAPE @@TEST_MAPE@@% (khoảng tin cậy @@TEST_LO@@–@@TEST_HI@@%). Baseline: đơn giá trung vị của phường × diện tích. Bản 1: Ridge 9 thông số chỉ học trên Phú Hòa. Dữ liệu là giá rao bán, chưa phải giá giao dịch.</span></p>
+            <p class="note"><svg class="ic ic-sm"><use href="#i-info"/></svg><span>Mô hình: @@BEST@@. Mỗi căn được dự đoán bởi mô hình không học căn đó và không học các tin gần trùng với nó. Tập test giữ riêng (@@TEST_N@@ căn Phú Hòa): MAPE @@TEST_MAPE@@% (khoảng tin cậy @@TEST_LO@@–@@TEST_HI@@%). Trên toàn bộ @@PH_ALL_N@@ căn Phú Hòa (mỗi căn do mô hình không học căn đó dự đoán): MAPE @@PH_ALL_MAPE@@% (@@PH_ALL_LO@@–@@PH_ALL_HI@@%). Tập test nhỏ nên con số của nó dao động nhiều hơn. Baseline: đơn giá trung vị của phường × diện tích. Bản 1: Ridge 9 thông số chỉ học trên Phú Hòa. Dữ liệu là giá rao bán, chưa phải giá giao dịch.</span></p>
             <p class="note"><svg class="ic ic-sm"><use href="#i-chart-spline"/></svg><span>Xu hướng 6–12 tháng (notebook <code>du_doan_xu_huong_gia.ipynb</code>) chỉ dùng <b>dữ liệu thật</b>: người bán đổi giá cùng một căn, giá căn chuẩn theo phường, số liệu DKRA đã công bố.</span></p>
           </div>
         </div>
