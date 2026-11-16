@@ -1,0 +1,19 @@
+# created by project_repo.py - edit freely
+bin/
+obj/
+node_modules/
+dist/
+.next/
+.venv/
+venv/
+__pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
+.gradle/
+.vs/
+*.pyc
+*.log
+Thumbs.db
+.DS_Store
+catboost_info/
+.playwright-mcp/

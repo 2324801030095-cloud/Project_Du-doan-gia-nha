@@ -1,0 +1,109 @@
+{
+ "ten_mo_hinh": "Ridge",
+ "kiem_dinh_cheo_tdm": [
+  {
+   "Mô hình": "LightGBM",
+   "MAPE (%)": 25.848,
+   "MAPE thấp (95%)": 22.944,
+   "MAPE cao (95%)": 28.838,
+   "MdAPE (%)": 18.505,
+   "Trong ±10% (%)": 29.947,
+   "Trong ±20% (%)": 52.063,
+   "MAE (tỷ)": 1.51,
+   "R²": 0.552,
+   "Số căn": 315.0
+  },
+  {
+   "Mô hình": "LightGBM + chữ",
+   "MAPE (%)": 25.856,
+   "MAPE thấp (95%)": 22.981,
+   "MAPE cao (95%)": 28.844,
+   "MdAPE (%)": 17.514,
+   "Trong ±10% (%)": 28.677,
+   "Trong ±20% (%)": 53.862,
+   "MAE (tỷ)": 1.515,
+   "R²": 0.497,
+   "Số căn": 315.0
+  },
+  {
+   "Mô hình": "Ridge",
+   "MAPE (%)": 26.035,
+   "MAPE thấp (95%)": 23.099,
+   "MAPE cao (95%)": 29.192,
+   "MdAPE (%)": 20.689,
+   "Trong ±10% (%)": 27.302,
+   "Trong ±20% (%)": 48.466,
+   "MAE (tỷ)": 1.575,
+   "R²": 0.51,
+   "Số căn": 315.0
+  },
+  {
+   "Mô hình": "Baseline (đơn giá phường)",
+   "MAPE (%)": 38.369,
+   "MAPE thấp (95%)": 34.009,
+   "MAPE cao (95%)": 43.14,
+   "MdAPE (%)": 28.288,
+   "Trong ±10% (%)": 16.825,
+   "Trong ±20% (%)": 35.026,
+   "MAE (tỷ)": 2.051,
+   "R²": 0.444,
+   "Số căn": 315.0
+  }
+ ],
+ "chon_mo_hinh": [
+  {
+   "Mô hình": "Ridge",
+   "MAPE (%)": 26.035,
+   "Chênh so với tốt nhất": 0.187,
+   "KTC thấp": -1.235,
+   "KTC cao": 1.652
+  },
+  {
+   "Mô hình": "LightGBM",
+   "MAPE (%)": 25.848,
+   "Chênh so với tốt nhất": 0.0,
+   "KTC thấp": 0.0,
+   "KTC cao": 0.0
+  },
+  {
+   "Mô hình": "LightGBM + chữ",
+   "MAPE (%)": 25.856,
+   "Chênh so với tốt nhất": 0.009,
+   "KTC thấp": -0.743,
+   "KTC cao": 0.764
+  }
+ ],
+ "test_tdm": [
+  {
+   "Mô hình": "Ridge",
+   "MAPE (%)": 30.196,
+   "MAPE thấp (95%)": 22.267,
+   "MAPE cao (95%)": 39.796,
+   "MdAPE (%)": 18.469,
+   "Trong ±10% (%)": 27.778,
+   "Trong ±20% (%)": 52.778,
+   "MAE (tỷ)": 1.095,
+   "R²": 0.7,
+   "Số căn": 72.0
+  },
+  {
+   "Mô hình": "Baseline",
+   "MAPE (%)": 40.374,
+   "MAPE thấp (95%)": 28.483,
+   "MAPE cao (95%)": 55.464,
+   "MdAPE (%)": 24.502,
+   "Trong ±10% (%)": 22.222,
+   "Trong ±20% (%)": 41.667,
+   "MAE (tỷ)": 1.514,
+   "R²": 0.286,
+   "Số căn": 72.0
+  }
+ ],
+ "do_phu_test_80": 79.2,
+ "mo_hinh_web_mape_tdm": 28.56,
+ "so_lo": {
+  "tat_ca": 930,
+  "tdm": 387,
+  "phu_hoa": 32
+ }
+}

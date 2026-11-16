@@ -1,0 +1,331 @@
+{
+ "nguon_du_lieu": "THAT",
+ "ghi_chu": "Toàn bộ tính từ tin rao thật thu thập 12-14/11/2026 và số liệu DKRA đã công bố. Không dùng dữ liệu mô phỏng.",
+ "ngay_du_lieu": "2026-11-14",
+ "can_chuan": "Đất 100 m² (5x20), 1 trệt 1 lầu, 3PN, 2WC, hẻm xe hơi 5 m, sổ riêng",
+ "gia_can_chuan_theo_phuong": [
+  {
+   "Phường (cũ)": "Phú Cường",
+   "Số tin": 8,
+   "Giá căn chuẩn (tỷ)": 3.798,
+   "Đơn giá căn chuẩn (tr/m²)": 37.977
+  },
+  {
+   "Phường (cũ)": "Hiệp Thành",
+   "Số tin": 41,
+   "Giá căn chuẩn (tỷ)": 3.605,
+   "Đơn giá căn chuẩn (tr/m²)": 36.052
+  },
+  {
+   "Phường (cũ)": "Chánh Nghĩa",
+   "Số tin": 30,
+   "Giá căn chuẩn (tỷ)": 3.268,
+   "Đơn giá căn chuẩn (tr/m²)": 32.683
+  },
+  {
+   "Phường (cũ)": "Phú Hòa",
+   "Số tin": 219,
+   "Giá căn chuẩn (tỷ)": 3.247,
+   "Đơn giá căn chuẩn (tr/m²)": 32.471
+  },
+  {
+   "Phường (cũ)": "Phú Lợi",
+   "Số tin": 44,
+   "Giá căn chuẩn (tỷ)": 3.221,
+   "Đơn giá căn chuẩn (tr/m²)": 32.211
+  },
+  {
+   "Phường (cũ)": "Phú Mỹ",
+   "Số tin": 55,
+   "Giá căn chuẩn (tỷ)": 3.184,
+   "Đơn giá căn chuẩn (tr/m²)": 31.842
+  },
+  {
+   "Phường (cũ)": "Hoà Phú",
+   "Số tin": 30,
+   "Giá căn chuẩn (tỷ)": 3.108,
+   "Đơn giá căn chuẩn (tr/m²)": 31.076
+  },
+  {
+   "Phường (cũ)": "Phú Thọ",
+   "Số tin": 16,
+   "Giá căn chuẩn (tỷ)": 3.095,
+   "Đơn giá căn chuẩn (tr/m²)": 30.945
+  },
+  {
+   "Phường (cũ)": "Hiệp An",
+   "Số tin": 21,
+   "Giá căn chuẩn (tỷ)": 2.828,
+   "Đơn giá căn chuẩn (tr/m²)": 28.279
+  },
+  {
+   "Phường (cũ)": "Định Hoà",
+   "Số tin": 23,
+   "Giá căn chuẩn (tỷ)": 2.636,
+   "Đơn giá căn chuẩn (tr/m²)": 26.364
+  },
+  {
+   "Phường (cũ)": "Chánh Mỹ",
+   "Số tin": 74,
+   "Giá căn chuẩn (tỷ)": 2.447,
+   "Đơn giá căn chuẩn (tr/m²)": 24.472
+  },
+  {
+   "Phường (cũ)": "Tương Bình Hiệp",
+   "Số tin": 30,
+   "Giá căn chuẩn (tỷ)": 2.393,
+   "Đơn giá căn chuẩn (tr/m²)": 23.932
+  },
+  {
+   "Phường (cũ)": "Tân An",
+   "Số tin": 11,
+   "Giá căn chuẩn (tỷ)": 2.202,
+   "Đơn giá căn chuẩn (tr/m²)": 22.025
+  }
+ ],
+ "vi_tri_trong_phu_hoa": [
+  {
+   "Vị trí trong Phú Hòa": "Hẻm nhỏ 2,5 m",
+   "Giá (tỷ)": 3.071,
+   "Thấp 80%": 2.182,
+   "Cao 80%": 4.286,
+   "So với hẻm xe hơi (%)": -5.435
+  },
+  {
+   "Vị trí trong Phú Hòa": "Hẻm xe hơi 5 m",
+   "Giá (tỷ)": 3.247,
+   "Thấp 80%": 2.307,
+   "Cao 80%": 4.533,
+   "So với hẻm xe hơi (%)": 0.0
+  },
+  {
+   "Vị trí trong Phú Hòa": "Hẻm xe tải 7 m, khu dân cư",
+   "Giá (tỷ)": 3.324,
+   "Thấp 80%": 2.362,
+   "Cao 80%": 4.64,
+   "So với hẻm xe hơi (%)": 2.37
+  },
+  {
+   "Vị trí trong Phú Hòa": "Mặt tiền đường Nguyễn Thị Minh Khai",
+   "Giá (tỷ)": 5.413,
+   "Thấp 80%": 3.846,
+   "Cao 80%": 7.556,
+   "So với hẻm xe hơi (%)": 66.7
+  },
+  {
+   "Vị trí trong Phú Hòa": "Mặt tiền đường Lê Hồng Phong",
+   "Giá (tỷ)": 5.802,
+   "Thấp 80%": 4.123,
+   "Cao 80%": 8.099,
+   "So với hẻm xe hơi (%)": 78.685
+  },
+  {
+   "Vị trí trong Phú Hòa": "Mặt tiền đường Nguyễn Thái Bình",
+   "Giá (tỷ)": 5.829,
+   "Thấp 80%": 4.142,
+   "Cao 80%": 8.137,
+   "So với hẻm xe hơi (%)": 79.517
+  },
+  {
+   "Vị trí trong Phú Hòa": "Mặt tiền đường Phú Lợi",
+   "Giá (tỷ)": 6.233,
+   "Thấp 80%": 4.429,
+   "Cao 80%": 8.7,
+   "So với hẻm xe hơi (%)": 91.948
+  }
+ ],
+ "doi_gia_cung_can": [
+  {
+   "Khu vực": "Toàn Bình Dương cũ",
+   "Số tin bán": "1562",
+   "Số tin đã đổi giá": "199",
+   "% tin đổi giá": "12.740076824583868",
+   "Trong số đổi giá: % GIẢM": "78.39195979899498",
+   "KTC 95% của % giảm": "72–84%",
+   "Mức đổi trung vị (%)": "-4.558823529411759",
+   "KTC 95% mức đổi": "-5.5% … -3.7%",
+   "Thay đổi bình quân trên MỌI tin (%)": "-0.6066542398146746"
+  },
+  {
+   "Khu vực": "Phú Hòa",
+   "Số tin bán": "63",
+   "Số tin đã đổi giá": "6",
+   "% tin đổi giá": "9.523809523809524",
+   "Trong số đổi giá: % GIẢM": "100.0",
+   "KTC 95% của % giảm": "100–100%",
+   "Mức đổi trung vị (%)": "-10.275229175471889",
+   "KTC 95% mức đổi": "-16.8% … -5.2%",
+   "Thay đổi bình quân trên MỌI tin (%)": "-1.092007221701241"
+  },
+  {
+   "Khu vực": "TDM (phường khác)",
+   "Số tin bán": "374",
+   "Số tin đã đổi giá": "28",
+   "% tin đổi giá": "7.4866310160427805",
+   "Trong số đổi giá: % GIẢM": "64.28571428571429",
+   "KTC 95% của % giảm": "46–82%",
+   "Mức đổi trung vị (%)": "-2.812981380362678",
+   "KTC 95% mức đổi": "-4.7% … +1.9%",
+   "Thay đổi bình quân trên MỌI tin (%)": "-0.14491285322423275"
+  },
+  {
+   "Khu vực": "Bình Dương cũ (ngoài TDM)",
+   "Số tin bán": "1125",
+   "Số tin đã đổi giá": "165",
+   "% tin đổi giá": "14.666666666666666",
+   "Trong số đổi giá: % GIẢM": "80.0",
+   "KTC 95% của % giảm": "74–86%",
+   "Mức đổi trung vị (%)": "-4.974789915966382",
+   "KTC 95% mức đổi": "-5.6% … -3.7%",
+   "Thay đổi bình quân trên MỌI tin (%)": "-0.7324760902644556"
+  },
+  {
+   "Khu vực": "Toàn TDM",
+   "Số tin bán": "437",
+   "Số tin đã đổi giá": "34",
+   "% tin đổi giá": "7.780320366132723",
+   "Trong số đổi giá: % GIẢM": "70.58823529411765",
+   "KTC 95% của % giảm": "56–85%",
+   "Mức đổi trung vị (%)": "-3.4210924677807397",
+   "KTC 95% mức đổi": "-5.9% … -1.6%",
+   "Thay đổi bình quân trên MỌI tin (%)": "-0.2820079194581604"
+  }
+ ],
+ "do_doc_gia_rao_theo_tuan": {
+  "diem_pt_thang": -0.367,
+  "ktc95": [
+   -4.747,
+   4.148
+  ]
+ },
+ "ap_luc_ban": [
+  {
+   "khu_vuc": "Ngoài TDM",
+   "Số căn": 860,
+   "% tin 'bán gấp/giảm giá'": 19.77,
+   "% rẻ hơn thị trường": 9.88,
+   "% cao hơn thị trường": 8.6,
+   "Giá rao lệch trung vị so với ước lượng (%)": -0.91
+  },
+  {
+   "khu_vuc": "Phú Hòa",
+   "Số căn": 219,
+   "% tin 'bán gấp/giảm giá'": 5.48,
+   "% rẻ hơn thị trường": 9.59,
+   "% cao hơn thị trường": 16.44,
+   "Giá rao lệch trung vị so với ước lượng (%)": -0.18
+  },
+  {
+   "khu_vuc": "TDM (phường khác)",
+   "Số căn": 397,
+   "% tin 'bán gấp/giảm giá'": 15.37,
+   "% rẻ hơn thị trường": 11.59,
+   "% cao hơn thị trường": 11.84,
+   "Giá rao lệch trung vị so với ước lượng (%)": 2.79
+  }
+ ],
+ "boi_canh_cong_bo": [
+  {
+   "Thời điểm": "2025 (tổng kết năm)",
+   "Phân khúc": "Nhà phố, biệt thự – thứ cấp",
+   "Biến động giá": "+12 – 19% so với đầu năm",
+   "Nguồn": "Tiếp Thị Gia Đình, 12/01/2026 (số liệu năm 2025 không ghi rõ đơn vị; phần dự báo ghi DKRA)",
+   "Link": "https://tiepthigiadinh.vn/du-bao-thi-truong-bat-dong-san-nam-2026-d30043.html"
+  },
+  {
+   "Thời điểm": "2 tháng đầu 2026",
+   "Phân khúc": "Nhà phố, biệt thự – thứ cấp",
+   "Biến động giá": "Đi ngang so với Q4/2025; +13 – 17% so với cùng kỳ 2025",
+   "Nguồn": "DKRA Consulting, qua Nhịp sống kinh doanh 17/03/2026",
+   "Link": "https://nhipsongkinhdoanh.vn/bat-dong-san-phia-nam-2-thang-dau-nam-2026--bat-ngo-mot-phan-khuc-giao-dich-tang-31-lan-26667.htm"
+  },
+  {
+   "Thời điểm": "Quý II/2026",
+   "Phân khúc": "Nhà phố, biệt thự – thứ cấp",
+   "Biến động giá": "+2% so với quý trước, cục bộ ở dự án hoàn thiện pháp lý",
+   "Nguồn": "DKRA Consulting, qua Việt Báo 11/07/2026",
+   "Link": "https://vietbao.vn/can-ho-dat-nen-nha-pho-biet-thu-tp-ho-chi-minh-co-chuyen-dong-moi-598552.html"
+  },
+  {
+   "Thời điểm": "Tháng 10/2026",
+   "Phân khúc": "Nhà phố, biệt thự – thứ cấp",
+   "Biến động giá": "−8% so với tháng trước; tiêu thụ chỉ ~5% nguồn cung; sơ cấp đi ngang",
+   "Nguồn": "DKRA Consulting, qua CafeF 13/11/2026",
+   "Link": "https://cafef.vn/tphcm-cu-100-can-biet-thu-nha-pho-duoc-ban-ra-thi-co-toi-95-can-khong-ban-duoc-188261113135928595.chn"
+  }
+ ],
+ "tin_hieu": [
+  {
+   "Tín hiệu": "Đổi giá cùng một căn (TDM)",
+   "Giá trị đo được": "71% số lần đổi giá là GIẢM; mức đổi trung vị -3.4%",
+   "Chiều": "Giảm",
+   "Độ tin cậy": "Cao – đo trực tiếp trên cùng căn"
+  },
+  {
+   "Tín hiệu": "Đổi giá cùng một căn (toàn vùng)",
+   "Giá trị đo được": "78% là GIẢM; trung vị -4.6%",
+   "Chiều": "Giảm",
+   "Độ tin cậy": "Cao"
+  },
+  {
+   "Tín hiệu": "Giá rao theo tuần đăng",
+   "Giá trị đo được": "-0.37 điểm %/tháng (KTC 95% -4.75 … +4.15)",
+   "Chiều": "Chưa rõ",
+   "Độ tin cậy": "Thấp – có thiên lệch tin tồn"
+  },
+  {
+   "Tín hiệu": "Tin 'bán gấp/giảm giá' (TDM)",
+   "Giá trị đo được": "12% số tin",
+   "Chiều": "Giảm",
+   "Độ tin cậy": "Trung bình"
+  },
+  {
+   "Tín hiệu": "DKRA – nhà phố thứ cấp T10/2026",
+   "Giá trị đo được": "−8% so với tháng trước, tiêu thụ ~5% nguồn cung",
+   "Chiều": "Giảm",
+   "Độ tin cậy": "Trung bình – số liệu vùng"
+  },
+  {
+   "Tín hiệu": "DKRA – nhà phố thứ cấp 12 tháng trước đó",
+   "Giá trị đo được": "+13–17% so với cùng kỳ (đầu 2026)",
+   "Chiều": "Tăng (đã qua)",
+   "Độ tin cậy": "Trung bình – số liệu vùng"
+  }
+ ],
+ "du_bao": [
+  {
+   "Kỳ hạn": "6 tháng (đến 05/2027)",
+   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Đi ngang đến giảm nhẹ",
+   "Biên độ ước tính": "-4.6% … +2.0%",
+   "Căn cứ": "Biên dưới = mức giảm trung vị người bán đang áp dụng; biên trên = mức tăng quý gần nhất trước khi thị trường đảo chiều (DKRA Q2/2026)"
+  },
+  {
+   "Kỳ hạn": "12 tháng (đến 11/2027)",
+   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Phụ thuộc thanh khoản và lãi suất",
+   "Biên độ ước tính": "-9.1% … +4.0%",
+   "Căn cứ": "Mở rộng gấp đôi biên 6 tháng vì bất định tăng theo thời gian; chưa có dữ liệu để thu hẹp"
+  }
+ ],
+ "du_bao_so": {
+  "h6": {
+   "lo": -4.56,
+   "hi": 2.0
+  },
+  "h12": {
+   "lo": -9.12,
+   "hi": 4.0
+  }
+ },
+ "doi_gia_tdm": {
+  "pct_giam": 70.6,
+  "trung_vi": -3.42,
+  "so_tin_doi": 34,
+  "so_tin": 437
+ },
+ "chi_so_dinh_ky": [
+  {
+   "ky": "2026-11-14",
+   "chi_so_lap_lai": 100.0
+  }
+ ]
+}
