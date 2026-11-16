@@ -106,6 +106,19 @@ def _():
     rong = lambda g: k["nhom"][g]["q90"] - k["nhom"][g]["q10"]
     assert len(k["nguong"]) == 3 and rong("3") > rong("0"), "biên độ mức đắt nhất không rộng hơn mức rẻ nhất"
 
+@kiem("Kiểm định lùi xu hướng: không nhìn trước tương lai; Holt chỉ thắng 'không đổi' khi chuỗi có xu hướng thật")
+def _():
+    # chuỗi kiểm tra có tính chất biết trước (đây là kiểm thử MÃ, không phải dữ liệu đưa vào mô hình)
+    rng = np.random.default_rng(0)
+    y = np.cumsum(rng.normal(0, 0.01, 30))
+    a = M.kiem_dinh_lui(y)
+    y2 = y.copy(); y2[-1] += 5                      # đổi giá trị CUỐI: các dự báo trước kỳ cuối không được thay đổi
+    l1, t1 = M.holt(y[:20]); l2, t2 = M.holt(y2[:20])
+    assert (l1, t1) == (l2, t2), "dự báo tại kỳ 20 bị ảnh hưởng bởi dữ liệu sau kỳ 20"
+    xu_huong = 0.02 * np.arange(30) + rng.normal(0, 0.002, 30)          # tăng đều 2%/kỳ
+    assert M.kiem_dinh_lui(xu_huong)["holt_tot_hon"], "Holt không thắng trên chuỗi có xu hướng rõ"
+    assert a["so_ky_kiem_tra"] == 25 and M.kiem_dinh_lui(y[:5])["so_ky_kiem_tra"] == 0
+
 @kiem("Dữ liệu gốc đọc lại được và đã ẩn danh: mỗi dòng JSONL là 1 bản ghi hợp lệ (kể cả khi tách dòng kiểu Unicode), không còn thông tin người đăng / số điện thoại")
 def _():
     import json, re

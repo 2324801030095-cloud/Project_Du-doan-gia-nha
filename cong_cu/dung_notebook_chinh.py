@@ -988,7 +988,7 @@ md(r"""
 
 **Kết quả đạt được**
 - Dữ liệu **thật** từ 3 nguồn (guland, Chợ Tốt Nhà, alonhadat). Sau khi hợp nhất, sửa lỗi, loại trùng và loại tin không phải giá thị trường còn khoảng 1.470 căn, trong đó Phú Hòa khoảng 220 căn. Không dùng dữ liệu mô phỏng.
-- Đánh giá bằng **kiểm định chéo lặp, chia theo nhóm tin gần trùng**, mọi chỉ số có khoảng tin cậy 95%. Mô hình được chọn theo quy tắc "đơn giản nhất mà không kém có ý nghĩa" (Bước 7). Con số trình bày gồm **cả hai**: MAPE kiểm định chéo trên các căn Phú Hòa (Bước 7) và MAPE trên tập test giữ riêng (Bước 8), mỗi số kèm khoảng tin cậy (bảng ngay dưới phần kết luận).
+- Đánh giá bằng **kiểm định chéo lặp, chia theo nhóm tin gần trùng**, mọi chỉ số có khoảng tin cậy 95%. Mô hình được chọn theo quy tắc "đơn giản nhất mà không kém có ý nghĩa" (Bước 7). Con số trình bày gồm **ba cách đo** trên các căn Phú Hòa: kiểm định chéo (Bước 7), tập test giữ riêng (Bước 8) và dự đoán chéo theo nhóm trên toàn bộ căn Phú Hòa (Bước 10), mỗi số kèm khoảng tin cậy và cách đọc (bảng ngay dưới phần kết luận).
 - So với cách làm của phiên bản 1 và baseline đơn giá phường: xem bảng kiểm chứng ở Bước 7, có kèm khoảng tin cậy của chênh lệch.
 - Mỗi dự đoán có **khoảng giá 80%** đã kiểm chứng độ phủ, và mỗi tin Phú Hòa có **chẩn đoán** rẻ / hợp lý / cao so với thị trường (`ket_qua/output.csv`).
 - Yếu tố quyết định giá: diện tích đất, **vị trí** (giá khu vực), sau đó là lối vào và thông tin trong mô tả tin.
@@ -1008,12 +1008,26 @@ md(r"""
 """)
 
 code(r"""
-# Con số cần trình bày: kiểm định chéo VÀ tập test riêng, mỗi số kèm khoảng tin cậy 95%
+# Con số cần trình bày: 3 cách đo trên các căn Phú Hòa, mỗi số kèm khoảng tin cậy 95% (bootstrap theo nhóm tin gần trùng)
 cv_, te_ = bang_cv_ph.loc[ten_tot_nhat], bang_test_ph.loc[ten_tot_nhat]
-pd.DataFrame({"Cách đo": ["Kiểm định chéo lặp, chia theo nhóm (các căn Phú Hòa trong tập train)", "Tập test giữ riêng (căn Phú Hòa chưa từng thấy)"],
-              "Số căn": [int(cv_["Số căn"]), int(te_["Số căn"])],
-              "MAPE (%)": [round(cv_["MAPE (%)"], 1), round(te_["MAPE (%)"], 1)],
-              "KTC 95%": [f"{cv_['MAPE thấp (95%)']:.1f} – {cv_['MAPE cao (95%)']:.1f}", f"{te_['MAPE thấp (95%)']:.1f} – {te_['MAPE cao (95%)']:.1f}"]}).set_index("Cách đo")
+ph_all_ = df[df["phu_hoa"] == 1]
+ape_all = np.abs(ph_all_["gia_uoc_luong_ty"] / ph_all_["gia_ty"] - 1).to_numpy() * 100     # dự đoán chéo theo nhóm ở Bước 10
+lo_all, hi_all = ktc_bootstrap(ape_all, ph_all_["nhom"].to_numpy())
+phu_all = ((ph_all_["gia_ty"] >= ph_all_["khoang80_thap"]) & (ph_all_["gia_ty"] <= ph_all_["khoang80_cao"])).mean() * 100
+TOM_TAT = pd.DataFrame({
+    "Cách đo": ["(1) Kiểm định chéo lặp theo nhóm – căn Phú Hòa trong tập train", "(2) Tập test giữ riêng – căn Phú Hòa chưa từng thấy",
+                "(3) Dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (Bước 10)"],
+    "Số căn": [int(cv_["Số căn"]), int(te_["Số căn"]), len(ph_all_)],
+    "Số nhóm độc lập": [np.nan, np.nan, ph_all_["nhom"].nunique()],
+    "MAPE (%)": [round(cv_["MAPE (%)"], 1), round(te_["MAPE (%)"], 1), round(ape_all.mean(), 1)],
+    "KTC 95%": [f"{cv_['MAPE thấp (95%)']:.1f} – {cv_['MAPE cao (95%)']:.1f}", f"{te_['MAPE thấp (95%)']:.1f} – {te_['MAPE cao (95%)']:.1f}", f"{lo_all:.1f} – {hi_all:.1f}"],
+}).set_index("Cách đo")
+display(TOM_TAT)
+print(f"Độ phủ khoảng 80% trên toàn bộ {len(ph_all_)} căn Phú Hòa: {phu_all:.1f}%")
+print("Cách đọc: (2) là bằng chứng sạch nhất (căn chưa từng dùng ở bất kỳ bước nào) nhưng chỉ vài chục căn nên khoảng tin cậy rộng. "
+      "(3) dùng mọi căn Phú Hòa, mỗi căn được dự đoán bởi mô hình không học căn đó và các tin gần trùng, nên khoảng tin cậy hẹp hơn nhiều; "
+      "nhưng các căn của tập train đã tham gia bước CHỌN mô hình, nên (3) có thể lạc quan nhẹ. Ba con số nhất quán với nhau "
+      "thì mới kết luận sai số ở Phú Hòa vào khoảng giữa các giá trị này.")
 """)
 
 nb = nbf.v4.new_notebook()

@@ -438,3 +438,33 @@ def phan_vi_cho(nhom, bang):
 def muc_gia(p_log, nguong):
     """Xếp một dự đoán log(giá) vào mức giá 0..len(nguong) theo các ngưỡng (tứ phân vị)."""
     return np.digitize(np.atleast_1d(p_log), nguong)
+
+
+# ----------------------------------------------------------------------------------------------
+# Xu hướng: dự báo Holt và kiểm định lùi (dùng khi đã có đủ kỳ ảnh chụp dữ liệu thật)
+# ----------------------------------------------------------------------------------------------
+def holt(y, a=0.5, b=0.3):
+    """Làm trơn hàm mũ có xu hướng (Holt) trên chuỗi y -> (mức, xu hướng) ở kỳ cuối."""
+    y = np.asarray(y, float)
+    l, t = y[0], (y[1] - y[0]) if len(y) > 1 else 0.0
+    for v in y[1:]:
+        l_moi = a * v + (1 - a) * (l + t)
+        t = b * (l_moi - l) + (1 - b) * t
+        l = l_moi
+    return l, t
+
+
+def kiem_dinh_lui(y, bat_dau=4):
+    """Kiểm định lùi dự báo 1 kỳ tới: tại mỗi kỳ t, Holt CHỈ được dùng y[0..t] để dự báo y[t+1];
+    so với baseline "không đổi" (dự báo y[t+1] = y[t]). Trả về dict sai số tuyệt đối từng kỳ và kết luận.
+    Holt chỉ được coi là tốt hơn khi sai số trung bình THẤP HƠN baseline trên các kỳ kiểm tra."""
+    y = np.asarray(y, float)
+    loi_holt, loi_khong_doi = [], []
+    for t in range(bat_dau, len(y) - 1):
+        l, xh = holt(y[: t + 1])
+        loi_holt.append(abs(l + xh - y[t + 1]))
+        loi_khong_doi.append(abs(y[t] - y[t + 1]))
+    if not loi_holt:
+        return {"so_ky_kiem_tra": 0, "holt_tot_hon": False}
+    return {"so_ky_kiem_tra": len(loi_holt), "mae_holt": float(np.mean(loi_holt)), "mae_khong_doi": float(np.mean(loi_khong_doi)),
+            "holt_tot_hon": bool(np.mean(loi_holt) < np.mean(loi_khong_doi))}

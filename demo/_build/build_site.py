@@ -152,6 +152,12 @@ TOK.update({"DAT_N": vn(DAT.get("so_lo", 0), 0), "DAT_TDM": vn(DAT.get("so_lo_td
             "DAT_FULL": vn(DAT.get("mo_hinh_day_du_mape_tdm", 0)), "N_MAP": vn(len(PTS), 0),
             "THUE_N": vn(sum((THUE.get("so_tin") or {}).values()), 0)})
 
+# Bằng chứng (3): dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (notebook nhà phố, Bước 10)
+from mo_hinh_gia import ktc_bootstrap as _ktc
+_ape = (ph["gia_uoc_luong_ty"] / ph["gia_ty"] - 1).abs().to_numpy() * 100
+_lo, _hi = _ktc(_ape, ph["nhom"].to_numpy())
+TOK.update({"PH_ALL_N": str(len(ph)), "PH_ALL_MAPE": vn(_ape.mean()), "PH_ALL_LO": vn(_lo), "PH_ALL_HI": vn(_hi)})
+
 for k, v in TOK.items():
     tpl = tpl.replace(f"@@{k}@@", v)
 
