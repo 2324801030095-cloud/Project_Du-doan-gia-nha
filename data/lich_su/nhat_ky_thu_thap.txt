@@ -1,0 +1,154 @@
+==== Tue 11/17/2026  1:55:04.04 ====
+== Thu thập chotot ...
+o=0: +50 (tổng 50/2084)
+o=50: +50 (tổng 100/2084)
+o=100: +50 (tổng 150/2084)
+o=150: +50 (tổng 200/2084)
+o=200: +50 (tổng 250/2084)
+o=250: +50 (tổng 300/2084)
+o=300: +50 (tổng 350/2084)
+o=350: +50 (tổng 400/2084)
+o=400: +50 (tổng 450/2084)
+o=450: +50 (tổng 500/2084)
+o=500: +50 (tổng 550/2084)
+o=550: +50 (tổng 600/2084)
+o=600: +50 (tổng 650/2084)
+o=650: +50 (tổng 700/2084)
+o=700: +50 (tổng 750/2084)
+o=750: +50 (tổng 800/2084)
+o=800: +50 (tổng 850/2084)
+o=850: +50 (tổng 900/2084)
+o=900: +50 (tổng 950/2084)
+o=950: +50 (tổng 1000/2084)
+o=1000: +50 (tổng 1050/2084)
+o=1050: +50 (tổng 1100/2084)
+o=1100: +50 (tổng 1150/2084)
+o=1150: +50 (tổng 1200/2084)
+o=1200: +50 (tổng 1250/2084)
+o=1250: +50 (tổng 1300/2084)
+o=1300: +50 (tổng 1350/2084)
+o=1350: +50 (tổng 1400/2084)
+o=1400: +50 (tổng 1450/2084)
+o=1450: +50 (tổng 1500/2084)
+o=1500: +50 (tổng 1550/2084)
+o=1550: +50 (tổng 1600/2084)
+o=1600: +50 (tổng 1650/2084)
+o=1650: +50 (tổng 1700/2084)
+o=1700: +50 (tổng 1750/2084)
+o=1750: +50 (tổng 1800/2084)
+o=1800: +50 (tổng 1850/2084)
+o=1850: +50 (tổng 1900/2084)
+o=1900: +50 (tổng 1950/2084)
+o=1950: +50 (tổng 2000/2084)
+o=2000: +50 (tổng 2050/2084)
+o=2050: +34 (tổng 2084/2084)
+Bảng mã học từ dữ liệu: {'house_type': {1: 'Nhà mặt tiền', 3: 'Nhà hẻm', 4: 'Nhà liền kề', 2: 'Biệt thự'}, 'furnishing_sell': {2: 'Nội thất đầy đủ', 3: 'Hoàn thiện cơ bản', 1: 'Nội thất cao cấp', 4: 'Bàn giao thô'}, 'property_legal_document': {1: 'Đã có sổ', 5: 'Sổ chung / công chứng vi bằng', 2: 'Đang chờ sổ', 6: 'Giấy tờ viết tay'}, 'direction': {6: 'Hướng Đông Nam', 4: 'Hướng Bắc', 1: 'Hướng Đông', 3: 'Hướng Nam', 5: 'Hướng Đông Bắc', 2: 'Hướng Tây', 8: 'Hướng Tây Nam', 7: 'Hướng Tây Bắc'}, 'pc': {2: 'Hẻm xe hơi', 9: 'Hiện trạng khác', 3: 'Nhà nở hậu', 6: 'Nhà chưa hoàn công', 8: 'Đất chưa chuyển thổ'}}
+Đã lưu 2084 tin -> D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\data\raw\chotot_binh_duong_raw.csv
+   đã lưu ảnh chụp: data\lich_su\chotot_2026-11-17.csv
+== Thu thập alonhadat ...
+nha-mat-tien trang 1 + 20 tổng 20
+nha-mat-tien trang 2 + 20 tổng 40
+nha-mat-tien trang 3 + 20 tổng 60
+nha-mat-tien trang 4 + 17 tổng 77
+nha-mat-tien trang 5 + 0 tổng 77
+nha-trong-hem trang 1 + 20 tổng 97
+nha-trong-hem trang 2 + 20 tổng 117
+nha-trong-hem trang 3 + 20 tổng 137
+nha-trong-hem trang 4 + 20 tổng 157
+nha-trong-hem trang 5 + 20 tổng 177
+nha-trong-hem trang 6 + 20 tổng 197
+nha-trong-hem trang 7 + 20 tổng 217
+nha-trong-hem trang 8 + 15 tổng 232
+nha-trong-hem trang 9 + 0 tổng 232
+biet-thu-nha-lien-ke trang 1 + 20 tổng 252
+biet-thu-nha-lien-ke trang 2 + 20 tổng 272
+biet-thu-nha-lien-ke trang 3 + 3 tổng 275
+retry 0 HTTP Error 429: Too Many Requests
+retry 1 HTTP Error 429: Too Many Requests
+retry 2 HTTP Error 429: Too Many Requests
+retry 3 HTTP Error 429: Too Many Requests
+biet-thu-nha-lien-ke trang 4 + 0 tổng 275
+Đã lưu 275 tin -> D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\data\raw\alonhadat_tdm_raw.csv
+   đã lưu ảnh chụp: data\lich_su\alonhadat_2026-11-17.csv
+== Thu thập chotot_can_ho ...
+o=0: +50 (tổng 50/2100)
+o=50: +50 (tổng 100/2100)
+o=100: +50 (tổng 150/2100)
+o=150: +50 (tổng 200/2100)
+o=200: +50 (tổng 250/2100)
+o=250: +50 (tổng 300/2100)
+o=300: +50 (tổng 350/2100)
+o=350: +50 (tổng 400/2100)
+o=400: +50 (tổng 450/2100)
+o=450: +50 (tổng 500/2100)
+o=500: +50 (tổng 550/2100)
+o=550: +50 (tổng 600/2100)
+o=600: +50 (tổng 650/2100)
+o=650: +50 (tổng 700/2100)
+o=700: +50 (tổng 750/2100)
+o=750: +50 (tổng 800/2100)
+o=800: +50 (tổng 850/2100)
+o=850: +50 (tổng 900/2100)
+o=900: +50 (tổng 950/2100)
+o=950: +50 (tổng 1000/2100)
+o=1000: +50 (tổng 1050/2100)
+o=1050: +50 (tổng 1100/2100)
+o=1100: +50 (tổng 1150/2100)
+o=1150: +50 (tổng 1200/2100)
+o=1200: +50 (tổng 1250/2100)
+o=1250: +50 (tổng 1300/2100)
+o=1300: +50 (tổng 1350/2100)
+o=1350: +50 (tổng 1400/2100)
+o=1400: +50 (tổng 1450/2100)
+o=1450: +50 (tổng 1500/2100)
+o=1500: +50 (tổng 1550/2100)
+o=1550: +50 (tổng 1600/2100)
+o=1600: +50 (tổng 1650/2100)
+o=1650: +50 (tổng 1700/2100)
+o=1700: +50 (tổng 1750/2100)
+o=1750: +50 (tổng 1800/2100)
+o=1800: +50 (tổng 1850/2100)
+o=1850: +50 (tổng 1900/2100)
+o=1900: +50 (tổng 1950/2100)
+o=1950: +50 (tổng 2000/2100)
+o=2000: +50 (tổng 2050/2100)
+o=2050: +50 (tổng 2100/2100)
+Bảng mã học từ dữ liệu: {'apartment_type': {1: 'Chung cư', 7: 'Nhà ở xã hội', 2: 'Căn hộ dịch vụ', 3: 'Duplex', 4: 'Penthouse', 6: 'Officetel'}, 'furnishing_sell': {2: 'Nội thất đầy đủ', 3: 'Hoàn thiện cơ bản', 1: 'Nội thất cao cấp', 4: 'Bàn giao thô'}, 'property_legal_document': {6: 'Sổ hồng riêng', 5: 'Hợp đồng mua bán', 4: 'Hợp đồng đặt cọc', 2: 'Đang chờ sổ', 1: '1'}, 'property_status': {2: 'Đã bàn giao', 1: 'Chưa bàn giao'}, 'direction': {7: 'Hướng Tây Bắc', 8: 'Hướng Tây Nam', 4: 'Hướng Bắc', 5: 'Hướng Đông Bắc', 6: 'Hướng Đông Nam', 1: 'Hướng Đông', 3: 'Hướng Nam', 2: 'Hướng Tây'}}
+Đã lưu 2100 tin -> D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\data\raw\chotot_can_ho_raw.csv
+   đã lưu ảnh chụp: data\lich_su\chotot_can_ho_2026-11-17.csv
+== Thu thập alonhadat_can_ho ...
+retry 0 HTTP Error 429: Too Many Requests
+retry 1 HTTP Error 429: Too Many Requests
+retry 2 HTTP Error 429: Too Many Requests
+retry 3 HTTP Error 429: Too Many Requests
+can-ho-chung-cu trang 1 + 0 tổng 0
+Traceback (most recent call last):
+  File "d:\Nam 4 HK_I\Hoc May\.venv\Lib\site-packages\pandas\core\indexes\base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 168, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 197, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7668, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7676, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'dia_chi_moi'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\thu_thap\alonhadat_thu_thap.py", line 71, in <module>
+    df["dia_chi_moi"] = df["dia_chi_moi"].str.replace(r"\s+", " ", regex=True)
+                        ~~^^^^^^^^^^^^^^^
+  File "d:\Nam 4 HK_I\Hoc May\.venv\Lib\site-packages\pandas\core\frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "d:\Nam 4 HK_I\Hoc May\.venv\Lib\site-packages\pandas\core\indexes\base.py", line 3648, in get_loc
+    raise KeyError(key) from err
+KeyError: 'dia_chi_moi'
+Traceback (most recent call last):
+  File "d:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\thu_thap\cap_nhat_dinh_ky.py", line 35, in <module>
+    subprocess.run([sys.executable, "-X", "utf8", str(ROOT / "thu_thap" / ten_file), *tham_so], check=True, cwd=ROOT)   # -X utf8: in được tiếng Việt trên mọi console
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['d:\\Nam 4 HK_I\\Hoc May\\.venv\\Scripts\\python.exe', '-X', 'utf8', 'D:\\Nam 4 HK_I\\Hoc May\\Bao Cao\\Du Doan Gia Nha Phu Hoa\\thu_thap\\alonhadat_thu_thap.py', '--can-ho']' returned non-zero exit status 1.
+Ket thuc, ma loi = 1 

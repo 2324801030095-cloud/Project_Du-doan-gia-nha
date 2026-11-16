@@ -1,0 +1,42 @@
+// Nạp phần JavaScript của demo/trang_ban_nha.html vào Node với một DOM giả lập tối thiểu,
+// để kiểm thử tự động trợ lý hỏi đáp và các hàm định giá mà không cần mở trình duyệt.
+// Dùng: const T = require("./nap_trang_demo.js");  T.hoi("nhà 80m2 hẻm xe hơi")  -> { y, e, text }
+const fs = require("fs"), path = require("path");
+const html = fs.readFileSync(path.join(__dirname, "..", "demo", "trang_ban_nha.html"), "utf8");
+const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+function el() {
+  const store = { innerHTML: "", textContent: "", value: "", hidden: false, checked: false, dataset: {}, style: { setProperty() {} }, scrollTop: 0, scrollHeight: 0 };
+  return new Proxy(store, {
+    get(t, k) {
+      if (k in t) return t[k];
+      if (k === "classList") return { toggle() {}, add() {}, remove() {}, contains() { return false; } };
+      if (k === "querySelectorAll") return () => [];
+      if (k === "querySelector" || k === "closest") return () => null;
+      if (k === "getBoundingClientRect") return () => ({ width: 600, height: 300, left: 0, top: 0, right: 600 });
+      if (typeof k === "symbol") return undefined;
+      return () => el();
+    },
+    set(t, k, v) { t[k] = v; return true; },
+  });
+}
+const els = {};
+global.document = { getElementById: (id) => (els[id] ??= el()), querySelectorAll: () => [], querySelector: () => el(),
+  addEventListener() {}, createElement: () => el(), body: el(), title: "" };
+global.window = { addEventListener() {}, scrollTo() {}, matchMedia: () => ({ matches: false, addEventListener() {} }) };
+global.location = { hash: "#/", replace() {} };
+global.history = { replaceState() {} };
+global.localStorage = { getItem: () => null, setItem() {} };
+global.requestAnimationFrame = (f) => f();
+global.IntersectionObserver = class { observe() {} };
+global.setTimeout = (f) => 0;    // không chạy hiệu ứng "đang trả lời"
+const api = new Function(scripts.join("\n;\n") + `
+;return { botTrich, botYDinh, botTraLoi, BOT, predict, presetVec, MODEL, CH_MODEL, LISTINGS, CH_LIST, TREND, THUE, DAT_MODEL, DAT_LIST, datDuDoan, ysNha, ysCanHo, MAP_PTS, whyBlock, favItem };`)();
+api.hoi = (q, giuNguCanh = false) => {
+  if (!giuNguCanh) api.BOT.ctx = null;
+  const { t, e } = api.botTrich(q);
+  const y = api.botYDinh(t, e);
+  const r = api.botTraLoi(q);
+  const text = r.html.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+  return { y, e, text, html: r.html, goi_y: r.goi_y };
+};
+module.exports = api;
