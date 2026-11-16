@@ -13,7 +13,7 @@ Cập nhật: 17/11/2026
   - Tập test nhà phố riêng Phú Hòa nhỏ (40 căn). MAPE test 27,5%, khoảng tin cậy 95% là 20,8–35,7%. Cần trình bày cùng MAPE kiểm định chéo 23,2% (20,6–26,3).
   - Xu hướng 6–12 tháng mới là kịch bản tham khảo. Khi có từ 8 kỳ ảnh chụp trở lên trong `data/lich_su/`, notebook xu hướng tự kiểm định lùi.
   - Dữ liệu là giá rao, không phải giá giao dịch.
-- **Lịch sử git:** các commit cũ trước `dd4d46b` (gồm `990e482`) còn bản dữ liệu thô chưa ẩn danh. Chỉ bản mới nhất được bảo đảm đã ẩn danh. Muốn gỡ hẳn thì phải viết lại lịch sử và force-push, và việc này cần chủ repo đồng ý.
+- **Lịch sử git:** ngày 17/11/2026 lịch sử đã được viết lại, chỉ gồm bản đã ẩn danh (commit gốc `632e9e7`), rồi force-push. Bản sao lưu lịch sử cũ là nhánh `sao-luu-truoc-viet-lai-lich-su`. Nhánh này chỉ nằm trong máy và không được đẩy lên. Các commit cũ (`990e482`, `e1983ce`) không còn thuộc nhánh nào trên GitHub, nhưng GitHub vẫn trả về nếu ai biết chính xác mã SHA, cho tới khi GitHub tự dọn. Muốn xóa ngay thì gửi yêu cầu cho GitHub Support (xóa dữ liệu nhạy cảm, kèm 2 mã SHA này).
 - **Bước tiếp theo:**
   - Chạy lại notebook xu hướng sau mỗi vài kỳ thu thập.
   - Khi có thêm tin Phú Hòa mới, chạy lại notebook nhà phố để thu hẹp khoảng tin cậy của tập test.
