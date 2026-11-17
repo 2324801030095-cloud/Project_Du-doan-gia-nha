@@ -91,6 +91,14 @@ kiem("Giải thích SHAP của mô hình đầy đủ hiển thị trong chi ti�
   return /Vì sao căn này/.test(T.whyBlock(o)) ? "" : "không hiển thị";
 });
 
+kiem("Bản đồ căn hộ: mỗi dự án đúng 1 chấm, đủ căn, căn ngoài TDM vẫn lưu được", () => {
+  const ds = T.CH_TOA.filter((t) => t.co_du_an), ten = ds.map((t) => t.ten), tong = T.CH_TOA.reduce((s, t) => s + t.n, 0);
+  if (tong < 600) return `chỉ có ${tong} căn trên bản đồ`;
+  if (T.CH_TOA.some((t) => t.n !== t.can.length || !(t.lat > 10.8 && t.lat < 11.7 && t.lon > 106.3 && t.lon < 107))) return "số căn hoặc tọa độ tòa sai";
+  const ngoai = T.CH_TOA.flatMap((t) => t.can).find((c) => !T.CH_LIST.some((x) => x.id === c.id));
+  return ngoai && T.favItem("c" + ngoai.id) ? "" : "căn ngoài Thủ Dầu Một không lưu được";
+});
+
 // ---------- 4. ngữ cảnh ----------
 kiem("Hỏi tiếp giữ ngữ cảnh: '80m² 1 trệt 1 lầu' → 'nếu là mặt tiền' → 'còn 120m²'", () => {
   T.hoi("nhà 80m2 1 trệt 1 lầu hẻm xe hơi giá bao nhiêu"); T.hoi("nếu là nhà mặt tiền thì sao?", true); const r = T.hoi("còn 120m2 thì sao", true);

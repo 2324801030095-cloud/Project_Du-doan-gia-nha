@@ -627,6 +627,7 @@ button.row, a.row { cursor: pointer; } button.row:hover, a.row:hover { border-co
 .map-leg { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
 .map-leg i { display: inline-block; width: 110px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, #2c7bb6, #abd9e9, #ffffbf, #fdae61, #d7191c); }
 .map-svg { width: 100%; height: 100%; display: block; }
+#map-ds td.r { white-space: nowrap; }
 .map-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; }
 .map-stats div { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; background: var(--surface); font-size: 12.5px; color: var(--muted); }
 .map-stats b { display: block; font-size: 16px; color: var(--navy-900); }
@@ -1172,6 +1173,12 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
       <div class="map-leg"><span id="map-lo">–</span><i></i><span id="map-hi">–</span><span id="map-unit"></span></div>
     </div>
     <div class="map-wrap"><div id="map" role="region" aria-label="Bản đồ giá"></div></div>
+    <section class="panel" id="map-ds" hidden style="margin-top:16px">
+      <div class="panel-h"><svg class="ic"><use href="#i-building-2"/></svg><h3 id="map-ds-ten"></h3><p id="map-ds-sub"></p></div>
+      <div class="panel-b"><div class="ch-tbl-wrap"><table class="tbl tbl-sm">
+        <thead><tr><th>Tin rao</th><th class="r">DT</th><th class="r">PN</th><th class="r">Giá rao</th><th class="r">Mô hình ước tính</th><th class="r">Thuê / tỷ suất</th><th>Nhận xét</th><th><span class="sr-only">Lưu</span></th></tr></thead>
+        <tbody id="map-ds-tbl"></tbody></table></div></div>
+    </section>
     <div class="map-stats" id="map-stats"></div>
     <p class="note" style="margin-top:12px"><svg class="ic ic-sm"><use href="#i-info"/></svg><span id="map-note">Bản đồ nền © Esri (dữ liệu: Esri, HERE, Garmin, OpenStreetMap contributors). Tin chỉ có tọa độ tâm phường không được vẽ để tránh hiểu nhầm vị trí. Bấm vào một điểm để xem giá và mở tin gốc.</span></p>
   </div>
@@ -1734,11 +1741,13 @@ function chRender() {
   const [t, c] = !d ? ["Không rõ dự án", "pill warn"] : d.so_tin < 4 ? ["Dự án ít tin", "pill warn"] : du >= 3 ? ["Đủ thông tin", "pill ok"] : ["Thiếu vài thông số", "pill warn"];
   $("ch_pill").textContent = t; $("ch_pill").className = c;
 }
+const cdTag = (cd) => cd === "Rẻ hơn thị trường" ? `<span class="tag tag-green">${icon("trending-down")}Rẻ hơn thị trường</span>`
+  : cd === "Cao hơn thị trường" ? `<span class="tag tag-red">${icon("trending-up")}Cao hơn thị trường</span>`
+  : cd === "Hợp lý" ? `<span class="tag tag-white">${icon("check")}Hợp lý</span>` : cd ? `<span class="tag tag-soft">${esc(cd)}</span>` : "–";
 function chTable() {
   const rows = [...CH_LIST].sort((a, b) => a.diff - b.diff);
   $("ch_tbl_sub").textContent = `${rows.length} căn · sắp xếp từ rẻ nhất so với ước tính`;
-  const tag = (o) => o.cd === "Rẻ hơn thị trường" ? `<span class="tag tag-green">${icon("trending-down")}Rẻ hơn thị trường</span>`
-    : o.cd === "Cao hơn thị trường" ? `<span class="tag tag-red">${icon("trending-up")}Cao hơn thị trường</span>` : `<span class="tag tag-white">${icon("check")}Hợp lý</span>`;
+  const tag = (o) => cdTag(o.cd);
   $("ch_tbl").innerHTML = rows.map((o) => `<tr><td><a class="link" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">${esc(o.da || "Không rõ dự án")}</a><span class="hint" style="margin-top:2px">${esc(o.ph)}</span></td>
     <td class="r">${fmt(o.dt, 0)} m²</td><td class="r">${fin(o.pn) ? o.pn : "–"}</td><td class="r">${fmt(o.g)} tỷ</td>
     <td class="r">${fmt(o.ai)} tỷ<span class="hint" style="margin-top:2px">${fmt(o.lo)} – ${fmt(o.hi)}</span></td>
@@ -1790,7 +1799,7 @@ function favItem(k) {
   const loai = k[0], id = k.slice(1);
   if (loai === "n") { const o = byId(Number(id)); return o && { k, loai: "Nhà phố", ten: o.t, g: o.g, dt: o.dt, unit: o.unit, ai: o.ai, lo: o.lo80, hi: o.hi80, cd: o.chan_doan, thue: o.thue, ys: o.ys, url: o.url,
     them: [["Lối vào", fin(o.vt) ? VT_NAME[o.vt] : null], ["Kết cấu", fin(o.st) ? TANG_NAME[o.st] : null], ["Mặt tiền", fin(o.mt) ? `${fmt(o.mt, 1)} m` : null], ["Pháp lý", o.so]] }; }
-  if (loai === "c") { const o = CH_LIST.find((x) => x.id === id); return o && { k, loai: "Căn hộ", ten: `${o.da || "Căn hộ"} · ${o.ph}`, g: o.g, dt: o.dt, unit: o.g * 1000 / o.dt, ai: o.ai, lo: o.lo, hi: o.hi, cd: o.cd, thue: o.thue, ys: o.ys, url: o.url,
+  if (loai === "c") { const o = CH_LIST.find((x) => x.id === id) || CH_CAN[id]; return o && { k, loai: "Căn hộ", ten: `${o.da || "Căn hộ"} · ${o.ph}`, g: o.g, dt: o.dt, unit: o.g * 1000 / o.dt, ai: o.ai, lo: o.lo, hi: o.hi, cd: o.cd, thue: o.thue, ys: o.ys, url: o.url,
     them: [["Phòng ngủ", fin(o.pn) ? String(o.pn) : null]] }; }
   if (loai === "d") { const o = DAT_LIST.find((x) => x.id === id); return o && { k, loai: "Đất nền", ten: `Đất ${o.duong ? o.duong + ", " : ""}${o.ph}`, g: o.g, dt: o.dt, unit: o.g * 1000 / o.dt, ai: o.ai, lo: o.lo, hi: o.hi, cd: o.cd, url: o.url,
     them: [["Mặt tiền", fin(o.mt) ? `${fmt(o.mt, 1)} m` : null]] }; }
@@ -1886,9 +1895,7 @@ function datRender() {
 function datTable() {
   const rows = [...DAT_LIST].sort((a, b) => a.diff - b.diff);
   $("dat_tbl_sub").textContent = `${rows.length} lô · sắp xếp từ rẻ nhất so với ước tính`;
-  const tag = (o) => o.cd === "Rẻ hơn thị trường" ? `<span class="tag tag-green">${icon("trending-down")}Rẻ hơn thị trường</span>`
-    : o.cd === "Cao hơn thị trường" ? `<span class="tag tag-red">${icon("trending-up")}Cao hơn thị trường</span>`
-    : o.cd === "Hợp lý" ? `<span class="tag tag-white">${icon("check")}Hợp lý</span>` : `<span class="tag tag-soft">${esc(o.cd)}</span>`;
+  const tag = (o) => cdTag(o.cd);
   $("dat_tbl").innerHTML = rows.map((o) => `<tr><td><a class="link" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">${esc(o.ph)}</a><span class="hint" style="margin-top:2px">${esc(o.duong || "")}</span></td>
     <td class="r">${fmt(o.dt, 0)} m²</td><td class="r">${fin(o.mt) ? fmt(o.mt, 1) + " m" : "–"}</td><td class="r">${fmt(o.g)} tỷ</td>
     <td class="r">${fmt(o.ai)} tỷ<span class="hint" style="margin-top:2px">${fmt(o.lo)} – ${fmt(o.hi)}</span></td><td>${tag(o)}</td><td>${favIcon("d" + o.id)}</td></tr>`).join("");
@@ -1896,6 +1903,7 @@ function datTable() {
 
 /* ---------- Bản đồ giá: Leaflet (nếu tải được) hoặc bản vẽ SVG đơn giản khi không có mạng ---------- */
 const MAP = { loai: "nha", map: null, layer: null };
+const CH_CAN = Object.fromEntries(CH_TOA.flatMap((t) => t.can.map((c) => [c.id, c])));
 const MAP_TEN = { nha: "nhà phố", ch: "căn hộ", dat: "đất nền", thue: "tin cho thuê" };
 const MAP_DV = { nha: "tr/m² đất", ch: "tr/m²", dat: "tr/m²", thue: "nghìn đ/m²/tháng" };
 function mauDonGia(t) {      // t trong [0, 1] -> thang màu xanh (rẻ) -> đỏ (đắt)
@@ -1905,16 +1913,35 @@ function mauDonGia(t) {      // t trong [0, 1] -> thang màu xanh (rẻ) -> đ�
 }
 function mapRender() {
   if (!window.L && document.readyState !== "complete") { window.addEventListener("load", mapRender, { once: true }); return; }
-  const pts = MAP_PTS.filter((p) => p[3] === MAP.loai);
+  const laCH = MAP.loai === "ch";
+  // Chợ Tốt hay gán CÙNG một tọa độ cho nhiều dự án gần nhau -> gộp theo vị trí, nếu không các chấm chồng khít lên nhau
+  const viTri = {};
+  if (laCH) CH_TOA.forEach((t, i) => (viTri[t.lat + "," + t.lon] ??= []).push(i));
+  MAP.diem = Object.values(viTri);
+  const canTai = (ds) => ds.flatMap((i) => CH_TOA[i].can);
+  const pts = laCH ? MAP.diem.map((ds, j) => { const c = canTai(ds);
+      return [CH_TOA[ds[0]].lat, CH_TOA[ds[0]].lon, median(c.map((o) => o.g * 1000 / o.dt)), "ch", median(c.map((o) => o.g)), "", null, j, c.length]; })
+    : MAP_PTS.filter((p) => p[3] === MAP.loai);
+  const banKinh = (p) => (laCH ? 5 + Math.min(9, Math.sqrt(p[8]) * 1.4) : 5);
+  $("map-ds").hidden = true;
   const u = pts.map((p) => Math.log(p[2])).sort((a, b) => a - b);
   const q = (r) => u[Math.floor(r * (u.length - 1))];
   const lo = q(0.05), hi = q(0.95), t = (v) => (Math.log(v) - lo) / (hi - lo || 1);
   $("map-lo").textContent = fmt(Math.exp(lo), 1); $("map-hi").textContent = fmt(Math.exp(hi), 1); $("map-unit").textContent = MAP_DV[MAP.loai];
   const med = median(pts.map((p) => p[2])), tdm = pts.filter((p) => Math.hypot((p[0] - 10.98) * 110, (p[1] - 106.652) * 109) < 7);
-  $("map-stats").innerHTML = `<div>Số điểm trên bản đồ<b>${fmt(pts.length, 0)} ${MAP_TEN[MAP.loai]}</b></div>
+  $("map-stats").innerHTML = `<div>Số điểm trên bản đồ<b>${laCH ? `${fmt(CH_TOA.filter((t) => t.co_du_an).length, 0)} tòa / dự án · ${fmt(CH_TOA.reduce((s, t) => s + t.n, 0), 0)} căn` : `${fmt(pts.length, 0)} ${MAP_TEN[MAP.loai]}`}</b></div>
     <div>Trung vị toàn vùng<b>${fmt(med, 1)} ${MAP_DV[MAP.loai]}</b></div>
     <div>Trung vị gần trung tâm TDM (≤ 7 km)<b>${tdm.length ? fmt(median(tdm.map((p) => p[2])), 1) + " " + MAP_DV[MAP.loai] : "–"}</b></div>`;
-  const popup = (p) => `<b>${esc(p[5])}</b><br>${MAP.loai === "thue" ? `${fmt(p[4], 1)} triệu/tháng` : `${fmt(p[4])} tỷ`} · ${fmt(p[2], 1)} ${MAP_DV[MAP.loai]}<br><a href="${esc(p[6])}" target="_blank" rel="noopener noreferrer">Xem tin gốc</a>`;
+  const popupToa = (p) => {
+    const ds = MAP.diem[p[7]], co = ds.filter((i) => CH_TOA[i].co_du_an), chuaRo = ds.filter((i) => !CH_TOA[i].co_du_an);
+    const nChuaRo = chuaRo.reduce((s, i) => s + CH_TOA[i].n, 0);
+    const nut = (attr, n) => `<button class="btn btn-primary btn-sm" type="button" ${attr} style="padding:3px 10px">Xem ${n} căn</button>`;
+    const dong = co.map((i) => `<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:6px"><span><b>${esc(CH_TOA[i].ten)}</b><br>` +
+        `${CH_TOA[i].n} căn · ${fmt(CH_TOA[i].dg, 1)} tr/m²</span>${nut(`data-toa="${i}"`, CH_TOA[i].n)}</div>`)
+      .concat(nChuaRo ? [`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:6px"><span><b>Căn chưa rõ dự án</b><br>${nChuaRo} căn</span>${nut(`data-diem="${p[7]}" data-chua-ro="1"`, nChuaRo)}</div>`] : []);
+    return `<div style="max-height:260px;overflow:auto">${ds.length > 1 ? `<b>${co.length} dự án${nChuaRo ? ` + ${nChuaRo} căn chưa rõ dự án` : ""} tại vị trí này</b><br>` : ""}` +
+      `<span style="color:var(--muted)">${esc(CH_TOA[ds[0]].ph)} · trung vị ${fmt(p[2], 1)} tr/m²</span>${dong.join("")}</div>`; };
+  const popup = (p) => laCH ? popupToa(p) : `<b>${esc(p[5])}</b><br>${MAP.loai === "thue" ? `${fmt(p[4], 1)} triệu/tháng` : `${fmt(p[4])} tỷ`} · ${fmt(p[2], 1)} ${MAP_DV[MAP.loai]}<br><a href="${esc(p[6])}" target="_blank" rel="noopener noreferrer">Xem tin gốc</a>`;
   if (window.L) {
     if (!MAP.map) {
       MAP.map = L.map("map", { preferCanvas: true, scrollWheelZoom: false }).setView([10.99, 106.66], 12);
@@ -1923,7 +1950,7 @@ function mapRender() {
         { maxZoom: 19, attribution: "Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors, GIS user community" }).addTo(MAP.map);
     }
     if (MAP.layer) MAP.layer.remove();
-    MAP.layer = L.layerGroup(pts.map((p) => L.circleMarker([p[0], p[1]], { radius: 5, weight: 0.6, color: "#0b1f36", fillColor: mauDonGia(t(p[2])), fillOpacity: 0.85 }).bindPopup(popup(p)))).addTo(MAP.map);
+    MAP.layer = L.layerGroup(pts.map((p) => L.circleMarker([p[0], p[1]], { radius: banKinh(p), weight: 0.6, color: "#0b1f36", fillColor: mauDonGia(t(p[2])), fillOpacity: 0.85 }).bindPopup(popup(p)))).addTo(MAP.map);
     setTimeout(() => MAP.map.invalidateSize(), 50);
   } else {
     // không tải được thư viện bản đồ: vẽ các điểm theo kinh độ/vĩ độ (không có nền đường phố)
@@ -1931,10 +1958,28 @@ function mapRender() {
     const X = (v) => (v - x0) / (x1 - x0) * W, Y = (v) => H - (v - y0) / (y1 - y0) * H;
     $("map").innerHTML = `<svg class="map-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bản đồ điểm giá (không có nền bản đồ)">` +
       `<circle cx="${X(106.652)}" cy="${Y(10.9805)}" r="10" fill="none" stroke="#0b1f36" stroke-dasharray="3 3"/><text x="${X(106.652) + 14}" y="${Y(10.9805) + 4}" font-size="13" fill="#0b1f36">Trung tâm TDM</text>` +
-      pts.filter((p) => p[1] > x0 && p[1] < x1 && p[0] > y0 && p[0] < y1).map((p) => `<circle cx="${X(p[1]).toFixed(1)}" cy="${Y(p[0]).toFixed(1)}" r="4" fill="${mauDonGia(t(p[2]))}" stroke="#0b1f36" stroke-width=".4"><title>${esc(p[5])} – ${fmt(p[2], 1)} ${MAP_DV[MAP.loai]}</title></circle>`).join("") + "</svg>";
+      pts.filter((p) => p[1] > x0 && p[1] < x1 && p[0] > y0 && p[0] < y1).map((p) => `<circle cx="${X(p[1]).toFixed(1)}" cy="${Y(p[0]).toFixed(1)}" r="${banKinh(p) - 1}" fill="${mauDonGia(t(p[2]))}" stroke="#0b1f36" stroke-width=".4"${laCH ? ` data-diem="${p[7]}" style="cursor:pointer"` : ""}><title>${esc(p[5])} – ${fmt(p[2], 1)} ${MAP_DV[MAP.loai]}</title></circle>`).join("") + "</svg>";
     $("map-note").textContent = "Không tải được bản đồ nền (cần Internet): đang hiển thị vị trí tương đối các tin quanh Thủ Dầu Một, không có đường phố.";
   }
 }
+function toaRender(ten, ph, can) {
+  can = [...can].sort((a, b) => a.g - b.g);
+  $("map-ds-ten").textContent = ten;
+  $("map-ds-sub").textContent = `${ph} · ${can.length} căn đang rao · sắp xếp theo giá`;
+  $("map-ds-tbl").innerHTML = can.map((o) => `<tr><td><a class="link" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">${esc(o.t)}</a>${o.da ? `<span class="hint" style="margin-top:2px">${esc(o.da)}</span>` : ""}</td>
+    <td class="r">${fmt(o.dt, 0)} m²</td><td class="r">${fin(o.pn) ? o.pn : "–"}</td><td class="r">${fmt(o.g)} tỷ</td>
+    <td class="r">${fin(o.ai) ? `${fmt(o.ai)} tỷ<span class="hint" style="margin-top:2px">${fmt(o.lo)} – ${fmt(o.hi)}</span>` : "–"}</td>
+    <td class="r">${fin(o.thue) ? `${fmt(o.thue, 1)} tr/th<span class="hint" style="margin-top:2px">${fmt(o.ys, 1)}%/năm</span>` : "–"}</td>
+    <td>${cdTag(o.cd)}</td><td>${favIcon("c" + o.id)}</td></tr>`).join("");
+  $("map-ds").hidden = false;
+  $("map-ds").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-toa], [data-diem]"); if (!b) return;
+  if (b.dataset.toa) { const t = CH_TOA[Number(b.dataset.toa)]; return toaRender(t.ten, t.ph, t.can); }
+  const ds = MAP.diem[Number(b.dataset.diem)].filter((i) => !b.dataset.chuaRo || !CH_TOA[i].co_du_an);
+  toaRender(b.dataset.chuaRo ? "Căn chưa rõ dự án" : "Các căn hộ tại vị trí này", CH_TOA[ds[0]].ph, ds.flatMap((i) => CH_TOA[i].can));
+});
 function mapInit() {
   document.querySelectorAll("[data-loai]").forEach((b) => b.addEventListener("click", () => {
     document.querySelectorAll("[data-loai]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
