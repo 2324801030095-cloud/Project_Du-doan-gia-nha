@@ -17,7 +17,12 @@ md(r"""
 **Lớp:** D23KTPM01
 **Môn:** Học máy
 
-**Bài toán:** cho thông tin một căn nhà (diện tích, kích thước, số tầng, số phòng, lối vào, vị trí, mô tả tin), mô hình dự đoán **giá bán (tỷ đồng)** kèm **khoảng giá tin cậy**, rồi **chẩn đoán** giá rao đang rẻ, hợp lý hay cao so với mặt bằng thị trường. Đây là bài toán **học có giám sát – hồi quy**.
+**Bài toán học máy** (theo định nghĩa trong bài giảng: chương trình học từ kinh nghiệm **E** để làm nhiệm vụ **T** tốt hơn theo độ đo **P**):
+- **T (nhiệm vụ):** dự đoán giá rao bán (tỷ đồng) của một căn nhà từ các thông số của nó → **học có giám sát, hồi quy**.
+- **E (kinh nghiệm):** các tin rao bán thật đã biết giá (dữ liệu huấn luyện).
+- **P (độ đo):** sai số phần trăm trung bình **MAPE** trên những căn mô hình **chưa từng thấy** (tập test).
+
+**Mô tả:** cho thông tin một căn nhà (diện tích, kích thước, số tầng, số phòng, lối vào, vị trí, mô tả tin), mô hình dự đoán **giá bán (tỷ đồng)** kèm **khoảng giá tin cậy**, rồi **chẩn đoán** giá rao đang rẻ, hợp lý hay cao so với mặt bằng thị trường. Đây là bài toán **học có giám sát – hồi quy**.
 
 **Phiên bản 2 khắc phục các hạn chế của phiên bản 1** (bản cũ lưu ở `luu_tru/`):
 
@@ -35,12 +40,23 @@ md(r"""
 
 **Toàn bộ dữ liệu là tin rao thật (guland 12/11/2026; Chợ Tốt và alonhadat: lần thu thập mới nhất, xem bảng ở Bước 1). Không có dữ liệu mô phỏng.**
 
-**Quy trình:** 1. Thu thập → 2. Hợp nhất 3 nguồn → 3. Trích đặc trưng từ mô tả → 4. Làm sạch, gán tọa độ → 5. Khám phá dữ liệu → 6. Cách đánh giá → 7. So sánh và chọn mô hình → 8. Kiểm tra lần cuối trên tập test → 9. Khoảng tin cậy → 10. Chẩn đoán giá từng căn → 11. Lưu mô hình.
+**Cấu trúc notebook:**
+
+| Phần | Các bước | Liên hệ tài liệu môn học |
+|---|---|---|
+| **PHẦN A – CƠ BẢN** | 1. Thu thập → 2. Hợp nhất → 3. Trích đặc trưng từ văn bản → 4. Làm sạch → 5. Khám phá dữ liệu → 6. Chia train/test → 7. Mô hình cơ bản: hồi quy tuyến tính, **cây quyết định** (quá khớp và chọn độ sâu) | Bài giảng: định nghĩa bài toán học máy, học từ ví dụ, cây quyết định. Thực hành: tiền xử lý dữ liệu (TH4), dữ liệu văn bản (TH6) |
+| **PHẦN B – NÂNG CAO VÀ MỞ RỘNG** | 8. Giá khu vực, boosting, stacking, kiểm định chéo lặp + bootstrap, quy tắc chọn mô hình → 9. Kiểm tra trên test, giải thích sai số → 10. Khoảng giá 80% → 11. Chẩn đoán từng căn → 12. Lưu mô hình, giải thích SHAP | Kiến thức ngoài bài giảng, dùng để tăng độ chính xác và đo độ tin cậy của kết quả |
+
+Các notebook khác (`du_doan_gia_can_ho`, `du_doan_gia_dat`, `du_doan_gia_thue`, `du_doan_xu_huong_gia`) đều thuộc **phần mở rộng**.
 
 > Chạy lần lượt các ô từ trên xuống (Restart & Run All, khoảng 10 phút do có CatBoost và kiểm định chéo lặp). Các lớp mô hình nằm trong `src/mo_hinh_gia.py` để mô hình đã lưu nạp lại được ở notebook khác.
 """)
 
 md(r"""
+---
+# PHẦN A – CƠ BẢN (theo bài giảng và các bài thực hành)
+---
+
 ## Bước 1: Thu thập dữ liệu
 
 | Nguồn | Script | Phạm vi | Thông tin đặc biệt |
@@ -49,7 +65,7 @@ md(r"""
 | Chợ Tốt Nhà (nhatot.com) | `thu_thap/chotot_thu_thap.py` | Toàn Bình Dương cũ, loại "Nhà ở" | **Tọa độ**, ngang × dài, số tầng, phòng, WC, loại nhà, pháp lý, **giá gốc lúc đăng** |
 | alonhadat.com.vn | `thu_thap/alonhadat_thu_thap.py` | TP. Thủ Dầu Một, loại nhà | Địa chỉ cũ kèm phường, kích thước, đường trước nhà, ngày đăng |
 
-**Vì sao lấy cả khu vực ngoài Phú Hòa?** Mô hình học được quy luật chung (diện tích, số tầng, hẻm/mặt tiền… ảnh hưởng giá ra sao) từ nhiều căn hơn. Khác biệt về vị trí được mô hình xử lý bằng đặc trưng "giá khu vực". Bước 7 kiểm chứng điều này: huấn luyện trên toàn vùng cho sai số **trên chính các căn Phú Hòa** thấp hơn so với chỉ học trên Phú Hòa.
+**Vì sao lấy cả khu vực ngoài Phú Hòa?** Mô hình học được quy luật chung (diện tích, số tầng, hẻm/mặt tiền… ảnh hưởng giá ra sao) từ nhiều căn hơn. Khác biệt về vị trí được mô hình xử lý bằng đặc trưng "giá khu vực". Bước 8 kiểm chứng điều này: huấn luyện trên toàn vùng cho sai số **trên chính các căn Phú Hòa** thấp hơn so với chỉ học trên Phú Hòa.
 
 **Giới hạn:** giá là **giá rao bán**, chưa phải giá giao dịch. Không lưu tên, số điện thoại người đăng.
 """)
@@ -420,14 +436,13 @@ md(r"""
 **Quan sát:**
 - Giá theo diện tích vẫn gần tuyến tính trên thang log–log → học trên **log(giá)** là hợp lý (sai số được đo theo tỷ lệ %).
 - Đơn giá tăng theo cấp lối vào: hẻm nhỏ < hẻm xe hơi < mặt đường.
-- Từ khóa trong mô tả có liên hệ rõ với đơn giá. Đây chỉ là so sánh thô (chưa tách ảnh hưởng của diện tích, vị trí), nên mô hình ở Bước 6 sẽ ước lượng tác động thật sự.
+- Từ khóa trong mô tả có liên hệ rõ với đơn giá. Đây chỉ là so sánh thô (chưa tách ảnh hưởng của diện tích, vị trí), nên mô hình ở Bước 7–8 sẽ ước lượng tác động thật sự.
 
-## Bước 6: Cách đánh giá
-Ba nguyên tắc để con số sai số đáng tin:
+## Bước 6: Chia tập huấn luyện (train) và tập kiểm tra (test)
+Như bài giảng: mô hình học trên tập **train**, rồi được chấm trên tập **test** gồm những căn nó **chưa từng thấy**. Chấm trên chính dữ liệu đã học sẽ cho kết quả đẹp giả (mô hình chỉ "nhớ bài").
 
-1. **Không rò rỉ:** mọi phép chia train/test đều chia **theo nhóm tin gần trùng** (`GroupKFold`, `GroupShuffleSplit`). Một căn đăng 2 lần không bao giờ vừa được học vừa được dùng để chấm.
-2. **Không dựa vào một lần chia:** dùng **kiểm định chéo 5-fold lặp 3 lần** (3 cách chia khác nhau). Mỗi căn được dự đoán 3 lần bởi mô hình không học nó. Mỗi chỉ số kèm **khoảng tin cậy 95%** (bootstrap theo nhóm): với khoảng 175 căn Phú Hòa, MAPE dao động vài điểm % chỉ do may rủi, nên chênh lệch nhỏ hơn mức đó **không có nghĩa**.
-3. **Tập test giữ riêng** (20% số nhóm ở Thủ Dầu Một) không tham gia so sánh hay chọn mô hình. Nó chỉ được dùng **một lần** ở Bước 8 để kiểm tra mô hình đã chọn.
+- **Tập test** = 20% số căn ở Thủ Dầu Một, giữ riêng, không dùng cho bất kỳ quyết định nào (chọn mô hình, chọn tham số).
+- **Không rò rỉ:** cùng một căn thường được đăng nhiều lần. Các tin gần trùng (cột `nhom`, Bước 4) luôn được chia **về cùng một phía**, nếu không mô hình sẽ "gặp lại" căn đang kiểm tra dưới một tin khác.
 """)
 
 code(r"""
@@ -442,7 +457,83 @@ pd.crosstab(df["tap"], np.where(df["phu_hoa"] == 1, "Phú Hòa", np.where(df["td
 """)
 
 md(r"""
-## Bước 7: So sánh và chọn mô hình
+## Bước 7: Mô hình cơ bản – hồi quy tuyến tính và cây quyết định
+Hai mô hình trong phạm vi môn học, cùng một mốc so sánh tối thiểu:
+
+| Mô hình | Ý tưởng |
+|---|---|
+| Baseline – đơn giá phường | Giá = đơn giá trung vị của phường × diện tích. Mô hình học máy phải vượt mốc này mới có ý nghĩa |
+| Hồi quy tuyến tính | log(giá) = tổng có trọng số của các đặc trưng |
+| **Cây quyết định** (bài giảng chương 3) | Chia dữ liệu bằng các câu hỏi if-then trên đặc trưng; mỗi lá cho một mức giá |
+
+**Đặc trưng:** thông số căn nhà (log diện tích, ngang, dài, số tầng, diện tích sàn, phòng ngủ, WC, mặt tiền, cấp lối vào, độ rộng hẻm, sổ chung, nội thất), vị trí (vĩ độ, kinh độ, khoảng cách tới trung tâm) và 21 từ khóa đọc từ mô tả (Bước 3). Mục tiêu là **log(giá)**, vì với giá nhà sai số tính theo % mới có ý nghĩa (Bước 5). Ô thiếu được điền bằng trung vị **của tập train** (như bài thực hành tiền xử lý).
+
+**Quá khớp (overfitting) và cắt tỉa cây.** Cây càng sâu càng khớp tập train, nhưng tới một mức thì sai số trên dữ liệu mới **tăng lên**: cây bắt đầu học thuộc nhiễu. Ta chọn độ sâu bằng **tập kiểm định** (validation) tách từ tập train, đúng ý tưởng cắt tỉa trong bài giảng, không dùng tập test.
+""")
+
+code(r"""
+from sklearn.model_selection import GroupKFold
+from sklearn.pipeline import make_pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor, export_text
+from mo_hinh_gia import bang_danh_gia
+
+DT_CO_BAN = ["log_dt", "ngang", "dai", "so_tang", "dt_san", "ty_le_san", "phong_ngu", "so_wc", "mat_tien_duong",
+             "cap_loi_vao", "hem_rong", "so_chung", "noi_that", "lat", "lon", "kc_trung_tam_km"] + CO_CHU
+Xtr, ytr = train[DT_CO_BAN].astype(float), train["y"].to_numpy()
+Xte = test[DT_CO_BAN].astype(float)
+cay = lambda d: make_pipeline(SimpleImputer(strategy="median"), DecisionTreeRegressor(max_depth=d, min_samples_leaf=5, random_state=0))
+
+# Chọn độ sâu: kiểm định chéo 5-fold trên tập train (chia theo nhóm tin gần trùng), đo MAE trên log(giá)
+DO_SAU = list(range(1, 16))
+loi_train, loi_val = [], []
+for d in DO_SAU:
+    tr_, va_ = [], []
+    for a, b in GroupKFold(5, shuffle=True, random_state=RANDOM_STATE).split(Xtr, groups=train["nhom"]):
+        m = cay(d).fit(Xtr.iloc[a], ytr[a])
+        tr_.append(np.mean(np.abs(m.predict(Xtr.iloc[a]) - ytr[a]))); va_.append(np.mean(np.abs(m.predict(Xtr.iloc[b]) - ytr[b])))
+    loi_train.append(np.mean(tr_)); loi_val.append(np.mean(va_))
+DO_SAU_TOT = DO_SAU[int(np.argmin(loi_val))]
+
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(DO_SAU, loi_train, "o-", label="Sai số trên tập train"); ax.plot(DO_SAU, loi_val, "o-", label="Sai số trên tập kiểm định")
+ax.axvline(DO_SAU_TOT, color="k", ls="--", lw=0.8)
+ax.set(title=f"Cây quyết định: quá khớp khi cây quá sâu (chọn độ sâu = {DO_SAU_TOT})", xlabel="Độ sâu tối đa của cây", ylabel="MAE trên log(giá)"); ax.legend()
+plt.show()
+print(f"Độ sâu tốt nhất theo tập kiểm định: {DO_SAU_TOT}")
+""")
+
+code(r"""
+cay_tot = cay(DO_SAU_TOT).fit(Xtr, ytr)
+tuyen_tinh = make_pipeline(SimpleImputer(strategy="median"), StandardScaler(), LinearRegression()).fit(Xtr, ytr)
+p_co_ban = {"Baseline (đơn giá phường)": BaselineDonGiaPhuong().fit(train, ytr).predict(test),
+            "Hồi quy tuyến tính": tuyen_tinh.predict(Xte),
+            f"Cây quyết định (độ sâu {DO_SAU_TOT})": cay_tot.predict(Xte)}
+print("TẬP TEST – các căn Phú Hòa:"); display(bang_danh_gia(test, p_co_ban, (test["phu_hoa"] == 1).to_numpy()).round(2))
+print("TẬP TEST – toàn bộ Thủ Dầu Một:"); display(bang_danh_gia(test, p_co_ban, np.ones(len(test), bool)).round(2))
+print("Ba tầng đầu của cây quyết định, dạng luật if-then (giá trị lá = log giá dự đoán):")
+print(export_text(cay_tot.named_steps["decisiontreeregressor"], feature_names=DT_CO_BAN, max_depth=2))
+""")
+
+md(r"""
+**Đọc kết quả phần cơ bản:**
+- Đường cong cho thấy đúng hiện tượng **quá khớp** trong bài giảng: sai số trên train giảm mãi khi cây sâu thêm, còn sai số trên tập kiểm định giảm rồi đi ngang hoặc tăng. Độ sâu được chọn ở điểm sai số kiểm định thấp nhất.
+- Các luật if-then ở gốc cây cho biết mô hình "hỏi" gì đầu tiên: thường là **diện tích** và **vị trí**, khớp với phần khám phá dữ liệu.
+- So với baseline trên tập test (thước đo **P**): **hồi quy tuyến tính** giảm được sai số rõ. **Một cây quyết định đơn lẻ** thì gần như không hơn baseline và khoảng tin cậy rất rộng: cây đơn có **phương sai cao**, chỉ cần dữ liệu train đổi một chút là cấu trúc cây đổi hẳn. Đây là điểm yếu đã biết của cây quyết định, và là lý do phần B dùng **nhiều cây kết hợp** (Random Forest: trung bình nhiều cây; gradient boosting: cây sau sửa lỗi cây trước).
+
+**Kết thúc phần cơ bản.** Phần B dưới đây dùng các kỹ thuật ngoài bài giảng để giảm sai số thêm và đo độ tin cậy của kết quả chặt chẽ hơn.
+""")
+
+md(r"""
+---
+# PHẦN B – NÂNG CAO VÀ MỞ RỘNG (kiến thức ngoài bài giảng)
+---
+
+## Bước 8: So sánh và chọn mô hình nâng cao
+
+**Cách đánh giá chặt chẽ hơn phần A:** thay vì một lần chia, dùng **kiểm định chéo 5-fold lặp 3 lần** (3 cách chia khác nhau), mỗi căn được dự đoán 3 lần bởi mô hình không học nó. Mỗi chỉ số kèm **khoảng tin cậy 95%** (bootstrap theo nhóm): với khoảng 175 căn Phú Hòa, MAPE dao động vài điểm % chỉ do may rủi, nên chênh lệch nhỏ hơn mức đó **không có nghĩa**. Tập test vẫn chỉ dùng một lần, ở Bước 9.
 
 **Đặc trưng đầu vào** (tất cả lấy được từ tin rao):
 - Căn nhà: log(diện tích đất), ngang, dài, số tầng, diện tích sàn, tỷ lệ sàn/đất, phòng ngủ, WC, mặt tiền đường, cấp lối vào, độ rộng hẻm, sổ chung, nội thất.
@@ -631,8 +722,8 @@ md(r"""
 - **Phạm vi dữ liệu:** học trên toàn vùng so với chỉ học trên Phú Hòa cho biết việc mở rộng thu thập có ích tới đâu.
 - **So với phiên bản 1:** cho biết toàn bộ cải tiến (dữ liệu + đặc trưng + mô hình) mang lại bao nhiêu trên chính các căn Phú Hòa.
 
-## Bước 8: Kiểm tra lần cuối trên tập test
-Tập test chưa được dùng ở bất kỳ bước nào. Vì chỉ có vài chục căn Phú Hòa, con số trên test **dao động mạnh** (xem khoảng tin cậy). Nó dùng để xác nhận mô hình không quá khớp, **không** thay thế con số kiểm định chéo ở Bước 7.
+## Bước 9: Kiểm tra lần cuối trên tập test
+Tập test chưa được dùng ở bất kỳ bước nào. Vì chỉ có vài chục căn Phú Hòa, con số trên test **dao động mạnh** (xem khoảng tin cậy). Đây là **kết quả chính** của đề tài vì là bằng chứng sạch nhất; con số kiểm định chéo ở Bước 8 dùng để bổ trợ.
 """)
 
 code(r"""
@@ -689,7 +780,7 @@ plt.tight_layout(); plt.show()
 """)
 
 md(r"""
-**Con số nên trình bày:** MAPE kiểm định chéo trên các căn Phú Hòa kèm khoảng tin cậy (Bước 7). Sai số cỡ 20–25% là mức thường gặp với **giá rao bán**: cùng một căn, các môi giới rao chênh nhau 5–15%, người bán còn để "phần thương lượng". Phần sai số này nằm ở chính dữ liệu, mô hình không thể loại bỏ.
+**Con số nên trình bày:** MAPE trên tập test kèm khoảng tin cậy (kết quả chính), cùng MAPE kiểm định chéo ở Bước 8 (bổ trợ). Sai số cỡ 20–25% là mức thường gặp với **giá rao bán**: cùng một căn, các môi giới rao chênh nhau 5–15%, người bán còn để "phần thương lượng". Phần sai số này nằm ở chính dữ liệu, mô hình không thể loại bỏ.
 
 ### Mô hình có định giá lệch theo loại nhà không?
 Kiểm tra **sai lệch có dấu** của dự đoán ngoài-fold (dương = mô hình đoán cao hơn giá rao) theo loại lối vào và theo mức giá. Nếu mô hình lệch có hệ thống với một loại nhà, trung vị sai lệch của loại đó sẽ xa 0.
@@ -707,7 +798,7 @@ display(tr_tdm.groupby("Loại").apply(tk).round(1)); display(tr_tdm.groupby("M�
 md(r"""
 **Quan sát:**
 - **Theo loại lối vào:** trung vị sai lệch của nhà mặt tiền và nhà trong hẻm đều gần 0, hai phân bố gần giống nhau → mô hình **không định giá lệch có hệ thống** với nhà mặt tiền.
-- **Theo mức giá:** nhóm rao đắt nhất bị đoán thấp, nhóm rao rẻ nhất bị đoán cao. Đây là hiện tượng **co về trung bình**, có ở mọi mô hình khi chia nhóm theo chính giá rao: một căn rao rất cao một phần vì nó tốt thật, một phần vì người bán "hét giá", và mô hình chỉ thấy phần thứ nhất. Hệ quả: các căn bị chẩn đoán "cao hơn thị trường" ở Bước 10 gồm cả căn rao giá ảo lẫn căn có ưu điểm mô hình không thấy; cần xem tận nơi để phân biệt.
+- **Theo mức giá:** nhóm rao đắt nhất bị đoán thấp, nhóm rao rẻ nhất bị đoán cao. Đây là hiện tượng **co về trung bình**, có ở mọi mô hình khi chia nhóm theo chính giá rao: một căn rao rất cao một phần vì nó tốt thật, một phần vì người bán "hét giá", và mô hình chỉ thấy phần thứ nhất. Hệ quả: các căn bị chẩn đoán "cao hơn thị trường" ở Bước 11 gồm cả căn rao giá ảo lẫn căn có ưu điểm mô hình không thấy; cần xem tận nơi để phân biệt.
 
 ### Đặc trưng nào quan trọng?
 Dùng **permutation importance theo nhóm** trên tập test: xáo trộn cùng lúc một nhóm cột rồi đo MAE trên log(giá) tăng bao nhiêu.
@@ -744,7 +835,7 @@ plt.show()
 md(r"""
 **Quan sát:** Diện tích đất là yếu tố số một. Nhóm **vị trí** (đưa vào mô hình qua đặc trưng giá khu vực) đứng thứ hai. Các nhóm còn lại đóng góp nhỏ hơn. Lưu ý: tin guland chỉ có tiêu đề nên nhóm "mô tả tin" chưa phát huy hết ở Phú Hòa.
 
-## Bước 9: Khoảng giá 80% (hiệu chỉnh từ sai số ngoài-fold)
+## Bước 10: Khoảng giá 80% (hiệu chỉnh từ sai số ngoài-fold)
 Một con số dự đoán đơn lẻ chưa đủ để ra quyết định. Ta muốn khoảng [thấp, cao] **chứa giá rao thật của khoảng 80% số căn**.
 
 **Cách làm:** lấy sai số ngoài-fold của mô hình trên **các căn Thủ Dầu Một** trong tập train (cả 3 lần lặp), r = log(giá thật) − log(giá dự đoán). Phân vị 10% và 90% của r cho biên dưới/biên trên: khoảng = dự đoán × [e^q10, e^q90].
@@ -809,7 +900,7 @@ md(r"""
 - Đọc độ phủ cùng kết quả kiểm định nhị thức: chỉ khi p < 0,05 mới có cơ sở nói khoảng giá quá hẹp.
 - Khoảng 80% khá rộng và **lệch lên trên** vì có những tin rao cao hơn hẳn mặt bằng. Đó là mức bất định thật của giá rao, báo cáo cần nêu rõ thay vì chỉ đưa một con số.
 
-## Bước 10: Chẩn đoán giá từng căn ở Phú Hòa
+## Bước 11: Chẩn đoán giá từng căn ở Phú Hòa
 Với **mỗi tin rao Phú Hòa**, so giá rao với giá thị trường mô hình ước lượng. Giá ước lượng của một căn được tính bằng mô hình **không học căn đó và không học các tin gần trùng với nó** (kiểm định chéo theo nhóm trên toàn bộ dữ liệu, trung bình 3 lần lặp).
 - **Rẻ hơn thị trường:** giá rao thấp hơn biên dưới khoảng 80%.
 - **Cao hơn thị trường:** giá rao cao hơn biên trên khoảng 80%.
@@ -844,9 +935,9 @@ print("Đã ghi ket_qua/input.csv (thông số", len(xuat), "căn Phú Hòa) và
 """)
 
 md(r"""
-**Quan sát:** Phần lớn căn Phú Hòa có giá rao "hợp lý" theo mô hình; theo cách dựng khoảng 80%, mỗi phía kỳ vọng khoảng 10% số căn. Nhóm "cao hơn thị trường" gồm tin rao kỳ vọng cao và căn có yếu tố mô hình không thấy (nhà mới xây cao cấp, vị trí đặc biệt), xem phân tích co về trung bình ở Bước 8. Nhóm "rẻ hơn" là ứng viên đáng xem (thường có tin "bán gấp/ngộp"), nhưng cũng cần kiểm tra pháp lý và hiện trạng. Kết quả là **gợi ý sàng lọc**, không thay thế thẩm định thực tế.
+**Quan sát:** Phần lớn căn Phú Hòa có giá rao "hợp lý" theo mô hình; theo cách dựng khoảng 80%, mỗi phía kỳ vọng khoảng 10% số căn. Nhóm "cao hơn thị trường" gồm tin rao kỳ vọng cao và căn có yếu tố mô hình không thấy (nhà mới xây cao cấp, vị trí đặc biệt), xem phân tích co về trung bình ở Bước 9. Nhóm "rẻ hơn" là ứng viên đáng xem (thường có tin "bán gấp/ngộp"), nhưng cũng cần kiểm tra pháp lý và hiện trạng. Kết quả là **gợi ý sàng lọc**, không thay thế thẩm định thực tế.
 
-## Bước 11: Lưu mô hình và hàm dự đoán
+## Bước 12: Lưu mô hình và hàm dự đoán
 - Huấn luyện lại mô hình đã chọn trên **toàn bộ** dữ liệu sạch → `model/mo_hinh_gia_nha.joblib` (kèm phân vị sai số để tính khoảng tin cậy).
 - `model/mo_hinh_gia_nha.json`: **mô hình rút gọn** (Ridge, 11 thông số người dùng nhập được) cho trang demo `demo/trang_ban_nha.html` tính ngay trên trình duyệt. Mô hình này huấn luyện lại trên dữ liệu Phú Hòa mới, các thông số được **chặn trên ở phân vị 97%** để mô hình tuyến tính không ngoại suy quá đà. Sai số kiểm định chéo của nó được ghi kèm để trang demo hiển thị trung thực.
 - `data/processed/nha_da_xu_ly.csv`: dữ liệu sạch + giá ước lượng (notebook xu hướng dùng lại).
@@ -1007,15 +1098,16 @@ md(r"""
 ## Kết luận
 
 **Kết quả đạt được**
+- **Phần A (cơ bản):** hồi quy tuyến tính và cây quyết định (độ sâu chọn bằng tập kiểm định, minh họa quá khớp) được so với baseline trên tập test (Bước 7).
 - Dữ liệu **thật** từ 3 nguồn (guland, Chợ Tốt Nhà, alonhadat). Sau khi hợp nhất, sửa lỗi, loại trùng và loại tin không phải giá thị trường còn khoảng 1.470 căn, trong đó Phú Hòa khoảng 220 căn. Không dùng dữ liệu mô phỏng.
-- Đánh giá bằng **kiểm định chéo lặp, chia theo nhóm tin gần trùng**, mọi chỉ số có khoảng tin cậy 95%. Mô hình được chọn theo quy tắc "đơn giản nhất mà không kém có ý nghĩa" (Bước 7). Con số trình bày gồm **ba cách đo** trên các căn Phú Hòa: kiểm định chéo (Bước 7), tập test giữ riêng (Bước 8) và dự đoán chéo theo nhóm trên toàn bộ căn Phú Hòa (Bước 10), mỗi số kèm khoảng tin cậy và cách đọc (bảng ngay dưới phần kết luận).
-- So với cách làm của phiên bản 1 và baseline đơn giá phường: xem bảng kiểm chứng ở Bước 7, có kèm khoảng tin cậy của chênh lệch.
+- Đánh giá bằng **kiểm định chéo lặp, chia theo nhóm tin gần trùng**, mọi chỉ số có khoảng tin cậy 95%. Mô hình được chọn theo quy tắc "đơn giản nhất mà không kém có ý nghĩa" (Bước 8). Con số trình bày gồm **ba cách đo** trên các căn Phú Hòa: kiểm định chéo (Bước 8), tập test giữ riêng (Bước 9) và dự đoán chéo theo nhóm trên toàn bộ căn Phú Hòa (Bước 11), mỗi số kèm khoảng tin cậy và cách đọc (bảng ngay dưới phần kết luận).
+- So với cách làm của phiên bản 1 và baseline đơn giá phường: xem bảng kiểm chứng ở Bước 8, có kèm khoảng tin cậy của chênh lệch.
 - Mỗi dự đoán có **khoảng giá 80%** đã kiểm chứng độ phủ, và mỗi tin Phú Hòa có **chẩn đoán** rẻ / hợp lý / cao so với thị trường (`ket_qua/output.csv`).
 - Yếu tố quyết định giá: diện tích đất, **vị trí** (giá khu vực), sau đó là lối vào và thông tin trong mô tả tin.
 
 **Những gì đã thử nhưng không cải thiện (đã gỡ khỏi quy trình)**
 - Định vị tuyến đường bằng OpenStreetMap: chỉ áp dụng được cho khoảng 45 tin, không giảm sai số đo được. Nguyên nhân: tin rao không có số nhà, nên biết tuyến đường cũng chỉ định vị tới mức "đâu đó trên đường".
-- Đặc trưng "giá các căn gần nhất cùng loại lối vào": không giảm sai số; mô hình vốn không lệch có hệ thống với nhà mặt tiền (Bước 8).
+- Đặc trưng "giá các căn gần nhất cùng loại lối vào": không giảm sai số; mô hình vốn không lệch có hệ thống với nhà mặt tiền (Bước 9).
 
 **Hạn chế còn lại (cần nêu khi trình bày)**
 - Mô hình ước lượng **mặt bằng giá rao**, không phải giá giao dịch: vẫn là **giá rao bán**, chưa phải giá giao dịch công chứng (dữ liệu này không công khai). Sai số 20–25% phần lớn đến từ độ "ảo" của giá rao.
@@ -1031,13 +1123,13 @@ code(r"""
 # Con số cần trình bày: 3 cách đo trên các căn Phú Hòa, mỗi số kèm khoảng tin cậy 95% (bootstrap theo nhóm tin gần trùng)
 cv_, te_ = bang_cv_ph.loc[ten_tot_nhat], bang_test_ph.loc[ten_tot_nhat]
 ph_all_ = df[df["phu_hoa"] == 1]
-ape_all = np.abs(ph_all_["gia_uoc_luong_ty"] / ph_all_["gia_ty"] - 1).to_numpy() * 100     # dự đoán chéo theo nhóm ở Bước 10
+ape_all = np.abs(ph_all_["gia_uoc_luong_ty"] / ph_all_["gia_ty"] - 1).to_numpy() * 100     # dự đoán chéo theo nhóm ở Bước 11
 lo_all, hi_all = ktc_bootstrap(ape_all, ph_all_["nhom"].to_numpy())
 phu_all = ((ph_all_["gia_ty"] >= ph_all_["khoang80_thap"]) & (ph_all_["gia_ty"] <= ph_all_["khoang80_cao"])).mean() * 100
 TOM_TAT = pd.DataFrame({
     "Cách đo": ["KẾT QUẢ CHÍNH – Tập test giữ riêng: căn Phú Hòa chưa dùng ở bất kỳ bước nào",
                 "Bổ trợ – Kiểm định chéo lặp theo nhóm: căn Phú Hòa trong tập train",
-                "Bổ trợ – Dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (Bước 10)"],
+                "Bổ trợ – Dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (Bước 11)"],
     "Số căn": [int(te_["Số căn"]), int(cv_["Số căn"]), len(ph_all_)],
     "MAPE (%)": [round(te_["MAPE (%)"], 1), round(cv_["MAPE (%)"], 1), round(ape_all.mean(), 1)],
     "KTC 95%": [f"{te_['MAPE thấp (95%)']:.1f} – {te_['MAPE cao (95%)']:.1f}", f"{cv_['MAPE thấp (95%)']:.1f} – {cv_['MAPE cao (95%)']:.1f}", f"{lo_all:.1f} – {hi_all:.1f}"],
