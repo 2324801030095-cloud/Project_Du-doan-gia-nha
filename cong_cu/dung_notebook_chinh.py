@@ -652,6 +652,26 @@ print(f"Phú Hòa – kiểm định chéo: MAPE {cv_['MAPE (%)']:.1f}% (KTC {cv
          else "hai khoảng tin cậy KHÔNG chồng nhau: cần xem lại."))
 """)
 
+md(r"""
+### MAPE trên tập test nghĩa là gì, minh họa bằng chính các căn Phú Hòa trong tập test
+MAPE là **sai lệch trung bình tính theo %** giữa giá mô hình ước lượng và giá rao. Ví dụ MAPE 27% với một căn rao 4 tỷ nghĩa là trung bình mô hình lệch khoảng ±1,1 tỷ. Đây là **trung bình**: phần lớn căn lệch ít hơn (xem trung vị), còn vài căn lệch rất nhiều kéo con số lên. Bảng dưới lấy các căn **thật** của tập test ở các mức lệch khác nhau.
+""")
+
+code(r"""
+ph_te = test[m_ph].assign(gia_du_doan_ty=np.exp(p_test[ten_tot_nhat][m_ph]))
+ph_te["lech_pt"] = (ph_te["gia_du_doan_ty"] / ph_te["gia_ty"] - 1) * 100
+ph_te = ph_te.sort_values("lech_pt", key=np.abs).reset_index(drop=True)
+n_ = len(ph_te)
+vi_du = ph_te.iloc[[0, n_ // 4, n_ // 2, 3 * n_ // 4, n_ - 1]]                  # tốt nhất, 25%, giữa, 75%, tệ nhất
+vi_du.insert(0, "Mức", ["Lệch ít nhất", "25% số căn lệch ít hơn", "Căn ở giữa (trung vị)", "75% số căn lệch ít hơn", "Lệch nhiều nhất"])
+display(vi_du[["Mức", "tieu_de", "dt_dat", "gia_ty", "gia_du_doan_ty", "lech_pt"]].rename(columns={
+    "tieu_de": "Tin rao", "dt_dat": "Đất (m²)", "gia_ty": "Giá rao (tỷ)", "gia_du_doan_ty": "Mô hình (tỷ)", "lech_pt": "Lệch (%)"}).round(2))
+lech_ty = (ph_te["gia_du_doan_ty"] - ph_te["gia_ty"]).abs()
+print(f"{n_} căn Phú Hòa trong tập test: một nửa số căn lệch ≤ {ph_te['lech_pt'].abs().median():.0f}% "
+      f"(≤ {lech_ty.median():.2f} tỷ); {(ph_te['lech_pt'].abs() <= 20).mean() * 100:.0f}% số căn lệch ≤ 20%. "
+      f"MAPE = trung bình mức lệch = {ph_te['lech_pt'].abs().mean():.1f}%, bị kéo lên bởi vài căn lệch nhiều.")
+""")
+
 code(r"""
 gia_that, gia_dd = test["gia_ty"].to_numpy(), np.exp(p_test[ten_tot_nhat])
 fig, axes = plt.subplots(1, 2, figsize=(13, 5))
@@ -1015,18 +1035,18 @@ ape_all = np.abs(ph_all_["gia_uoc_luong_ty"] / ph_all_["gia_ty"] - 1).to_numpy()
 lo_all, hi_all = ktc_bootstrap(ape_all, ph_all_["nhom"].to_numpy())
 phu_all = ((ph_all_["gia_ty"] >= ph_all_["khoang80_thap"]) & (ph_all_["gia_ty"] <= ph_all_["khoang80_cao"])).mean() * 100
 TOM_TAT = pd.DataFrame({
-    "Cách đo": ["(1) Kiểm định chéo lặp theo nhóm – căn Phú Hòa trong tập train", "(2) Tập test giữ riêng – căn Phú Hòa chưa từng thấy",
-                "(3) Dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (Bước 10)"],
-    "Số căn": [int(cv_["Số căn"]), int(te_["Số căn"]), len(ph_all_)],
-    "Số nhóm độc lập": [np.nan, np.nan, ph_all_["nhom"].nunique()],
-    "MAPE (%)": [round(cv_["MAPE (%)"], 1), round(te_["MAPE (%)"], 1), round(ape_all.mean(), 1)],
-    "KTC 95%": [f"{cv_['MAPE thấp (95%)']:.1f} – {cv_['MAPE cao (95%)']:.1f}", f"{te_['MAPE thấp (95%)']:.1f} – {te_['MAPE cao (95%)']:.1f}", f"{lo_all:.1f} – {hi_all:.1f}"],
+    "Cách đo": ["KẾT QUẢ CHÍNH – Tập test giữ riêng: căn Phú Hòa chưa dùng ở bất kỳ bước nào",
+                "Bổ trợ – Kiểm định chéo lặp theo nhóm: căn Phú Hòa trong tập train",
+                "Bổ trợ – Dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (Bước 10)"],
+    "Số căn": [int(te_["Số căn"]), int(cv_["Số căn"]), len(ph_all_)],
+    "MAPE (%)": [round(te_["MAPE (%)"], 1), round(cv_["MAPE (%)"], 1), round(ape_all.mean(), 1)],
+    "KTC 95%": [f"{te_['MAPE thấp (95%)']:.1f} – {te_['MAPE cao (95%)']:.1f}", f"{cv_['MAPE thấp (95%)']:.1f} – {cv_['MAPE cao (95%)']:.1f}", f"{lo_all:.1f} – {hi_all:.1f}"],
 }).set_index("Cách đo")
 display(TOM_TAT)
 print(f"Độ phủ khoảng 80% trên toàn bộ {len(ph_all_)} căn Phú Hòa: {phu_all:.1f}%")
-print("Cách đọc: (2) là bằng chứng sạch nhất (căn chưa từng dùng ở bất kỳ bước nào) nhưng chỉ vài chục căn nên khoảng tin cậy rộng. "
-      "(3) dùng mọi căn Phú Hòa, mỗi căn được dự đoán bởi mô hình không học căn đó và các tin gần trùng, nên khoảng tin cậy hẹp hơn nhiều; "
-      "nhưng các căn của tập train đã tham gia bước CHỌN mô hình, nên (3) có thể lạc quan nhẹ. Ba con số nhất quán với nhau "
+print("Cách đọc: tập test là KẾT QUẢ CHÍNH vì là bằng chứng sạch nhất (căn chưa từng dùng ở bất kỳ bước nào), nhưng chỉ vài chục căn nên khoảng tin cậy rộng. "
+      "Dòng cuối dùng mọi căn Phú Hòa, mỗi căn được dự đoán bởi mô hình không học căn đó và các tin gần trùng, nên khoảng tin cậy hẹp hơn nhiều; "
+      "nhưng các căn của tập train đã tham gia bước CHỌN mô hình, nên nó có thể lạc quan nhẹ và chỉ dùng để bổ trợ, không thay thế tập test. Ba con số nhất quán với nhau "
       "thì mới kết luận sai số ở Phú Hòa vào khoảng giữa các giá trị này.")
 """)
 
