@@ -112,12 +112,15 @@ def _():
     rng = np.random.default_rng(0)
     y = np.cumsum(rng.normal(0, 0.01, 30))
     a = M.kiem_dinh_lui(y)
-    y2 = y.copy(); y2[-1] += 5                      # đổi giá trị CUỐI: các dự báo trước kỳ cuối không được thay đổi
-    l1, t1 = M.holt(y[:20]); l2, t2 = M.holt(y2[:20])
-    assert (l1, t1) == (l2, t2), "dự báo tại kỳ 20 bị ảnh hưởng bởi dữ liệu sau kỳ 20"
+    # chuỗi ngẫu nhiên không có xu hướng: Holt đúng không được thắng; bản "nhìn trước" giá kỳ cần đoán sẽ thắng -> bị bắt
+    assert not a["holt_tot_hon"], "Holt thắng trên chuỗi ngẫu nhiên: có thể đang dùng dữ liệu của kỳ cần dự báo"
     xu_huong = 0.02 * np.arange(30) + rng.normal(0, 0.002, 30)          # tăng đều 2%/kỳ
     assert M.kiem_dinh_lui(xu_huong)["holt_tot_hon"], "Holt không thắng trên chuỗi có xu hướng rõ"
     assert a["so_ky_kiem_tra"] == 25 and M.kiem_dinh_lui(y[:5])["so_ky_kiem_tra"] == 0
+    try:                                             # một kỳ rỗng (NaN) phải báo lỗi, không được ra kết quả "nan"
+        M.kiem_dinh_lui(np.r_[np.zeros(4), np.nan, np.zeros(4)]); raise RuntimeError("không báo lỗi khi chuỗi có NaN")
+    except AssertionError:
+        pass
 
 @kiem("Dữ liệu gốc đọc lại được và đã ẩn danh: mỗi dòng JSONL là 1 bản ghi hợp lệ (kể cả khi tách dòng kiểu Unicode), không còn thông tin người đăng / số điện thoại")
 def _():
