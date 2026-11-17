@@ -99,6 +99,29 @@ kiem("Bản đồ căn hộ: mỗi dự án đúng 1 chấm, đủ căn, căn ng
   return ngoai && T.favItem("c" + ngoai.id) ? "" : "căn ngoài Thủ Dầu Một không lưu được";
 });
 
+// ---------- mô hình phân loại ý định (notebooks/tro_ly_y_dinh.ipynb) ----------
+kiem("Trình duyệt tính xác suất ý định giống Python (TF-IDF + Logistic Regression)", () => {
+  if (!T.TL_MODEL) return "chưa có mô hình: chạy notebook tro_ly_y_dinh.ipynb rồi build_site.py";
+  for (const m of T.TL_MODEL.mau) {
+    const r = T.tlDuDoan(m.cau), p = T.TL_MODEL.lop.map((l) => r.top.find((x) => x.y === l).p);
+    const lech = Math.max(...p.map((x, k) => Math.abs(x - m.p[k])));
+    if (lech > 0.005) return `"${m.cau}": lệch xác suất ${lech.toFixed(4)}`;
+  }
+  return "";
+});
+const kiemTra = require("fs").readFileSync(require("path").join(__dirname, "..", "data", "tro_ly", "cau_hoi_kiem_tra.csv"), "utf8")
+  .split(/\r?\n/).slice(1).filter(Boolean).map((l) => l.match(/^([^,]+),"(.*)"$/)).map((m) => [m[2], m[1] === "ngoai_pham_vi" ? null : m[1]]);
+kiem("Tập kiểm tra viết riêng: trợ lý hiểu đúng ≥ 90% và hơn luật cũ", () => {
+  let moi = 0, cu = 0;
+  for (const [q, y] of kiemTra) { const { t, e } = T.botTrich(q); if (T.botYDinh(t, e) === y) moi++; if (T.botYDinhLuat(t, e) === y) cu++; }
+  const a = moi / kiemTra.length, b = cu / kiemTra.length;
+  return a >= 0.9 && a > b ? "" : `trợ lý ${(a * 100).toFixed(1)}% · luật cũ ${(b * 100).toFixed(1)}%`;
+});
+kiem("Câu ngoài phạm vi / mơ hồ: từ chối hoặc hỏi lại, không trả lời bừa", () => {
+  const a = T.hoi("tỷ giá đô la hôm nay bao nhiêu"), b = T.hoi("cái đó sao");
+  return /ngoài phạm vi/.test(a.text) && /chưa (chắc|hiểu)/.test(b.text) ? "" : a.text.slice(0, 80) + " || " + b.text.slice(0, 80);
+});
+
 // ---------- 4. ngữ cảnh ----------
 kiem("Hỏi tiếp giữ ngữ cảnh: '80m² 1 trệt 1 lầu' → 'nếu là mặt tiền' → 'còn 120m²'", () => {
   T.hoi("nhà 80m2 1 trệt 1 lầu hẻm xe hơi giá bao nhiêu"); T.hoi("nếu là nhà mặt tiền thì sao?", true); const r = T.hoi("còn 120m2 thì sao", true);

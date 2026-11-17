@@ -2056,7 +2056,54 @@ function botTrich(text) {
 }
 
 const CO_TIN = (e) => ["dt", "gia", "gmin", "gmax", "st", "pn", "wc", "vt", "hr", "truc", "nt", "so", "du_an", "phuong", "tang", "noxh"].some((k) => e[k] !== undefined && e[k] !== false);
+/* ---------- Mô hình phân loại ý định (huấn luyện trong notebooks/tro_ly_y_dinh.ipynb) ----------
+   Câu hỏi -> chuẩn hóa (bỏ dấu, số -> "0") -> TF-IDF n-gram ký tự (và từ) -> Logistic Regression -> xác suất từng ý định.
+   Cách tính giống hệt TfidfVectorizer + LogisticRegression của scikit-learn (tests/kiem_tra_tro_ly.js đối chiếu với Python). */
+const chuanHoaYD = (s) => kd(s).replace(/\d+(?:[.,]\d+)*/g, "0").replace(/[^a-z0-9]+/g, " ").trim();
+function tlNgram(van, phan) {
+  const ra = [];
+  if (phan.kieu === "char_wb") {                        // như sklearn _char_wb_ngrams
+    for (const tu of van.split(" ").filter(Boolean)) {
+      const w = " " + tu + " ";
+      for (let n = phan.n[0]; n <= phan.n[1]; n++) {
+        let o = 0; ra.push(w.slice(o, o + n));
+        while (o + n < w.length) { o++; ra.push(w.slice(o, o + n)); }
+        if (o === 0) break;
+      }
+    }
+  } else {                                              // từ: token >= 2 ký tự, n-gram từ
+    const tu = van.split(" ").filter((x) => x.length >= 2);
+    for (let n = phan.n[0]; n <= phan.n[1]; n++) for (let i = 0; i + n <= tu.length; i++) ra.push(tu.slice(i, i + n).join(" "));
+  }
+  return ra;
+}
+function tlDuDoan(text) {
+  if (typeof TL_MODEL === "undefined" || !TL_MODEL) return null;
+  const van = chuanHoaYD(text), M = TL_MODEL, diem = M.chan.slice();
+  for (const phan of M.phan) {
+    const dem = new Map();
+    for (const g of tlNgram(van, phan)) { const j = phan.tu_dien[g]; if (j !== undefined) dem.set(j, (dem.get(j) || 0) + 1); }
+    const v = [...dem].map(([j, c]) => [j, (1 + Math.log(c)) * phan.idf[j]]);     // sublinear_tf, nhân idf
+    const chuan = Math.sqrt(v.reduce((t, [, x]) => t + x * x, 0)) || 1;           // chuẩn hóa L2 từng phần
+    for (const [j, x] of v) { const w = phan.he_so[j]; for (let k = 0; k < diem.length; k++) diem[k] += w[k] * x / chuan; }
+  }
+  const mx = Math.max(...diem), e = diem.map((d) => Math.exp(d - mx)), tong = e.reduce((a, b) => a + b, 0);
+  const top = M.lop.map((l, k) => ({ y: l, p: e[k] / tong })).sort((a, b) => b.p - a.p);
+  return { y: top[0].y, p: top[0].p, top };
+}
+// Kết hợp mô hình và luật theo chiến lược đã chọn bằng kiểm định chéo trong notebook
 function botYDinh(t, e) {
+  const luat = botYDinhLuat(t, e), ml = tlDuDoan(t);
+  BOT.ml = ml; BOT.luat = luat;
+  if (!ml) return luat;
+  // Mô hình chắc dưới 40% coi như đoán mò: không trả lời theo phỏng đoán đó, để botLoi() hỏi lại bằng gợi ý
+  const yMl = ml.y === "ngoai_pham_vi" || ml.p < 0.4 ? null : ml.y, cl = TL_MODEL.chien_luoc;
+  if (cl === "ml") return yMl;
+  if (cl === "luat_truoc") return luat ?? yMl;
+  if (cl === "ml_chac") return ml.p >= TL_MODEL.nguong ? yMl : luat;
+  return luat;
+}
+function botYDinhLuat(t, e) {     // luật từ khóa (bản cũ): giữ làm mốc so sánh và làm phương án dự phòng
   const tt = t.trim();
   if (/^(xin )?chao\b|^hello|^hi\b|^alo\b|^hey\b/.test(tt) && tt.length < 30) return "chao";
   if (/cam on|thank|tks\b/.test(t)) return "cam_on";
@@ -2334,7 +2381,23 @@ function botGioiThieu() {
     <span class="ghi">Có thể hỏi tiếp như "nếu là mặt tiền thì sao?", mình nhớ thông tin của câu trước.</span>`,
     goi_y: ["Nhà 1 trệt 1 lầu 80m² hẻm xe hơi giá bao nhiêu?", "Tìm nhà dưới 3 tỷ rẻ hơn thị trường", "Giá nhà Phú Hòa 6–12 tháng tới tăng hay giảm?"] };
 }
-const botLoi = () => ({ html: `<p>Mình chưa hiểu rõ câu này. Bạn thử hỏi theo một trong các dạng sau nhé:</p><ul>
+const TL_TEN = { dinh_gia: "Định giá nhà / căn hộ", tim: "Tìm nhà theo ngân sách", xu_huong: "Xu hướng giá", loi_vao: "Mặt tiền và hẻm",
+  phuong: "So sánh giá các phường", du_an: "Dự án chung cư", thue: "Giá thuê, hoàn vốn", dat: "Định giá đất nền", faq_phap_ly: "Pháp lý",
+  faq_noxh: "Nhà ở xã hội", faq_mo_hinh: "Cách mô hình định giá", faq_khoang: "Khoảng giá 80%", faq_du_lieu: "Nguồn dữ liệu",
+  faq_thuong_luong: "Trả giá, thương lượng", faq_luu_y: "Lưu ý khi mua nhà", gioi_thieu: "Trợ lý làm được gì" };
+function botHoiLai() {
+  const ml = BOT.ml;
+  if (!ml || typeof TL_MODEL === "undefined" || !TL_MODEL) return null;
+  if (ml.y === "ngoai_pham_vi" && ml.p >= 0.5)
+    return { html: `<p>Câu này nằm ngoài phạm vi của mình. Mình chỉ trả lời về <b>nhà đất ở Thủ Dầu Một và lân cận</b>: định giá, tìm nhà, giá thuê, xu hướng, pháp lý.</p>`,
+      goi_y: ["Bạn làm được gì?", "Nhà 1 trệt 1 lầu 80m² hẻm xe hơi giá bao nhiêu?", "Giá nhà Phú Hòa 6–12 tháng tới tăng hay giảm?"] };
+  const doan = ml.top.filter((x) => TL_TEN[x.y] && x.p >= 0.08).slice(0, 3);
+  if (!doan.length) return null;
+  return { html: `<p>Mình chưa chắc bạn muốn hỏi gì. Có phải là một trong các ý sau?</p><ul>${doan.map((x) => `<li><b>${TL_TEN[x.y]}</b> <span style="color:var(--muted)">(${fmt(x.p * 100, 0)}%)</span></li>`).join("")}</ul>
+    <span class="ghi">Bấm một câu gợi ý bên dưới, hoặc hỏi lại kèm thêm chi tiết (diện tích, giá, khu vực…).</span>`,
+    goi_y: doan.map((x) => TL_MODEL.vi_du[x.y]).filter(Boolean) };
+}
+const botLoi = () => botHoiLai() || ({ html: `<p>Mình chưa hiểu rõ câu này. Bạn thử hỏi theo một trong các dạng sau nhé:</p><ul>
   <li>Định giá: <i>"nhà 100m² 1 trệt 2 lầu mặt tiền giá bao nhiêu"</i></li><li>Căn hộ: <i>"căn hộ C SkyView 2PN 60m²"</i></li>
   <li>Tìm nhà: <i>"tìm nhà 2–3 tỷ trong hẻm"</i></li><li>Thị trường: <i>"giá nhà sắp tới tăng hay giảm"</i></li></ul>`,
   goi_y: ["Bạn làm được gì?", "Nhà 1 trệt 1 lầu 80m² hẻm xe hơi giá bao nhiêu?", "Tìm nhà dưới 3 tỷ rẻ hơn thị trường"] });
@@ -2345,8 +2408,10 @@ function botTraLoi(text) {
   let y = botYDinh(t, e);
   // Hỏi tiếp: câu chỉ bổ sung thông tin ("100m²", "nếu là mặt tiền thì sao?") -> dùng ý định + thông tin của câu trước
   // Câu có từ hỏi tiếp ("nếu", "còn", "thì sao") vẫn là hỏi tiếp dù có diện tích mới ("còn 120m² thì sao").
-  const hoiTiep = /\b(neu|con|vay|the)\b|thi sao|thi gia/.test(t) && (!y || y === BOT.ctx?.y || y === "dinh_gia");
-  if (BOT.ctx && (!y || hoiTiep) && (CO_TIN(e) || e.re)) {
+  // Nhận biết câu hỏi tiếp dựa vào LUẬT: mô hình không biết ngữ cảnh, "nếu là mặt tiền thì sao?" nó sẽ đoán thành câu hỏi mới
+  const yl = BOT.luat;
+  const hoiTiep = /\b(neu|con|vay|the)\b|thi sao|thi gia/.test(t) && (!yl || yl === BOT.ctx?.y || yl === "dinh_gia");
+  if (BOT.ctx && (!yl || hoiTiep) && (CO_TIN(e) || e.re)) {
     const cu = BOT.ctx.e, moi = { ...cu };
     for (const [k, v] of Object.entries(e)) if (v !== undefined && v !== false && k !== "re") moi[k] = v;
     if (e.vt !== undefined && e.hr === undefined) delete moi.hr;
