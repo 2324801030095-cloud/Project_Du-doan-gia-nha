@@ -357,7 +357,7 @@ from mo_hinh_gia import holt, kiem_dinh_lui        # có kiểm thử tự độ
 KY_TOI_THIEU = 8
 if len(CHI_SO) < KY_TOI_THIEU:
     thieu = KY_TOI_THIEU - len(CHI_SO)
-    du_kien = pd.Timestamp(CHI_SO["ky"].iloc[-1]) + pd.Timedelta(weeks=thieu)
+    du_kien = pd.Timestamp(CHI_SO["ky"].iloc[-1]) + pd.offsets.Week(thieu, weekday=6)   # lịch chạy vào Chủ nhật
     print(f"Mới có {len(CHI_SO)} kỳ thật; cần ít nhất {KY_TOI_THIEU} kỳ để huấn luyện và kiểm định lùi mô hình dự báo (còn thiếu {thieu} kỳ).\n"
           f"Lịch thu thập tự động chạy mỗi Chủ nhật -> dự kiến đủ kỳ vào khoảng {du_kien:%d/%m/%Y}. "
           "Cho tới lúc đó, phần 6–12 tháng ở Bước 6 chỉ là KỊCH BẢN THAM KHẢO, không phải dự báo đã kiểm chứng.")
