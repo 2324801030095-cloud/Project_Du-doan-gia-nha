@@ -1173,7 +1173,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
     </div>
     <div class="map-wrap"><div id="map" role="region" aria-label="Bản đồ giá"></div></div>
     <div class="map-stats" id="map-stats"></div>
-    <p class="note" style="margin-top:12px"><svg class="ic ic-sm"><use href="#i-info"/></svg><span id="map-note">Bản đồ nền © OpenStreetMap contributors. Tin chỉ có tọa độ tâm phường không được vẽ để tránh hiểu nhầm vị trí. Bấm vào một điểm để xem giá và mở tin gốc.</span></p>
+    <p class="note" style="margin-top:12px"><svg class="ic ic-sm"><use href="#i-info"/></svg><span id="map-note">Bản đồ nền © Esri (dữ liệu: Esri, HERE, Garmin, OpenStreetMap contributors). Tin chỉ có tọa độ tâm phường không được vẽ để tránh hiểu nhầm vị trí. Bấm vào một điểm để xem giá và mở tin gốc.</span></p>
   </div>
 </main>
 
@@ -1918,7 +1918,9 @@ function mapRender() {
   if (window.L) {
     if (!MAP.map) {
       MAP.map = L.map("map", { preferCanvas: true, scrollWheelZoom: false }).setView([10.99, 106.66], 12);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap contributors" }).addTo(MAP.map);
+      // Nền Esri: không cần khóa API, không chặn khi trang mở bằng file:// (tile.openstreetmap.org trả 403, CARTO đòi khóa API)
+      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+        { maxZoom: 19, attribution: "Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors, GIS user community" }).addTo(MAP.map);
     }
     if (MAP.layer) MAP.layer.remove();
     MAP.layer = L.layerGroup(pts.map((p) => L.circleMarker([p[0], p[1]], { radius: 5, weight: 0.6, color: "#0b1f36", fillColor: mauDonGia(t(p[2])), fillOpacity: 0.85 }).bindPopup(popup(p)))).addTo(MAP.map);
