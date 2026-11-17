@@ -158,6 +158,21 @@ if os.path.exists(J("data", "processed", "thue_da_xu_ly.csv")):
 # L và CH_LIST vừa được bổ sung trường (thuê, giải thích, tọa độ, id) -> ghi lại bản mới vào dữ liệu trang
 data = [x for x in data if not x.startswith(("const LISTINGS = ", "const CH_LIST = "))]
 data += ["const LISTINGS = " + json.dumps(L, ensure_ascii=False) + ";", "const CH_LIST = " + json.dumps(CH_LIST, ensure_ascii=False) + ";"]
+# Mô hình ý định của trợ lý (notebook tro_ly_y_dinh.ipynb): TF-IDF + Logistic Regression -> tham số cho trình duyệt
+TL = None
+if os.path.exists(J("model", "tro_ly_y_dinh.joblib")):
+    import joblib
+    goi_tl = joblib.load(J("model", "tro_ly_y_dinh.joblib"))
+    clf, phan, cot = goi_tl["mo_hinh"], [], 0
+    for ten, vec in goi_tl["dac_trung"].transformer_list:
+        tu = sorted(vec.vocabulary_.items(), key=lambda kv: kv[1])
+        phan.append({"kieu": "char_wb" if vec.analyzer == "char_wb" else "word", "n": list(vec.ngram_range),
+                     "tu_dien": {g: j for g, j in tu}, "idf": [round(float(x), 4) for x in vec.idf_],
+                     "he_so": [[round(float(w), 4) for w in clf.coef_[:, cot + j]] for _, j in tu]})
+        cot += len(tu)
+    TL = {"lop": list(clf.classes_), "chan": [round(float(b), 4) for b in clf.intercept_], "phan": phan,
+          "chien_luoc": goi_tl["chien_luoc"], "nguong": goi_tl["nguong"], "vi_du": goi_tl["vi_du"], "mau": goi_tl["mau"]}
+data += ["const TL_MODEL = " + json.dumps(TL, ensure_ascii=False) + ";"]
 data += ["const THUE = " + json.dumps(THUE, ensure_ascii=False) + ";", "const DAT_MODEL = " + json.dumps(DAT, ensure_ascii=False) + ";",
          "const DAT_LIST = " + json.dumps(DAT_LIST, ensure_ascii=False) + ";",
          "const GT_META = " + json.dumps({k: GT.get(k) for k in ("nen_log", "muc_tieu", "mo_hinh", "nhom")}, ensure_ascii=False) + ";",

@@ -15,6 +15,7 @@ Toàn bộ dữ liệu là tin rao bán thật (guland, Chợ Tốt Nhà, alonha
 │   ├── du_doan_gia_can_ho.ipynb      Định giá căn hộ chung cư
 │   ├── du_doan_gia_dat.ipynb         Định giá đất nền / đất thổ cư
 │   ├── du_doan_gia_thue.ipynb        Giá thuê, tỷ suất cho thuê, số năm hoàn vốn
+│   ├── tro_ly_y_dinh.ipynb           Huấn luyện mô hình hiểu câu hỏi cho trợ lý (TF-IDF + Logistic Regression)
 │   └── du_doan_xu_huong_gia.ipynb    Phân tích xu hướng giá (kịch bản tham khảo, chưa phải dự báo đã kiểm định)
 │
 ├── src/
@@ -118,11 +119,22 @@ Số liệu chi tiết, khoảng tin cậy và giới hạn: xem phần kết lu
 ## Trợ lý hỏi đáp trên trang demo
 
 Bấm bong bóng **"Hỏi trợ lý"** ở góc phải dưới (hoặc mục *Trợ lý* trên menu) để mở trang hỏi đáp `#/tro-ly`.
-Trợ lý chạy hoàn toàn trên trình duyệt, không gửi câu hỏi đi đâu và không cần khóa API. Nó hiểu câu hỏi tiếng Việt
-(nhận diện ý định + trích diện tích, giá, số tầng, hẻm/mặt tiền, dự án, phường) rồi trả lời **từ chính dữ liệu và mô hình
-của đề tài**: định giá nhà phố / căn hộ, tìm nhà theo ngân sách, xu hướng giá, so sánh phường, dự án căn hộ, kiến thức
-pháp lý – nhà ở xã hội – lưu ý khi mua. Có nhớ ngữ cảnh để hỏi tiếp ("nếu là mặt tiền thì sao?").
-Mã nằm trong `demo/_build/template.html` (phần "Trợ lý hỏi đáp").
+
+- **Hiểu câu hỏi bằng mô hình học máy**: notebook `notebooks/tro_ly_y_dinh.ipynb` huấn luyện mô hình phân loại 19 ý định
+  (TF-IDF n-gram ký tự + từ, Logistic Regression) trên `data/tro_ly/cau_hoi_huan_luyen.csv`, đánh giá trên tập kiểm tra viết
+  riêng `data/tro_ly/cau_hoi_kiem_tra.csv` (câu không dấu, viết tắt, diễn đạt khác). Trên tập kiểm tra: luật từ khóa cũ đúng
+  74,7% và bỏ sót 24,7% số câu; trợ lý hiện tại đúng khoảng 92%, chỉ còn vài phần trăm câu không nhận ra.
+- **Kết hợp với luật cũ** theo chiến lược chọn bằng kiểm định chéo (luật nhận ra thì theo luật, không thì theo mô hình);
+  luật vẫn trích con số (diện tích, giá, số tầng…) và nhận biết câu hỏi tiếp ("nếu là mặt tiền thì sao?").
+- **Không chắc thì hỏi lại**: mô hình chắc dưới 40% thì trợ lý đưa 2–3 gợi ý "Có phải bạn muốn hỏi…"; câu ngoài phạm vi
+  (thời tiết, giá vàng…) được từ chối lịch sự.
+- Chạy hoàn toàn trên trình duyệt, không gửi câu hỏi đi đâu, không cần khóa API. Câu trả lời lấy từ dữ liệu và mô hình
+  định giá của đề tài. Trợ lý **không tự sinh văn bản tự do** như mô hình ngôn ngữ lớn: nó phân loại ý định rồi trả lời bằng
+  các hàm có sẵn.
+- Hạn chế: câu huấn luyện do người làm đề tài viết, chưa có câu hỏi thật của người dùng; trên tập kiểm tra, mô hình đơn lẻ
+  còn tốt hơn chiến lược kết hợp đã chọn (xem notebook) → nên có thêm tập kiểm định riêng để chọn lại chiến lược.
+
+Sửa câu hỏi huấn luyện xong thì chạy lại notebook rồi `python demo/_build/build_site.py`.
 
 ## Gợi ý trình bày khi bảo vệ (thời gian ngắn)
 1. **Bài toán chính – nhà phố Phú Hòa** (notebook `2324801030095.ipynb`): dữ liệu thật → làm sạch → đặc trưng → so sánh mô hình với baseline → **tập test** (MAPE 27,5%, có khoảng tin cậy). Giải thích MAPE bằng bảng ví dụ căn thật ở Bước 8.
