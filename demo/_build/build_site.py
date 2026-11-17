@@ -132,8 +132,22 @@ def them(d, loai, gia_col, don_gia, nhan, chinh_xac):
         PTS.append([round(float(r["lat"]), 5), round(float(r["lon"]), 5), round(float(don_gia(r)), 1), loai, round(float(r[gia_col]), 3), str(nhan(r))[:70], r["url"]])
 cx = lambda d: d["muc_toa_do"].astype(str).str[:1].isin(["1", "2"]) & d["lat"].notna()
 them(df, "nha", "gia_ty", lambda r: r["gia_ty"] * 1000 / r["dt_dat"], lambda r: r["tieu_de"], cx(df))
-them(chd, "ch", "gia_ty", lambda r: r["gia_ty"] * 1000 / r["dt_dat"], lambda r: r["du_an_goc"] if isinstance(r["du_an_goc"], str) else r["tieu_de"],
-     chd["lat"].notna() & (chd["muc_toa_do"].astype(str).str[:1].isin(["1", "2"]) if "muc_toa_do" in chd else True))
+# Căn hộ: 1 chấm cho mỗi dự án / tòa (tọa độ trung vị các tin của dự án), kèm danh sách căn trong tòa.
+# Căn không rõ dự án đứng riêng 1 chấm. Tin chỉ có tọa độ tâm phường thì không vẽ (vị trí không chính xác).
+def can_ho_web(r):
+    so = lambda k, d=2: None if pd.isna(r.get(k)) else round(float(r[k]), d)
+    return {"id": str(r["id"]), "da": nv(r["du_an_goc"]) or (r["du_an"].title() if isinstance(r["du_an"], str) else None),
+            "ph": ten_ph.get(r["phuong"], str(r["phuong"]).title()), "t": str(r["tieu_de"])[:90], "dt": float(r["dt_dat"]),
+            "pn": None if pd.isna(r["phong_ngu"]) else int(r["phong_ngu"]), "g": round(float(r["gia_ty"]), 3),
+            "ai": so("gia_uoc_luong_ty", 3), "lo": so("khoang80_thap"), "hi": so("khoang80_cao"), "cd": nv(r["chan_doan"]),
+            "thue": so("thue_uoc_luong_trieu", 1), "ys": so("ty_suat_cho_thue_pt"), "url": r["url"]}
+ch_ve = chd[chd["lat"].notna() & (chd["muc_toa_do"] != "tâm phường")]
+CH_TOA = []
+for k, g_ in ch_ve.groupby(ch_ve["du_an"].fillna("id:" + ch_ve["id"].astype(str)), sort=False):
+    can = sorted((can_ho_web(r) for _, r in g_.iterrows()), key=lambda c: c["g"])
+    CH_TOA.append({"ten": can[0]["da"] or can[0]["t"][:60], "co_du_an": not k.startswith("id:"), "ph": can[0]["ph"],
+                   "lat": round(float(g_["lat"].median()), 5), "lon": round(float(g_["lon"].median()), 5), "n": len(can),
+                   "dg": round(float((g_["gia_ty"] * 1000 / g_["dt_dat"]).median()), 1), "g_tv": round(float(g_["gia_ty"].median()), 3), "can": can})
 if os.path.exists(J("data", "processed", "dat_da_xu_ly.csv")):
     dd_ = pd.read_csv(J("data", "processed", "dat_da_xu_ly.csv"), dtype={"id": str})
     them(dd_, "dat", "gia_ty", lambda r: r["don_gia"], lambda r: r["tieu_de"], cx(dd_))
@@ -147,9 +161,9 @@ data += ["const LISTINGS = " + json.dumps(L, ensure_ascii=False) + ";", "const C
 data += ["const THUE = " + json.dumps(THUE, ensure_ascii=False) + ";", "const DAT_MODEL = " + json.dumps(DAT, ensure_ascii=False) + ";",
          "const DAT_LIST = " + json.dumps(DAT_LIST, ensure_ascii=False) + ";",
          "const GT_META = " + json.dumps({k: GT.get(k) for k in ("nen_log", "muc_tieu", "mo_hinh", "nhom")}, ensure_ascii=False) + ";",
-         "const MAP_PTS = " + json.dumps(PTS, ensure_ascii=False) + ";"]
+         "const MAP_PTS = " + json.dumps(PTS, ensure_ascii=False) + ";", "const CH_TOA = " + json.dumps(CH_TOA, ensure_ascii=False) + ";"]
 TOK.update({"DAT_N": vn(DAT.get("so_lo", 0), 0), "DAT_TDM": vn(DAT.get("so_lo_tdm", 0), 0), "DAT_WEB": vn(DAT.get("cv_mape_tdm", 0)),
-            "DAT_FULL": vn(DAT.get("mo_hinh_day_du_mape_tdm", 0)), "N_MAP": vn(len(PTS), 0),
+            "DAT_FULL": vn(DAT.get("mo_hinh_day_du_mape_tdm", 0)), "N_MAP": vn(len(PTS) + sum(t["n"] for t in CH_TOA), 0),
             "THUE_N": vn(sum((THUE.get("so_tin") or {}).values()), 0)})
 
 # Bằng chứng (3): dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (notebook nhà phố, Bước 10)
