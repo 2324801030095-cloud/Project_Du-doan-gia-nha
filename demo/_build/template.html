@@ -824,10 +824,11 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
           <div class="panel-b"><table class="tbl"><thead><tr><th>Mô hình</th><th class="r">MAE (tỷ)</th><th class="r">MAPE</th><th>R²</th></tr></thead><tbody id="models-home"></tbody></table></div>
         </div>
         <div class="panel">
-          <div class="panel-h"><svg class="ic"><use href="#i-badge-check"/></svg><h3>Sai số trên các căn Phú Hòa</h3><p>Kiểm định chéo lặp, chia theo nhóm</p></div>
+          <div class="panel-h"><svg class="ic"><use href="#i-badge-check"/></svg><h3>Sai số trên các căn Phú Hòa</h3><p>Kết quả chính: tập test giữ riêng</p></div>
           <div class="panel-b">
             <div class="kv">
-              <div><span>Sai số phần trăm (MAPE)</span><b>@@T_MAPE@@%</b><em>khoảng tin cậy 95%: @@T_LO@@–@@T_HI@@%</em></div>
+              <div><span>MAPE trên tập test (kết quả chính)</span><b>@@TEST_MAPE@@%</b><em>@@TEST_N@@ căn chưa dùng ở bước nào · KTC 95%: @@TEST_LO@@–@@TEST_HI@@%</em></div>
+              <div><span>MAPE kiểm định chéo (bổ trợ)</span><b>@@T_MAPE@@%</b><em>khoảng tin cậy 95%: @@T_LO@@–@@T_HI@@%</em></div>
               <div><span>Sai số % trung vị (MdAPE)</span><b>@@T_MDAPE@@%</b><em>baseline @@B_MDAPE@@% · bản 1: @@V1_MDAPE@@%</em></div>
               <div><span>MAPE của cách làm khác</span><b>@@B_MAPE@@%</b><em>baseline · bản 1: @@V1_MAPE@@%</em></div>
               <div><span>Căn có sai số ≤ 20%</span><b>@@T_W20@@%</b><em>baseline @@B_W20@@%</em></div>
