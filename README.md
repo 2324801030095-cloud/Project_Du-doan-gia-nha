@@ -33,7 +33,9 @@ Toàn bộ dữ liệu là tin rao bán thật (guland, Chợ Tốt Nhà, alonha
 ├── data/
 │   ├── raw/                      Dữ liệu gốc tải về – KHÔNG sửa tay
 │   ├── processed/                Dữ liệu đã làm sạch + danh sách tin bị loại (do notebook sinh ra)
-│   └── lich_su/                  Ảnh chụp dữ liệu theo ngày, dùng cho phân tích xu hướng
+│   ├── lich_su/                  Ảnh chụp dữ liệu theo ngày, dùng cho phân tích xu hướng
+│   ├── tro_ly/                   Câu hỏi có gán nhãn ý định để huấn luyện / kiểm tra trợ lý
+│   └── kiem_tra_tay/             Mẫu cặp tin để gán nhãn tay việc gom tin trùng (notebook nhà phố, Bước 11)
 │
 ├── model/                        Mô hình đã huấn luyện (.joblib) + mô hình rút gọn cho web (.json) + kết quả đánh giá
 │
@@ -48,7 +50,7 @@ Toàn bộ dữ liệu là tin rao bán thật (guland, Chợ Tốt Nhà, alonha
 │   ├── assets/                       Ảnh minh họa
 │   └── _build/                       Mẫu trang + script dựng trang từ kết quả trong model/ và data/
 │
-├── cong_cu/                      Script sinh lại 5 notebook + an_danh_du_lieu.py (bỏ thông tin người đăng, che số điện thoại)
+├── cong_cu/                      Script sinh lại 6 notebook + an_danh_du_lieu.py (bỏ thông tin người đăng, che số điện thoại)
 │
 ├── tests/                        Kiểm thử tự động (mô hình + trợ lý hỏi đáp)
 ├── requirements.txt              Thư viện Python cần cài (đúng phiên bản đã kiểm chứng)
@@ -85,12 +87,15 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_gia_dat.ip
 # 3. xu hướng giá (dùng kết quả của bước 2)
 jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_xu_huong_gia.ipynb
 
-# 4. dựng lại trang demo
+# 4. trợ lý: mô hình hiểu câu hỏi (cần Node.js để so sánh với luật cũ)
+jupyter nbconvert --to notebook --execute --inplace notebooks/tro_ly_y_dinh.ipynb
+
+# 5. dựng lại trang demo
 python demo/_build/build_site.py
 ```
 
 ```
-# 5. kiểm thử tự động (nên chạy sau mỗi lần sửa)
+# 6. kiểm thử tự động (nên chạy sau mỗi lần sửa)
 python tests/kiem_tra_mo_hinh.py         # chống rò rỉ, gom tin trùng, khoảng tin cậy, nạp mô hình, dữ liệu sạch
 node tests/kiem_tra_tro_ly.js            # trợ lý: hiểu ý định, trích thông tin, số liệu khớp mô hình, nhớ ngữ cảnh
 ```
@@ -111,6 +116,10 @@ Muốn sửa nội dung notebook: sửa trực tiếp trong notebook, hoặc s�
 | Khoảng giá 80% (độ phủ kiểm tra trên test) | có | có | 79% | – |
 
 Tập test là **kết quả chính** vì là bằng chứng sạch nhất; nó nhỏ (40 căn) nên khoảng tin cậy rộng. Hai con số còn lại để bổ trợ: test là bằng chứng sạch nhất nhưng bất định; con số trên toàn bộ 220 căn có khoảng tin cậy hẹp hơn nhưng có thể lạc quan nhẹ vì phần lớn các căn đó đã tham gia bước chọn mô hình.
+**Kiểm tra độ tin cậy** (notebook nhà phố, cuối Bước 11): sai số theo nguồn tương đương nhau (22,6–26,2%); tin **thiếu thông số**
+sai 29% so với 21% ở tin đủ thông số; tọa độ tâm phường sai hơn tọa độ riêng một chút (24,1% so với 21,7%); nhóm giá rẻ nhất sai
+nhiều nhất (30,5%); đổi ngưỡng lọc đơn giá (2, 3, 5 lần, không lọc) chỉ làm MAPE đổi trong 21,7–22,4%. Việc gom tin trùng chờ
+gán nhãn tay 50 cặp trong `data/kiem_tra_tay/cap_tin_gan_trung.csv`.
 Khoảng 80% là khoảng hiệu chỉnh thực nghiệm từ sai số ngoài-fold (ý tưởng conformal), không phải bảo đảm lý thuyết.
 Xu hướng giá 6–12 tháng là **kịch bản tham khảo**, chưa phải dự báo đã kiểm định lùi: hiện có 3 kỳ ảnh chụp, tin rao chỉ có ngày đăng trong khoảng 2 tháng gần nhất, nên chưa đủ dữ liệu để kiểm định trung thực. Mã kiểm định lùi (`kiem_dinh_lui` trong `src/mo_hinh_gia.py`) đã có kiểm thử tự động và sẽ tự chạy khi đủ 8 kỳ, dự kiến khoảng cuối tháng 12/2026 theo lịch thu thập hằng tuần.
 
@@ -152,10 +161,12 @@ Sửa câu hỏi huấn luyện xong thì chạy lại notebook rồi `python de
 - **Trợ lý** (`#/tro-ly`): thêm câu hỏi về giá thuê / hoàn vốn và định giá đất.
 
 ## Thu thập định kỳ
-`thu_thapat_lich_tu_dong.bat` đăng ký tác vụ Windows *PhuHoaHome_ThuThapDinhKy* (08:00 Chủ nhật hằng tuần). Mỗi lần chạy
+`thu_thap/bat_lich_tu_dong.bat` đăng ký tác vụ Windows *PhuHoaHome_ThuThapDinhKy* (08:00 Chủ nhật hằng tuần). Mỗi lần chạy
 thêm một kỳ ảnh chụp vào `data/lich_su/`; khi đủ ≥ 8 kỳ, notebook xu hướng tự huấn luyện và kiểm định lùi mô hình dự báo.
 Nguồn bị chặn tạm thời (HTTP 429) thì giữ nguyên file cũ, ghi lỗi vào nhật ký và vẫn thu các nguồn còn lại.
-Gỡ lịch: `thu_thap	at_lich_tu_dong.bat`.
+Nếu số tin của một nguồn **giảm hơn 30% so với kỳ trước** (thường do trang đổi giao diện hoặc bị chặn một phần), nhật ký ghi
+CẢNH BÁO và tác vụ kết thúc với mã lỗi. Cuối mỗi lần chạy, nhật ký in bảng số tin theo kỳ và theo nguồn.
+Gỡ lịch: `thu_thap/tat_lich_tu_dong.bat`.
 
 ## Riêng tư dữ liệu
 Script thu thập **không lưu** tên, mã tài khoản, ảnh đại diện của người đăng và **che số điện thoại** trong tiêu đề / mô tả

@@ -6,7 +6,7 @@ Cập nhật: 17/11/2026
 - **Đã xong:**
   - 5 notebook đã chạy trọn vẹn và còn output: nhà phố, căn hộ, đất nền, giá thuê, xu hướng.
   - Trang demo `demo/trang_ban_nha.html` gồm: định giá, căn hộ, đất nền, bản đồ giá, yêu thích/so sánh, trợ lý.
-  - Kiểm thử: `tests/kiem_tra_mo_hinh.py` đạt 10/10, `tests/kiem_tra_tro_ly.js` đạt 22/22.
+  - Kiểm thử: `tests/kiem_tra_mo_hinh.py` đạt 10/10, `tests/kiem_tra_tro_ly.js` đạt 26/26.
   - Dữ liệu ở bản mới nhất đã ẩn danh: không còn thông tin người đăng, số điện thoại đã được che. Xem `cong_cu/an_danh_du_lieu.py`.
   - Thu thập định kỳ: tác vụ Windows `PhuHoaHome_ThuThapDinhKy` chạy 08:00 Chủ nhật hằng tuần.
 - **Hạn chế đã biết (nêu khi trình bày):**
@@ -16,5 +16,6 @@ Cập nhật: 17/11/2026
   - Dữ liệu là giá rao, không phải giá giao dịch.
 - **Lịch sử git:** ngày 17/11/2026 lịch sử đã được viết lại, chỉ gồm bản đã ẩn danh (commit gốc `632e9e7`), rồi force-push. Bản sao lưu lịch sử cũ là nhánh `sao-luu-truoc-viet-lai-lich-su`. Nhánh này chỉ nằm trong máy và không được đẩy lên. Các commit cũ (`990e482`, `e1983ce`) không còn thuộc nhánh nào trên GitHub, nhưng GitHub vẫn trả về nếu ai biết chính xác mã SHA, cho tới khi GitHub tự dọn. Muốn xóa ngay thì gửi yêu cầu cho GitHub Support (xóa dữ liệu nhạy cảm, kèm 2 mã SHA này).
 - **Bước tiếp theo:**
+  - Gán nhãn tay 50 cặp tin trong `data/kiem_tra_tay/cap_tin_gan_trung.csv` (cột `cung_mot_can`: 1/0), chạy lại notebook nhà phố để có tỷ lệ gom đúng / bỏ sót.
   - Chạy lại notebook xu hướng sau mỗi vài kỳ thu thập.
   - Khi có thêm tin Phú Hòa mới, chạy lại notebook nhà phố để thu hẹp khoảng tin cậy của tập test.

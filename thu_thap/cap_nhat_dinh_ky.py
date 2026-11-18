@@ -46,8 +46,17 @@ for ten, (script, csv) in NGUON.items():
     import pandas as pd
     ngay = str(pd.read_csv(src, usecols=["ngay_thu_thap"])["ngay_thu_thap"].iloc[0])
     dst = LS / f"{ten}_{ngay}.csv"
+    # Cảnh báo khi số tin tụt mạnh so với kỳ trước: thường do trang đổi giao diện/API hoặc bị chặn một phần,
+    # chứ không phải thị trường thật sự giảm một nửa số tin trong vài ngày.
+    truoc = [p for p in sorted(LS.glob(f"{ten}_20*.csv")) if p != dst]
+    n_moi = len(pd.read_csv(src, usecols=["ngay_thu_thap"]))
+    if truoc:
+        n_cu = len(pd.read_csv(truoc[-1], usecols=["ngay_thu_thap"]))
+        if n_moi < 0.7 * n_cu:
+            loi.append(f"{ten} (số tin giảm bất thường)")
+            print(f"   CẢNH BÁO {ten}: chỉ {n_moi} tin, kỳ trước {truoc[-1].name} có {n_cu} tin (giảm > 30%) - kiểm tra lại script thu thập", flush=True)
     shutil.copyfile(src, dst)
-    print(f"   đã lưu ảnh chụp: {dst.relative_to(ROOT)}")
+    print(f"   đã lưu ảnh chụp: {dst.relative_to(ROOT)} ({n_moi} tin)")
 
 # guland không có API công khai: sau khi chạy guland_thu_thap.js trong trình duyệt, đặt file vào data/raw/ rồi
 # chép tay thành data/lich_su/guland_<ngày>.csv
@@ -57,6 +66,10 @@ if g.exists():
     ngay = str(pd.read_csv(g, usecols=["ngay_thu_thap"])["ngay_thu_thap"].iloc[0])
     if not (LS / f"guland_{ngay}.csv").exists():
         shutil.copyfile(g, LS / f"guland_{ngay}.csv")
-print("Các ảnh chụp hiện có:", sorted(p.name for p in LS.glob("*.csv")))
+import pandas as pd
+import re
+bang = [(m[1], m[2], len(pd.read_csv(p, usecols=["ngay_thu_thap"]))) for p in LS.glob("*.csv")
+        if (m := re.match(r"(.+)_(\d{4}-\d{2}-\d{2})\.csv$", p.name))]
+print("Số tin theo kỳ và nguồn:\n" + pd.DataFrame(bang, columns=["nguon", "ky", "so_tin"]).pivot(index="ky", columns="nguon", values="so_tin").to_string())
 print("Ngày cập nhật:", dt.date.today().isoformat(), "| nguồn lỗi:", loi or "không")
 sys.exit(1 if loi else 0)

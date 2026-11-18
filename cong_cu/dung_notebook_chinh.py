@@ -361,12 +361,17 @@ danh_dau(df["t_dt_tho_cu"] / df["dt_dat"] < 0.5, "Thổ cư < 50% diện tích")
 xy = np.radians(df[["lat", "lon"]].to_numpy())
 u = np.log(df["don_gia"].to_numpy())
 _, idx = BallTree(xy, metric="haversine").query(xy, k=16)
-lech = np.abs(u - np.median(u[idx[:, 1:]], axis=1)) > np.log(3)
-danh_dau(pd.Series(lech, index=df.index), "Đơn giá lệch > 3 lần khu vực")
+df["lech_log"] = np.abs(u - np.median(u[idx[:, 1:]], axis=1))       # |log đơn giá − log trung vị 15 căn gần nhất|
+danh_dau(df["lech_log"] > np.log(3), "Đơn giá lệch > 3 lần khu vực")
 df["ly_do_loai"] = ly_do
+df_truoc_loc = df.copy()                       # giữ lại để thử các ngưỡng lọc khác (Bước 11, kiểm tra độ nhạy)
 
 bang_loai = df[ly_do != ""].groupby("ly_do_loai").agg(so_tin=("id", "size"), don_gia_tv=("don_gia", "median"))
 display(bang_loai.round(1))
+# Quy tắc lọc có loại tin của một nguồn nhiều bất thường không? (nếu có, pipeline đang thiên lệch theo website)
+theo_nguon = pd.crosstab(df["nguon"], ly_do.replace("", "Giữ lại"))
+theo_nguon["Tỷ lệ bị loại (%)"] = (1 - theo_nguon["Giữ lại"] / theo_nguon.sum(axis=1)) * 100
+print("Tin bị loại theo nguồn và lý do:"); display(theo_nguon.round(1))
 df[ly_do != ""][["nguon", "url", "tieu_de", "gia_ty", "dt_dat", "don_gia", "ly_do_loai"]].to_csv(
     PROC / "tin_bi_loai.csv", index=False, encoding="utf-8-sig")
 df = df[ly_do == ""].reset_index(drop=True)
@@ -937,6 +942,115 @@ print("Đã ghi ket_qua/input.csv (thông số", len(xuat), "căn Phú Hòa) và
 md(r"""
 **Quan sát:** Phần lớn căn Phú Hòa có giá rao "hợp lý" theo mô hình; theo cách dựng khoảng 80%, mỗi phía kỳ vọng khoảng 10% số căn. Nhóm "cao hơn thị trường" gồm tin rao kỳ vọng cao và căn có yếu tố mô hình không thấy (nhà mới xây cao cấp, vị trí đặc biệt), xem phân tích co về trung bình ở Bước 9. Nhóm "rẻ hơn" là ứng viên đáng xem (thường có tin "bán gấp/ngộp"), nhưng cũng cần kiểm tra pháp lý và hiện trạng. Kết quả là **gợi ý sàng lọc**, không thay thế thẩm định thực tế.
 
+""")
+
+md(r"""
+### Kiểm tra độ tin cậy của dữ liệu và kết quả
+Một con số MAPE chung có thể che giấu chỗ mô hình yếu. Ba phép kiểm dưới đây trả lời: mô hình sai nhiều hơn ở đâu, kết quả có phụ thuộc vào quy tắc lọc không, và việc gom tin trùng có đúng không.
+
+**1. Sai số theo nhóm.** Dùng dự đoán chéo theo nhóm của **mọi** căn (ở trên). Nhóm dưới 20 căn ghi "chưa đủ mẫu" thay vì đưa ra con số dễ gây hiểu nhầm.
+""")
+
+code(r"""
+d_ = df.assign(ape=np.abs(df["gia_uoc_luong_ty"] / df["gia_ty"] - 1) * 100,
+               thong_so=np.where(df[["dt_san", "so_tang", "ngang", "cap_loi_vao"]].notna().sum(axis=1) >= 3,
+                                 "Đủ thông số (≥ 3 trong 4: sàn, tầng, ngang, lối vào)", "Thiếu thông số (≤ 2 trong 4)"),
+               muc_gia=pd.qcut(df["gia_ty"], 4, labels=["Rẻ nhất 25%", "25–50%", "50–75%", "Đắt nhất 25%"]))
+def sai_so_theo(cot, ten, du_lieu=d_):
+    dong = []
+    for k, g in du_lieu.groupby(cot, observed=True):
+        if len(g) < 20:
+            dong.append({ten: k, "Số căn": len(g), "MAPE (%)": np.nan, "KTC 95%": "chưa đủ mẫu"}); continue
+        lo, hi = ktc_bootstrap(g["ape"].to_numpy(), g["nhom"].to_numpy())
+        dong.append({ten: k, "Số căn": len(g), "MAPE (%)": round(g["ape"].mean(), 1), "KTC 95%": f"{lo:.1f} – {hi:.1f}"})
+    return pd.DataFrame(dong).set_index(ten)
+for cot, ten in [("nguon", "Nguồn tin"), ("muc_toa_do", "Mức chính xác của tọa độ"), ("thong_so", "Thông số căn nhà"), ("muc_gia", "Mức giá rao")]:
+    display(sai_so_theo(cot, ten))
+display(sai_so_theo("phuong", "Phường (Thủ Dầu Một)", d_[d_["tdm"] == 1]).sort_values("Số căn", ascending=False))
+""")
+
+md(r"""
+**2. Độ nhạy theo ngưỡng lọc "đơn giá lệch quá xa khu vực".** Quy tắc này có thể loại nhầm căn cao cấp hay vị trí hiếm có đơn giá cao thật. Ta học lại mô hình với 4 ngưỡng (giữ nguyên các quy tắc lọc khác), rồi chấm **trên cùng một tập căn**: những căn được giữ lại ở **mọi** ngưỡng. Chấm trên cùng tập thì so sánh mới công bằng; nếu chấm trên tập của từng ngưỡng, ngưỡng lỏng sẽ "bị phạt" chỉ vì phải đoán cả các tin giá bất thường.
+""")
+
+code(r"""
+NGUONG_LECH = {"Chặt hơn: lệch > 2 lần": np.log(2), "Đang dùng: lệch > 3 lần": np.log(3),
+               "Lỏng hơn: lệch > 5 lần": np.log(5), "Không lọc theo đơn giá": np.inf}
+qua_quy_tac_khac = df_truoc_loc["ly_do_loai"].isin(["", "Đơn giá lệch > 3 lần khu vực"]).to_numpy()
+DU_DOAN_NG = {}
+for ten, t in NGUONG_LECH.items():
+    d = df_truoc_loc[qua_quy_tac_khac & (df_truoc_loc["lech_log"] <= t).to_numpy()].copy()
+    d["y"], d["log_dt"], d["ty_le_san"] = np.log(d["gia_ty"]), np.log(d["dt_dat"]), d["dt_san"] / d["dt_dat"]
+    d["phu_hoa"], d["tdm"] = (d["phuong"] == "phu hoa").astype(int), (d["quan"] == "thu dau mot").astype(int)
+    d = d.reset_index(names="goc")
+    d["nhom"] = nhom_gan_trung(d)
+    DU_DOAN_NG[ten] = (pd.Series(du_doan_cheo_lap(MO_HINH[ten_tot_nhat], d, so_lan=1)[0], index=d["goc"]), len(d))
+chung = sorted(set.intersection(*[set(p.index) for p, _ in DU_DOAN_NG.values()]))
+goc_ = df_truoc_loc.loc[chung]
+nhom_chung = nhom_gan_trung(goc_.reset_index(drop=True))          # nhóm gần trùng trên tập chấm chung (cho khoảng tin cậy)
+dong = []
+for ten, (p, n) in DU_DOAN_NG.items():
+    ape = np.abs(np.exp(p.loc[chung].to_numpy()) / goc_["gia_ty"].to_numpy() - 1) * 100
+    m_ph, m_tdm = (goc_["phuong"] == "phu hoa").to_numpy(), (goc_["quan"] == "thu dau mot").to_numpy()
+    lo, hi = ktc_bootstrap(ape[m_tdm], nhom_chung[m_tdm])
+    dong.append({"Ngưỡng lọc": ten, "Số căn dùng để học": n, "MAPE Phú Hòa (%)": round(ape[m_ph].mean(), 1),
+                 "MAPE Thủ Dầu Một (%)": round(ape[m_tdm].mean(), 1), "KTC 95% (TDM)": f"{lo:.1f} – {hi:.1f}"})
+print(f"Chấm trên {len(chung)} căn được giữ ở mọi ngưỡng (Phú Hòa {int((goc_['phuong'] == 'phu hoa').sum())}, TDM {int((goc_['quan'] == 'thu dau mot').sum())}); kiểm định chéo theo nhóm 5-fold:")
+display(pd.DataFrame(dong).set_index("Ngưỡng lọc"))
+""")
+
+md(r"""
+**3. Kiểm tra tay việc gom tin trùng.** Quy tắc gom tin gần trùng chỉ được kiểm thử trên ví dụ dựng sẵn; muốn biết nó đúng đến đâu trên dữ liệu thật thì **người phải xem từng cặp**. Ô dưới xuất 25 cặp **đã gom** và 25 cặp **gần giống nhưng không gom** (cùng quận, diện tích lệch ≤ 3%, giá lệch ≤ 12%) ra `data/kiem_tra_tay/cap_tin_gan_trung.csv`, xáo thứ tự để người gán nhãn không biết cặp nào đã gom. Mở file, xem hai tin (tiêu đề, giá, diện tích, phường, đường, link), điền cột `cung_mot_can`: **1** = cùng một căn, **0** = hai căn khác nhau. Chạy lại notebook thì ô này tính:
+- **Gom đúng** = trong các cặp đã gom, bao nhiêu % thật sự cùng một căn;
+- **Bỏ sót** = trong các cặp không gom, bao nhiêu % thật ra là cùng một căn (tin trùng lọt qua → kết quả đánh giá có thể đẹp giả).
+
+File đã có thì không bị ghi đè, để không mất nhãn đã điền.
+""")
+
+code(r"""
+CAP = GOC / "data" / "kiem_tra_tay" / "cap_tin_gan_trung.csv"
+if not CAP.exists():
+    rng_cap = np.random.default_rng(0)
+    da_gom = [tuple(g.index[:2]) for _, g in df.groupby("nhom") if len(g) >= 2]
+    gan_khong_gom = []
+    for _, g in df.groupby("quan"):
+        a, p, ix, nh = g["dt_dat"].to_numpy(), g["gia_ty"].to_numpy(), g.index.to_numpy(), g["nhom"].to_numpy()
+        for k in range(len(g)):
+            m = (np.abs(a - a[k]) / a[k] <= 0.03) & (np.abs(p - p[k]) / p[k] <= 0.12) & (nh != nh[k])
+            m[: k + 1] = False
+            gan_khong_gom += [(ix[k], ix[j]) for j in np.where(m)[0]]
+    cap = [(c, "đã gom") for c in (da_gom[i] for i in rng_cap.choice(len(da_gom), min(25, len(da_gom)), replace=False))] + \
+          [(c, "không gom") for c in (gan_khong_gom[i] for i in rng_cap.choice(len(gan_khong_gom), min(25, len(gan_khong_gom)), replace=False))]
+    rng_cap.shuffle(cap)
+    cot = ["tieu_de", "gia_ty", "dt_dat", "phuong", "duong", "nguon", "url"]
+    dong = [{"ma_cap": n + 1, **{f"{c}_1": df.loc[i, c] for c in cot}, **{f"{c}_2": df.loc[j, c] for c in cot},
+             "cung_mot_can": "", "quy_tac_da_gom": loai} for n, ((i, j), loai) in enumerate(cap)]
+    CAP.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(dong).to_csv(CAP, index=False, encoding="utf-8-sig")
+    print(f"Đã xuất {len(dong)} cặp ra {CAP.relative_to(GOC)}: điền cột cung_mot_can (1/0) rồi chạy lại notebook.")
+else:
+    nhan = pd.read_csv(CAP)
+    da_dien = nhan[nhan["cung_mot_can"].isin([0, 1])]
+    if len(da_dien) < len(nhan):
+        print(f"{CAP.relative_to(GOC)}: mới điền {len(da_dien)}/{len(nhan)} cặp. Điền cột cung_mot_can (1 = cùng căn, 0 = khác căn) cho mọi cặp rồi chạy lại.")
+    else:
+        gom, khong = da_dien[da_dien["quy_tac_da_gom"] == "đã gom"], da_dien[da_dien["quy_tac_da_gom"] == "không gom"]
+        print(f"Gom đúng: {gom['cung_mot_can'].mean() * 100:.0f}% ({int(gom['cung_mot_can'].sum())}/{len(gom)} cặp đã gom thật sự cùng một căn)")
+        print(f"Bỏ sót: {khong['cung_mot_can'].mean() * 100:.0f}% ({int(khong['cung_mot_can'].sum())}/{len(khong)} cặp không gom thật ra là cùng một căn)")
+""")
+
+md(r"""
+**Đọc kết quả ba phép kiểm** (số liệu lần chạy 17/11/2026):
+- **Theo nguồn:** alonhadat, Chợ Tốt, guland có MAPE 22,6% / 23,2% / 26,2%, khoảng tin cậy chồng nhau → **không thấy mô hình kém hẳn với nguồn nào**. Guland hơi cao hơn vì tin guland chỉ có tiêu đề. Tỷ lệ tin bị lọc theo nguồn cũng không chênh lớn (2,7% / 6,9% / 10,4%): quy tắc lọc không thiên lệch theo một website.
+- **Thiếu thông số là yếu tố ảnh hưởng mạnh nhất:** tin thiếu từ 2 trong 4 thông số (sàn, tầng, ngang, lối vào) sai 29,4%, tin đủ thông số sai 21,4%, hai khoảng tin cậy **không chồng nhau**. Vì vậy trang demo hiện nhãn "Thiếu vài thông số" khi người dùng nhập thiếu.
+- **Độ chính xác tọa độ:** tọa độ riêng 21,7%, theo tuyến đường 23,7%, tâm phường 24,1%. Sai số tăng dần khi vị trí kém chính xác nhưng chênh nhỏ, khoảng tin cậy chồng nhau. Có tọa độ chính xác sẽ giúp nhưng không phải nguồn sai số chính.
+- **Theo mức giá:** nhóm rẻ nhất sai nhiều nhất (30,5%), nhóm giữa ít nhất (18–20%). Tin rẻ bất thường thường là giá mồi, nhà nát, đất chưa thổ cư mà quy tắc lọc chưa bắt hết.
+- **Theo phường:** chênh nhiều (Hiệp An 13%, Phú Mỹ 17% … Chánh Mỹ 35%); 9 phường dưới 20 căn ghi "chưa đủ mẫu", không nên kết luận về các phường này.
+- **Ngưỡng lọc đơn giá:** chấm trên cùng 1.355 căn, MAPE Thủ Dầu Một của 4 ngưỡng chỉ trong khoảng 21,7–22,4%, khoảng tin cậy chồng nhau → **kết quả không phụ thuộc đáng kể vào ngưỡng lọc**. Lọc chặt hơn (loại thêm 134 tin) không làm mô hình tốt hơn, nên giữ ngưỡng 3 lần.
+- **Gom tin trùng:** chờ gán nhãn tay 50 cặp trong `data/kiem_tra_tay/cap_tin_gan_trung.csv`.
+""")
+
+md(r"""
 ## Bước 12: Lưu mô hình và hàm dự đoán
 - Huấn luyện lại mô hình đã chọn trên **toàn bộ** dữ liệu sạch → `model/mo_hinh_gia_nha.joblib` (kèm phân vị sai số để tính khoảng tin cậy).
 - `model/mo_hinh_gia_nha.json`: **mô hình rút gọn** (Ridge, 11 thông số người dùng nhập được) cho trang demo `demo/trang_ban_nha.html` tính ngay trên trình duyệt. Mô hình này huấn luyện lại trên dữ liệu Phú Hòa mới, các thông số được **chặn trên ở phân vị 97%** để mô hình tuyến tính không ngoại suy quá đà. Sai số kiểm định chéo của nó được ghi kèm để trang demo hiển thị trung thực.
@@ -1111,6 +1225,7 @@ md(r"""
 
 **Hạn chế còn lại (cần nêu khi trình bày)**
 - Mô hình ước lượng **mặt bằng giá rao**, không phải giá giao dịch: vẫn là **giá rao bán**, chưa phải giá giao dịch công chứng (dữ liệu này không công khai). Sai số 20–25% phần lớn đến từ độ "ảo" của giá rao.
+- **Sai số không đều:** tin thiếu thông số sai 29% so với 21% ở tin đủ thông số; nhóm giá rẻ nhất sai nhiều nhất; vài phường chưa đủ mẫu (Bước 11, kiểm tra độ tin cậy).
 - **Tập test Phú Hòa nhỏ** (vài chục căn): MAPE test cao hơn MAPE kiểm định chéo và khoảng tin cậy của nó rất rộng. Hai khoảng tin cậy chồng nhau nên kết quả không mâu thuẫn, nhưng **chưa đủ để khẳng định độ chính xác ổn định ở riêng Phú Hòa**; cần thêm tin Phú Hòa độc lập qua các kỳ thu thập định kỳ.
 - Vị trí chỉ chính xác tới **tuyến đường hoặc phường** với phần lớn tin; muốn tốt hơn cần số nhà hoặc tọa độ do người đăng ghim.
 - Tin guland (phần lớn dữ liệu Phú Hòa) hiện chỉ có tiêu đề. Script `thu_thap/guland_thu_thap.js` đã được sửa để lưu cả mô tả; lần thu thập tới notebook tự dùng cột này.
