@@ -520,6 +520,9 @@ main[hidden] { display: none; }
 .sim { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; text-transform: none; color: var(--amber-600); background: #fff1d6; border-radius: 4px; padding: 2px 7px; cursor: help; }
 .trend-seg { font-size: 12.5px; color: var(--muted); margin-top: -4px; }
 .trend-rows { display: grid; gap: 6px; }
+.trend-ky { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0 6px; font-size: 13px; color: var(--muted); }
+.trend-ky .ctl { max-width: 150px; }
+.trend-ky select { padding: 6px 10px; font-size: 13px; }
 .tr-row { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 9px; border-radius: 8px; background: var(--navy-50); }
 .tr-ar { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: #fff; }
 .tr-ar.up { background: var(--green-600); } .tr-ar.dn { background: var(--red-600); } .tr-ar.flat { background: var(--muted); }
@@ -835,7 +838,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
               <div><span>Căn có sai số ≤ 20%</span><b>@@T_W20@@%</b><em>baseline @@B_W20@@%</em></div>
             </div>
             <p class="note"><svg class="ic ic-sm"><use href="#i-info"/></svg><span>Mô hình: @@BEST@@. Mỗi căn được dự đoán bởi mô hình không học căn đó và không học các tin gần trùng với nó. Tập test giữ riêng (@@TEST_N@@ căn Phú Hòa): MAPE @@TEST_MAPE@@% (khoảng tin cậy @@TEST_LO@@–@@TEST_HI@@%). Trên toàn bộ @@PH_ALL_N@@ căn Phú Hòa (mỗi căn do mô hình không học căn đó dự đoán): MAPE @@PH_ALL_MAPE@@% (@@PH_ALL_LO@@–@@PH_ALL_HI@@%). Tập test nhỏ nên con số của nó dao động nhiều hơn. Baseline: đơn giá trung vị của phường × diện tích. Bản 1: Ridge 9 thông số chỉ học trên Phú Hòa. Dữ liệu là giá rao bán, chưa phải giá giao dịch.</span></p>
-            <p class="note"><svg class="ic ic-sm"><use href="#i-chart-spline"/></svg><span>Xu hướng 6–12 tháng (notebook <code>du_doan_xu_huong_gia.ipynb</code>) chỉ dùng <b>dữ liệu thật</b>: người bán đổi giá cùng một căn, giá căn chuẩn theo phường, số liệu DKRA đã công bố.</span></p>
+            <p class="note"><svg class="ic ic-sm"><use href="#i-chart-spline"/></svg><span>Xu hướng 1–24 tháng (notebook <code>du_doan_xu_huong_gia.ipynb</code>) chỉ dùng <b>dữ liệu thật</b>: người bán đổi giá cùng một căn, giá căn chuẩn theo phường, số liệu DKRA đã công bố.</span></p>
           </div>
         </div>
       </div>
@@ -937,6 +940,9 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
             <div class="trend-h"><span><svg class="ic ic-sm"><use href="#i-chart-spline"/></svg>Xu hướng giá khu vực</span><span class="sim" title="Nhận định từ tín hiệu thật 11/2026, chưa có lịch sử nhiều năm">Dữ liệu thật</span></div>
             <div class="trend-seg" id="trend-seg"></div>
             <div class="trend-rows" id="trend-rows"></div>
+            <div class="trend-ky"><label for="trend-ky">Chọn kỳ hạn</label>
+              <span class="ctl"><select id="trend-ky"></select></span></div>
+            <div class="trend-rows" id="trend-ky-kq"></div>
             <a class="trend-more" href="#/dinh-gia" data-scroll="trend-panel">Xem căn cứ nhận định <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
           </div>
           <div class="warn-box" id="warn" hidden></div>
@@ -955,7 +961,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
         <div class="panel-b"><p class="hint" style="margin:0 0 12px">Ô để trống được điền bằng trung vị của @@N_PH@@ căn Phú Hòa (màu cam). Nhập càng đủ, kết quả càng sát với căn của bạn.</p><div class="checks" id="checks"></div></div>
       </section>
       <section class="panel full" id="trend-panel">
-        <div class="panel-h"><svg class="ic"><use href="#i-chart-spline"/></svg><h3>Xu hướng giá 6–12 tháng · dữ liệu thật</h3><p id="trend-sub"></p></div>
+        <div class="panel-h"><svg class="ic"><use href="#i-chart-spline"/></svg><h3>Xu hướng giá 1–24 tháng · dữ liệu thật</h3><p id="trend-sub"></p></div>
         <div class="panel-b">
           <div class="sim-note"><svg class="ic ic-sm"><use href="#i-circle-alert"/></svg><span><b>Chưa có lịch sử giá nhiều năm của riêng Phú Hòa.</b> Nhận định dựa trên tín hiệu thật trong dữ liệu tháng 11/2026 (người bán tăng/giảm giá cùng một căn, tỷ lệ tin "bán gấp") và số liệu DKRA đã công bố cho TP.HCM &amp; vùng phụ cận. Biên độ là nhận định có điều kiện, chưa phải mô hình đã kiểm định lùi. Chi tiết và cách tính: notebook <code>du_doan_xu_huong_gia.ipynb</code>.</span></div>
           <div class="trend-grid">
@@ -1667,23 +1673,39 @@ const pctTxt = (v, d = 1) => `${v >= 0 ? "+" : "−"}${fmt(Math.abs(v), d)}%`;
 const DB = TREND.du_bao_so, DG = TREND.doi_gia_tdm;
 const NGAY_DL = String(TREND.ngay_du_lieu).split("-").reverse().join("/");   // 2026-11-14 -> 14/11/2026
 const dirOf = (f) => { const m = (f.lo + f.hi) / 2; return m < -0.5 ? "dn" : m > 0.5 ? "up" : "flat"; };
-function renderTrend(x, price) {
-  $("trend-seg").textContent = `Thủ Dầu Một · dữ liệu ${NGAY_DL}`;
-  $("trend-rows").innerHTML = [["h6", "6 tháng"], ["h12", "12 tháng"]].map(([h, lab]) => {
-    const f = DB[h], dir = dirOf(f), ic = dir === "up" ? "trending-up" : dir === "dn" ? "trending-down" : "minus";
-    return `<div class="tr-row"><span class="tr-ar ${dir}">${icon(ic, "ic")}</span>
-      <div class="tr-main"><b>${lab}: ${pctTxt(f.lo)} … ${pctTxt(f.hi)}</b>
-      <span>≈ ${fmt(price * (1 + f.lo / 100))} – ${fmt(price * (1 + f.hi / 100))} tỷ (giá rao)</span></div></div>`;
-  }).join("") + `<div class="trend-seg">${fmt(DG.pct_giam, 0)}% số tin đổi giá ở TDM là <b>giảm giá</b> (trung vị ${pctTxt(DG.trung_vi)})</div>`;
+const THANG = DB.thang || { lo: DB.h6.lo / 6, hi: DB.h6.hi / 6 };
+const KY_HAN = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24];
+const kyHanF = (h) => ({ lo: THANG.lo * h, hi: THANG.hi * h });
+const tinCay = (h) => h <= 3 ? "Ngắn hạn – sát tín hiệu hiện tại" : h <= 6 ? "Kịch bản tham khảo" : h <= 12 ? "Bất định cao" : "Chỉ minh họa – ngoài phạm vi dữ liệu";
+const tenKy = (h) => h % 12 === 0 && h > 12 ? `${h / 12} năm` : `${h} tháng`;
+function dongXuHuong(h, price, ghi = false) {
+  const f = kyHanF(h), dir = dirOf(f), ic = dir === "up" ? "trending-up" : dir === "dn" ? "trending-down" : "minus";
+  return `<div class="tr-row"><span class="tr-ar ${dir}">${icon(ic, "ic")}</span>
+    <div class="tr-main"><b>${tenKy(h)}: ${pctTxt(f.lo)} … ${pctTxt(f.hi)}</b>
+    <span>≈ ${fmt(price * (1 + f.lo / 100))} – ${fmt(price * (1 + f.hi / 100))} tỷ (giá rao)</span>${ghi ? `<span>${tinCay(h)}</span>` : ""}</div></div>`;
 }
+let giaXuHuong = null;
+function renderTrend(x, price) {
+  giaXuHuong = price;
+  $("trend-seg").textContent = `Thủ Dầu Một · dữ liệu ${NGAY_DL}`;
+  $("trend-rows").innerHTML = [1, 3, 6, 12].map((h) => dongXuHuong(h, price)).join("") +
+    `<div class="trend-seg">${fmt(DG.pct_giam, 0)}% số tin đổi giá ở TDM là <b>giảm giá</b> (trung vị ${pctTxt(DG.trung_vi)})</div>`;
+  renderKyHan();
+}
+function renderKyHan() {
+  if (!fin(giaXuHuong)) return;
+  $("trend-ky-kq").innerHTML = dongXuHuong(Number($("trend-ky").value), giaXuHuong, true);
+}
+$("trend-ky").innerHTML = KY_HAN.map((h) => `<option value="${h}"${h === 6 ? " selected" : ""}>${tenKy(h)}</option>`).join("");
+$("trend-ky").addEventListener("change", renderKyHan);
 function renderTrendEval() {
   $("trend-sub").textContent = `Tin rao ${NGAY_DL}`;
   // Số liệu sinh từ Python dùng dấu chấm thập phân và dấu '-' -> đổi sang kiểu Việt Nam cho thống nhất với phần còn lại của trang
   const viNum = (s) => String(s).replace(/(\d)\.(\d)/g, "$1,$2").replace(/(^|[\s(])-(?=\d)/g, "$1−");
   const kyHan = (s) => { const m = String(s).match(/^(.*?)\s*\((.*)\)$/); return m ? `${esc(m[1])}<span class="sub">${esc(m[2])}</span>` : esc(s); };
   $("trend-all").innerHTML = TREND.du_bao.map((r, i) => {
-    const f = DB[i === 0 ? "h6" : "h12"];
-    return `<tr><td>${kyHan(r["Kỳ hạn"])}</td><td class="r nw">${pctTxt(f.lo)} … ${pctTxt(f.hi)}</td><td>${esc(r["Xu hướng giá rao nhà phố Phú Hòa / TDM"])}</td></tr>`;
+    const f = r.thang ? kyHanF(r.thang) : DB[i === 0 ? "h6" : "h12"];
+    return `<tr><td>${kyHan(r["Kỳ hạn"])}</td><td class="r nw">${pctTxt(f.lo)} … ${pctTxt(f.hi)}</td><td>${esc(r["Xu hướng giá rao nhà phố Phú Hòa / TDM"])}${r["Độ tin cậy"] ? `<span class="sub">${esc(r["Độ tin cậy"])}</span>` : ""}</td></tr>`;
   }).join("");
   $("trend-eval").innerHTML = TREND.tin_hieu.map((r) => `<tr><td>${esc(r["Tín hiệu"])}<span class="sub">${esc(viNum(r["Giá trị đo được"]))}</span></td><td class="${r["Chiều"].startsWith("Giảm") ? "neg" : r["Chiều"].startsWith("Tăng") ? "pos" : ""}">${esc(r["Chiều"])}</td></tr>`).join("");
   $("trend-src").innerHTML = TREND.boi_canh_cong_bo.map((r) => `<tr><td><a class="link" href="${esc(r.Link)}" target="_blank" rel="noopener noreferrer">${esc(r["Thời điểm"])}</a></td><td>${esc(viNum(r["Biến động giá"]))}</td></tr>`).join("");
@@ -2236,20 +2258,35 @@ function botTim(e) {
   };
 }
 
+// "3 tháng tới", "2 năm nữa", "nửa năm" -> số tháng (null nếu câu không nói kỳ hạn)
+function kyHanTrongCau(text) {
+  const t = kd(text); let m;
+  if (/nua nam/.test(t)) return 6;
+  if ((m = t.match(/(\d+(?:[.,]\d+)?)\s*nam\b/))) return Math.round(parseFloat(m[1].replace(",", ".")) * 12);
+  if ((m = t.match(/(\d+)\s*thang\b/))) return +m[1];
+  if (/(mot|1) nam|nam sau|nam toi/.test(t)) return 12;
+  return null;
+}
 function botXuHuong() {
-  const f6 = TREND.du_bao_so.h6, f12 = TREND.du_bao_so.h12, dg = TREND.doi_gia_tdm, ch = (TREND.doi_gia_cung_can_can_ho || [])[0];
+  const dg = TREND.doi_gia_tdm, ch = (TREND.doi_gia_cung_can_can_ho || [])[0];
   const dkra = TREND.boi_canh_cong_bo[TREND.boi_canh_cong_bo.length - 1];
+  const h = kyHanTrongCau(BOT.last || ""), xuHuongCua = (k) => { const f = kyHanF(k), mid = (f.lo + f.hi) / 2;
+    return Math.abs(mid) <= 0.5 ? "Đi ngang" : mid < 0 ? (mid > -3 ? "Giảm nhẹ" : "Giảm") : (mid < 3 ? "Tăng nhẹ" : "Tăng"); };
+  const dong = (k) => { const f = kyHanF(k); return `<tr><td>${tenKy(k)} tới</td><td class="r"><b>${pct(f.lo)} … ${pct(f.hi)}</b></td><td>${xuHuongCua(k)}<br><span class="ghi">${tinCay(k)}</span></td></tr>`; };
+  const quaXa = h && h > 24;
+  const cacKy = [...(h && !quaXa ? [h] : []), ...[1, 3, 6, 12].filter((k) => k !== h)];   // kỳ hạn được hỏi đứng đầu
   return {
-    html: `<p>Nhận định từ dữ liệu thật (${esc(String(TREND.ngay_du_lieu).split("-").reverse().join("/"))}):</p>
-      <table><tr><td>6 tháng tới</td><td class="r"><b>${pct(f6.lo)} … ${pct(f6.hi)}</b></td><td>${esc(TREND.du_bao[0]["Xu hướng giá rao nhà phố Phú Hòa / TDM"])}</td></tr>
-      <tr><td>12 tháng tới</td><td class="r"><b>${pct(f12.lo)} … ${pct(f12.hi)}</b></td><td>${esc(TREND.du_bao[1]["Xu hướng giá rao nhà phố Phú Hòa / TDM"])}</td></tr></table>
+    html: `<p>Nhận định từ dữ liệu thật (${esc(String(TREND.ngay_du_lieu).split("-").reverse().join("/"))})${h && !quaXa ? `, bạn hỏi kỳ hạn <b>${tenKy(h)}</b>` : ""}:</p>
+      ${quaXa ? `<p>Kỳ hạn trên 24 tháng nằm quá xa dữ liệu hiện có nên mình không đưa con số. Bảng dưới là các kỳ hạn gần hơn.</p>` : ""}
+      <table>${cacKy.map(dong).join("")}</table>
+      <span class="ghi">Mỗi kỳ hạn = biên mỗi tháng (${pct(THANG.lo, 2)} … ${pct(THANG.hi, 2)}) × số tháng, giả định tín hiệu hiện tại kéo dài. Chọn kỳ hạn khác (tới 24 tháng) ở thẻ xu hướng của trang Định giá.</span>
       <p style="margin-top:10px"><b>Căn cứ:</b></p><ul>
       <li>Nhà phố Thủ Dầu Một: <b>${fmt(dg.pct_giam, 0)}%</b> số tin đổi giá là <b>giảm giá</b> (mức giảm trung vị ${pct(dg.trung_vi)}).</li>
       ${ch ? `<li>Căn hộ: <b>${fmt(+ch["Trong số đổi giá: % GIẢM"], 0)}%</b> số tin đổi giá là giảm (trung vị ${pct(+ch["Mức đổi trung vị (%)"])}).</li>` : ""}
       <li>DKRA, ${esc(dkra["Thời điểm"])}: ${esc(dkra["Biến động giá"])} (TP.HCM &amp; vùng phụ cận).</li></ul>
       <span class="ghi">Chưa có lịch sử giá nhiều năm của riêng Phú Hòa, nên đây là <b>nhận định có điều kiện</b>, chưa phải dự báo đã kiểm định. Giai đoạn người bán hạ giá thường có lợi cho người mua khi thương lượng.</span>
       <div class="acts">${nut("xem-xu-huong", "Xem căn cứ đầy đủ", "chart-spline")}</div>`,
-    goi_y: ["Giá rao có thương lượng được không?", "Phường nào ở Thủ Dầu Một giá nhà cao nhất?", "Tìm nhà rẻ hơn thị trường"],
+    goi_y: ["Giá nhà 3 tháng tới thế nào?", "Giá nhà 2 năm nữa ra sao?", "Giá rao có thương lượng được không?"],
   };
 }
 
@@ -2442,7 +2479,7 @@ const BOT_NHOM = [
   ["calculator", "Định giá", ["Nhà 1 trệt 1 lầu 80m² hẻm xe hơi giá bao nhiêu?", "Nhà 5x20 mặt tiền Nguyễn Thị Minh Khai giá bao nhiêu?", "Căn hộ Happy One Central 2PN 68m² giá bao nhiêu?"]],
   ["land-plot", "Đất nền & cho thuê", ["Lô đất 5x20 hẻm xe hơi Phú Hòa giá bao nhiêu?", "Nhà 80m² 1 trệt 1 lầu cho thuê được bao nhiêu?", "Căn hộ nào cho thuê tỷ suất cao?"]],
   ["search", "Tìm nhà", ["Tìm nhà dưới 3 tỷ rẻ hơn thị trường", "Tìm nhà 1 trệt 2 lầu từ 4 đến 6 tỷ", "Tìm căn hộ dưới 2 tỷ"]],
-  ["chart-spline", "Thị trường", ["Giá nhà Phú Hòa 6–12 tháng tới tăng hay giảm?", "Phường nào ở Thủ Dầu Một giá nhà cao nhất?", "Nhà mặt tiền đắt hơn nhà hẻm bao nhiêu?", "Dự án căn hộ nào ở Thủ Dầu Một rẻ nhất?"]],
+  ["chart-spline", "Thị trường", ["Giá nhà Phú Hòa 6–12 tháng tới tăng hay giảm?", "Giá nhà 3 tháng tới thế nào?", "Phường nào ở Thủ Dầu Một giá nhà cao nhất?", "Nhà mặt tiền đắt hơn nhà hẻm bao nhiêu?", "Dự án căn hộ nào ở Thủ Dầu Một rẻ nhất?"]],
   ["info", "Kiến thức", ["Sổ hồng và hợp đồng mua bán khác nhau thế nào?", "Nhà ở xã hội là gì?", "Mua nhà cần lưu ý gì?", "Mô hình AI định giá chính xác đến đâu?"]],
 ];
 function botTin(html, ai, cls = "") {

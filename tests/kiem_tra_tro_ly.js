@@ -122,6 +122,15 @@ kiem("Câu ngoài phạm vi / mơ hồ: từ chối hoặc hỏi lại, không t
   return /ngoài phạm vi/.test(a.text) && /chưa (chắc|hiểu)/.test(b.text) ? "" : a.text.slice(0, 80) + " || " + b.text.slice(0, 80);
 });
 
+kiem("Xu hướng theo kỳ hạn: '3 tháng', 'nửa năm', '2 năm' đứng đầu bảng; 6 và 12 tháng giữ đúng số notebook; > 24 tháng không đưa số", () => {
+  const dau = (q) => (T.hoi(q).text.match(/: (\d+ (?:tháng|năm)) tới/) || [])[1];
+  const a = dau("giá nhà 3 tháng tới thế nào"), b = dau("nửa năm nữa giá nhà ra sao"), c = dau("2 năm nữa giá nhà thế nào");
+  const sau = T.hoi("giá nhà 6 tháng tới").text, f6 = T.TREND.du_bao_so.h6;
+  const so6 = (sau.match(/6 tháng tới (\S+) … (\S+)/) || []).slice(1).map((x) => parseFloat(x.replace("−", "-").replace(",", ".")));
+  const xa = /quá xa/.test(T.hoi("dự báo giá nhà 5 năm tới").text);
+  return a === "3 tháng" && b === "6 tháng" && c === "2 năm" && Math.abs(so6[0] - f6.lo) < 0.06 && Math.abs(so6[1] - f6.hi) < 0.06 && xa ? "" : JSON.stringify([a, b, c, so6, f6, xa]);
+});
+
 // ---------- 4. ngữ cảnh ----------
 kiem("Hỏi tiếp giữ ngữ cảnh: '80m² 1 trệt 1 lầu' → 'nếu là mặt tiền' → 'còn 120m²'", () => {
   T.hoi("nhà 80m2 1 trệt 1 lầu hẻm xe hơi giá bao nhiêu"); T.hoi("nếu là nhà mặt tiền thì sao?", true); const r = T.hoi("còn 120m2 thì sao", true);

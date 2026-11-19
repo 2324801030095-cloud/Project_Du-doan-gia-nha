@@ -278,7 +278,7 @@ BOI_CANH
 md(r"""
 **Đọc kết quả:** giá nhà phố thứ cấp khu vực tăng mạnh trong 2025 và đầu 2026, chậm lại ở quý II/2026, rồi **đảo chiều giảm** ở tháng 10/2026 khi thanh khoản rất thấp. Diễn biến này **cùng chiều** với tín hiệu từ dữ liệu của đề tài (Bước 2, 4): người bán ở Thủ Dầu Một đang giảm giá nhiều hơn tăng giá.
 
-## Bước 6: Kịch bản tham khảo 6–12 tháng tới (chưa phải dự báo đã kiểm chứng)
+## Bước 6: Kịch bản tham khảo cho các kỳ hạn 1–24 tháng (chưa phải dự báo đã kiểm chứng)
 Tổng hợp các tín hiệu (chỉ dùng số đo được ở trên). Đây là **kịch bản có điều kiện**, suy ra từ tín hiệu hiện tại; nó **chưa được kiểm định lùi** vì mới có vài kỳ dữ liệu (Bước 7), nên không được đọc như một dự báo có độ chính xác đã biết.
 """)
 
@@ -303,20 +303,32 @@ display(TIN_HIEU)
 # Biên của kịch bản: lấy trực tiếp từ các con số đo được, không tự đặt
 giam_6t = min(tdm_row["Mức đổi trung vị (%)"], BANG_DOI["Toàn Bình Dương cũ"]["Mức đổi trung vị (%)"])   # mức người bán đang giảm
 tang_6t = 2.0                                                    # DKRA Q2/2026: +2%/quý – mức tăng gần nhất trước khi đảo chiều
-DU_BAO = pd.DataFrame([
-    ["6 tháng (đến 05/2027)", "Đi ngang đến giảm nhẹ", f"{giam_6t:+.1f}% … {tang_6t:+.1f}%",
-     "Biên dưới = mức giảm trung vị người bán đang áp dụng; biên trên = mức tăng quý gần nhất trước khi thị trường đảo chiều (DKRA Q2/2026)"],
-    ["12 tháng (đến 11/2027)", "Phụ thuộc thanh khoản và lãi suất", f"{giam_6t * 2:+.1f}% … {tang_6t * 2:+.1f}%",
-     "Mở rộng gấp đôi biên 6 tháng vì bất định tăng theo thời gian; chưa có dữ liệu để thu hẹp"],
-], columns=["Kỳ hạn", "Xu hướng giá rao nhà phố Phú Hòa / TDM", "Biên độ ước tính", "Căn cứ"])
-display(DU_BAO)
+# Kỳ hạn bất kỳ: chia đều biên 6 tháng thành biên mỗi tháng rồi nhân với số tháng (6 và 12 tháng giữ đúng như trước).
+# Cách này GIẢ ĐỊNH tín hiệu hiện tại kéo dài; càng xa càng kém chắc chắn, nên mỗi kỳ hạn có nhãn độ tin cậy.
+THANG_LO, THANG_HI = giam_6t / 6, tang_6t / 6
+def muc_tin_cay(h):
+    return ("Ngắn hạn – sát tín hiệu hiện tại" if h <= 3 else "Kịch bản tham khảo" if h <= 6 else "Bất định cao" if h <= 12
+            else "Chỉ minh họa – ngoài phạm vi dữ liệu")
+def xu_huong(lo, hi):
+    m = (lo + hi) / 2
+    return "Đi ngang" if abs(m) <= 0.5 else ("Giảm nhẹ" if m > -3 else "Giảm") if m < 0 else ("Tăng nhẹ" if m < 3 else "Tăng")
+thang_toi = lambda h: (pd.Timestamp(goi["ngay_du_lieu"]) + pd.DateOffset(months=h)).strftime("%m/%Y")
+KY_HAN = [1, 3, 6, 12, 18, 24]
+DU_BAO = pd.DataFrame([[f"{h} tháng (đến {thang_toi(h)})", xu_huong(THANG_LO * h, THANG_HI * h), f"{THANG_LO * h:+.1f}% … {THANG_HI * h:+.1f}%", muc_tin_cay(h)]
+                       for h in KY_HAN], columns=["Kỳ hạn", "Xu hướng giá rao nhà phố Phú Hòa / TDM", "Biên độ ước tính", "Độ tin cậy"])
+DU_BAO["thang"] = KY_HAN
+display(DU_BAO.drop(columns="thang"))
+print(f"Biên mỗi tháng: {THANG_LO:+.2f}% … {THANG_HI:+.2f}%. Biên dưới 6 tháng = mức giảm trung vị người bán đang áp dụng ({giam_6t:+.1f}%); "
+      f"biên trên 6 tháng = mức tăng quý gần nhất trước khi thị trường đảo chiều (DKRA Q2/2026, {tang_6t:+.1f}%). "
+      "Kỳ hạn khác = biên mỗi tháng × số tháng. Trang demo cho chọn kỳ hạn 1–12, 18, 24 tháng theo đúng công thức này.")
 """)
 
 md(r"""
 **Kết luận xu hướng (cần trình bày đúng mức độ chắc chắn):**
 - **Hiện tại (11/2026):** mặt bằng giá rao ở Thủ Dầu Một đang **chững lại và điều chỉnh giảm nhẹ**. Bằng chứng mạnh nhất là đa số người bán đổi giá đều **hạ giá**, cùng chiều với số liệu DKRA tháng 10/2026.
+- **1–3 tháng tới:** biên độ hẹp (xem bảng); giá rao gần như **đi ngang**, nghiêng về giảm nhẹ vì người bán đang hạ giá.
 - **6 tháng tới (kịch bản tham khảo, chưa kiểm định):** xu hướng có cơ sở nhất là **đi ngang đến giảm nhẹ**. Khả năng tăng mạnh trở lại trong ngắn hạn thấp vì thanh khoản đang yếu.
-- **12 tháng tới:** biên độ rộng; chiều đi phụ thuộc lãi suất, tín dụng và hạ tầng (sáp nhập vào TP.HCM, kết nối vùng). **Không đủ dữ liệu lịch sử thật để đưa một con số chính xác** mà không phải tự đặt giả định. Đây là giới hạn trung thực của đề tài.
+- **12 tháng tới:** biên độ rộng; **18–24 tháng** chỉ là minh họa khi kéo dài tín hiệu hiện tại, không nên dùng để ra quyết định; chiều đi phụ thuộc lãi suất, tín dụng và hạ tầng (sáp nhập vào TP.HCM, kết nối vùng). **Không đủ dữ liệu lịch sử thật để đưa một con số chính xác** mà không phải tự đặt giả định. Đây là giới hạn trung thực của đề tài.
 - Với người mua ở Phú Hòa: giai đoạn này có lợi cho **thương lượng**. Dùng khoảng giá 80% của mô hình định giá (notebook chính) làm mốc trả giá.
 
 ## Bước 7: Bộ chỉ số giá theo ảnh chụp định kỳ (tự hoàn thiện theo thời gian)
@@ -389,7 +401,8 @@ xuat = {
     "boi_canh_cong_bo": BOI_CANH.to_dict("records"),
     "tin_hieu": TIN_HIEU.to_dict("records"),
     "du_bao": DU_BAO.to_dict("records"),
-    "du_bao_so": {"h6": {"lo": round(float(giam_6t), 2), "hi": tang_6t}, "h12": {"lo": round(float(giam_6t * 2), 2), "hi": tang_6t * 2}},
+    "du_bao_so": {"h6": {"lo": round(float(giam_6t), 2), "hi": tang_6t}, "h12": {"lo": round(float(giam_6t * 2), 2), "hi": tang_6t * 2},
+                  "thang": {"lo": round(float(THANG_LO), 4), "hi": round(float(THANG_HI), 4)}},
     "doi_gia_tdm": {"pct_giam": round(float(tdm_row["Trong số đổi giá: % GIẢM"]), 1), "trung_vi": round(float(tdm_row["Mức đổi trung vị (%)"]), 2),
                     "so_tin_doi": int(tdm_row["Số tin đã đổi giá"]), "so_tin": int(tdm_row["Số tin bán"])},
     "chi_so_dinh_ky": CHI_SO.round(4).to_dict("records"), "bien_dong_giua_cac_ky": BIEN_DONG.round(3).to_dict("records"),

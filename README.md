@@ -121,7 +121,7 @@ sai 29% so với 21% ở tin đủ thông số; tọa độ tâm phường sai h
 nhiều nhất (30,5%); đổi ngưỡng lọc đơn giá (2, 3, 5 lần, không lọc) chỉ làm MAPE đổi trong 21,7–22,4%. Việc gom tin trùng chờ
 gán nhãn tay 50 cặp trong `data/kiem_tra_tay/cap_tin_gan_trung.csv`.
 Khoảng 80% là khoảng hiệu chỉnh thực nghiệm từ sai số ngoài-fold (ý tưởng conformal), không phải bảo đảm lý thuyết.
-Xu hướng giá 6–12 tháng là **kịch bản tham khảo**, chưa phải dự báo đã kiểm định lùi: hiện có 3 kỳ ảnh chụp, tin rao chỉ có ngày đăng trong khoảng 2 tháng gần nhất, nên chưa đủ dữ liệu để kiểm định trung thực. Mã kiểm định lùi (`kiem_dinh_lui` trong `src/mo_hinh_gia.py`) đã có kiểm thử tự động và sẽ tự chạy khi đủ 8 kỳ, dự kiến khoảng cuối tháng 12/2026 theo lịch thu thập hằng tuần.
+Xu hướng giá theo kỳ hạn (1, 3, 6, 12, 18, 24 tháng; trang demo cho chọn 1–12, 18, 24 tháng) = biên mỗi tháng × số tháng, là **kịch bản tham khảo**, chưa phải dự báo đã kiểm định lùi: hiện có 3 kỳ ảnh chụp, tin rao chỉ có ngày đăng trong khoảng 2 tháng gần nhất, nên chưa đủ dữ liệu để kiểm định trung thực. Mã kiểm định lùi (`kiem_dinh_lui` trong `src/mo_hinh_gia.py`) đã có kiểm thử tự động và sẽ tự chạy khi đủ 8 kỳ, dự kiến khoảng cuối tháng 12/2026 theo lịch thu thập hằng tuần.
 
 Số liệu chi tiết, khoảng tin cậy và giới hạn: xem phần kết luận của từng notebook.
 

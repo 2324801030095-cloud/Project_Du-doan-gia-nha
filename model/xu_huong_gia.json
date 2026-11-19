@@ -324,16 +324,46 @@
  ],
  "du_bao": [
   {
+   "Kỳ hạn": "1 tháng (đến 12/2026)",
+   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Đi ngang",
+   "Biên độ ước tính": "-0.8% … +0.3%",
+   "Độ tin cậy": "Ngắn hạn – sát tín hiệu hiện tại",
+   "thang": 1
+  },
+  {
+   "Kỳ hạn": "3 tháng (đến 02/2027)",
+   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Giảm nhẹ",
+   "Biên độ ước tính": "-2.5% … +1.0%",
+   "Độ tin cậy": "Ngắn hạn – sát tín hiệu hiện tại",
+   "thang": 3
+  },
+  {
    "Kỳ hạn": "6 tháng (đến 05/2027)",
-   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Đi ngang đến giảm nhẹ",
+   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Giảm nhẹ",
    "Biên độ ước tính": "-5.1% … +2.0%",
-   "Căn cứ": "Biên dưới = mức giảm trung vị người bán đang áp dụng; biên trên = mức tăng quý gần nhất trước khi thị trường đảo chiều (DKRA Q2/2026)"
+   "Độ tin cậy": "Kịch bản tham khảo",
+   "thang": 6
   },
   {
    "Kỳ hạn": "12 tháng (đến 11/2027)",
-   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Phụ thuộc thanh khoản và lãi suất",
+   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Giảm",
    "Biên độ ước tính": "-10.2% … +4.0%",
-   "Căn cứ": "Mở rộng gấp đôi biên 6 tháng vì bất định tăng theo thời gian; chưa có dữ liệu để thu hẹp"
+   "Độ tin cậy": "Bất định cao",
+   "thang": 12
+  },
+  {
+   "Kỳ hạn": "18 tháng (đến 05/2028)",
+   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Giảm",
+   "Biên độ ước tính": "-15.2% … +6.0%",
+   "Độ tin cậy": "Chỉ minh họa – ngoài phạm vi dữ liệu",
+   "thang": 18
+  },
+  {
+   "Kỳ hạn": "24 tháng (đến 11/2028)",
+   "Xu hướng giá rao nhà phố Phú Hòa / TDM": "Giảm",
+   "Biên độ ước tính": "-20.3% … +8.0%",
+   "Độ tin cậy": "Chỉ minh họa – ngoài phạm vi dữ liệu",
+   "thang": 24
   }
  ],
  "du_bao_so": {
@@ -344,6 +374,10 @@
   "h12": {
    "lo": -10.16,
    "hi": 4.0
+  },
+  "thang": {
+   "lo": -0.8466,
+   "hi": 0.3333
   }
  },
  "doi_gia_tdm": {
