@@ -34,6 +34,15 @@ md(r"""
 4. Xây sẵn **bộ chỉ số theo ảnh chụp định kỳ** (Bước 7): mỗi lần chạy `thu_thap/cap_nhat_dinh_ky.py` thêm một kỳ dữ liệu thật. Khi đủ kỳ, mô hình dự báo được huấn luyện và **kiểm định lùi** tự động.
 """)
 
+md(r"""
+**Phạm vi kiến thức** (toàn bộ notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học):
+
+| Trong môn học (bài giảng / thực hành) | Ngoài môn học (nâng cao) |
+|---|---|
+| Khám phá và thống kê mô tả dữ liệu (TH4); ý tưởng đánh giá trên dữ liệu chưa thấy (chia theo thời gian) | Notebook này **không huấn luyện mô hình học máy**: là phân tích tín hiệu thị trường + kịch bản theo kỳ hạn. Làm trơn hàm mũ Holt và kiểm định lùi (backtest) là kỹ thuật chuỗi thời gian, chỉ chạy khi đủ 8 kỳ dữ liệu |
+""")
+
+
 code(r"""
 import glob, json, re, warnings
 from pathlib import Path

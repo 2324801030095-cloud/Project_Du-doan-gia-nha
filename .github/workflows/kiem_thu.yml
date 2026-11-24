@@ -1,5 +1,5 @@
 # Chạy 2 bộ kiểm thử mỗi lần đẩy lên GitHub hoặc mở pull request.
-# Không chạy lại notebook (mất ~30 phút): dùng mô hình và dữ liệu đã lưu trong repo.
+# Không chạy lại notebook (mất ~6 phút và cần dữ liệu thu thập): dùng mô hình và dữ liệu đã lưu trong repo.
 # Chạy lại toàn bộ trên máy: python cong_cu/chay_toan_bo.py
 name: Kiểm thử
 on:

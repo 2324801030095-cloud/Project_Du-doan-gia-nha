@@ -28,6 +28,15 @@ Hai notebook định giá trả lời *"căn này đáng giá bao nhiêu?"*. Ng�
 > Chạy sau 2 notebook định giá (cần `data/processed/nha_da_xu_ly.csv`, `can_ho_da_xu_ly.csv`). Khoảng 3 phút.
 """)
 
+md(r"""
+**Phạm vi kiến thức** (toàn bộ notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học):
+
+| Trong môn học (bài giảng / thực hành) | Ngoài môn học (nâng cao) |
+|---|---|
+| Làm sạch tin cho thuê (TH4); hồi quy tuyến tính có phạt (Ridge, mô hình được chọn); kiểm định chéo K-fold; MAE, MAPE | LightGBM để so sánh; chia fold theo nhóm; dùng mô hình học trên tin thuê để ước lượng cho tin bán (chuyển miền) |
+""")
+
+
 code(r"""
 import re, sys, warnings
 from pathlib import Path

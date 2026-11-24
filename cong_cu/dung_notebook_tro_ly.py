@@ -25,6 +25,15 @@ Trợ lý trên trang demo phải hiểu người dùng muốn gì: định giá
 Liên hệ môn học: phân loại văn bản bằng TF-IDF (bài thực hành TH6), học có giám sát, chia train/test, kiểm định chéo, so sánh với mốc (luật cũ).
 """)
 
+md(r"""
+**Phạm vi kiến thức** (toàn bộ notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học):
+
+| Trong môn học (bài giảng / thực hành) | Ngoài môn học (nâng cao) |
+|---|---|
+| Học có giám sát trên văn bản (TH6, TH9, TH11): tách từ, TF-IDF, Naive Bayes, Logistic Regression, SVM tuyến tính; kiểm định chéo K-fold phân tầng; độ chính xác (accuracy), F1, ma trận nhầm lẫn | TF-IDF n-gram ký tự (chịu được viết không dấu/viết tắt); kết hợp mô hình với luật và ngưỡng hỏi lại τ chọn bằng dự đoán ngoài-fold; chạy lại mô hình bằng JavaScript trên trình duyệt |
+""")
+
+
 code(r"""
 import re, subprocess, shutil, unicodedata, warnings
 from pathlib import Path

@@ -33,7 +33,7 @@ tests/          kiểm thử mô hình (Python) và trang web / trợ lý (Node)
 docs/           Tai_lieu_ky_thuat_tong_hop.docx
 ```
 
-## Chạy lại toàn bộ (đúng thứ tự, ~30 phút)
+## Chạy lại toàn bộ (đúng thứ tự, ~6 phút)
 
 Một lệnh: `python cong_cu/chay_toan_bo.py` (thêm `--thu-thap` để tải dữ liệu mới trước, `--tu <bước>` để chạy tiếp từ bước lỗi). Các lệnh nó chạy, theo thứ tự:
 

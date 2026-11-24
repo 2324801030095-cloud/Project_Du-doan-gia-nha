@@ -35,6 +35,15 @@ Gộp chung một mô hình sẽ làm sai cả hai loại, nên ta dùng cùng *
 """)
 
 md(r"""
+**Phạm vi kiến thức** (toàn bộ notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học):
+
+| Trong môn học (bài giảng / thực hành) | Ngoài môn học (nâng cao) |
+|---|---|
+| Tiền xử lý: thiếu, trùng, ngoại lai (TH4); trích đặc trưng từ mô tả (TH6); chia train/test; hồi quy tuyến tính có phạt (Ridge); kiểm định chéo K-fold; MAE, MAPE, R² | LightGBM với hàm mất mát Huber; stacking với mô hình chữ TF-IDF; đơn giá dự án/phường phân tầng (target encoding có co); chia fold theo nhóm tin gần trùng; khoảng tin cậy bootstrap; khoảng giá 80% từ sai số ngoài-fold |
+""")
+
+
+md(r"""
 ## Bước 1: Thu thập dữ liệu
 
 | Nguồn | Script | Phạm vi | Thông tin |

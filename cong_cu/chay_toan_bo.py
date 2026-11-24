@@ -1,4 +1,4 @@
-"""Chạy lại toàn bộ đề tài ĐÚNG THỨ TỰ (~30 phút), dừng ngay ở bước lỗi đầu tiên.
+"""Chạy lại toàn bộ đề tài ĐÚNG THỨ TỰ (~6 phút; notebook nhà phố ~4 phút), dừng ngay ở bước lỗi đầu tiên.
 Chạy từ thư mục gốc đề tài:
     python cong_cu/chay_toan_bo.py               # notebook -> dựng trang -> kiểm thử
     python cong_cu/chay_toan_bo.py --thu-thap    # thu thập dữ liệu mới trước

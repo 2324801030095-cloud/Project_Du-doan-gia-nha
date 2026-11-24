@@ -26,6 +26,15 @@ md(r"""
 > Khoảng 3 phút.
 """)
 
+md(r"""
+**Phạm vi kiến thức** (toàn bộ notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học):
+
+| Trong môn học (bài giảng / thực hành) | Ngoài môn học (nâng cao) |
+|---|---|
+| Tiền xử lý: thiếu, trùng, ngoại lai (TH4); trích đặc trưng từ mô tả (TH6); chia train/test; hồi quy tuyến tính có phạt (Ridge, mô hình được chọn); kiểm định chéo K-fold; MAE, MAPE, R² | LightGBM, stacking với mô hình chữ; giá khu vực theo láng giềng gần nhất; chia fold theo nhóm; khoảng tin cậy bootstrap; khoảng giá 80% từ sai số ngoài-fold |
+""")
+
+
 code(r"""
 import re, sys, json, warnings
 from pathlib import Path
