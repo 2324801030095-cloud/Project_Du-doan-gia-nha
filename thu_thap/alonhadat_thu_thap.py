@@ -12,7 +12,7 @@ import pandas as pd
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "cong_cu"))
-from an_danh_du_lieu import che_sdt   # riêng tư: che số điện thoại trong tin
+from an_danh_du_lieu import che_sdt, an_danh_bang   # riêng tư: che số điện thoại trong tin
 CAN_HO, DAT = "--can-ho" in __import__("sys").argv, "--dat" in __import__("sys").argv
 OUT = ROOT / "data" / "raw" / ("alonhadat_can_ho_tdm_raw.csv" if CAN_HO else "alonhadat_dat_tdm_raw.csv" if DAT else "alonhadat_tdm_raw.csv")
 BASE = "https://alonhadat.com.vn/nha-dat/can-ban/{loai}/binh-duong/591/thanh-pho-thu-dau-mot{trang}.html"
@@ -81,5 +81,6 @@ if LOI_TAI or not rows:
 df = pd.DataFrame(rows)
 df["ngay_thu_thap"] = dt.date.today().isoformat()
 df["dia_chi_moi"] = df["dia_chi_moi"].str.replace(r"\s+", " ", regex=True)
+df = an_danh_bang(df.astype(object).where(df.notna(), "").astype(str))[0]          # che SĐT ở mọi cột chữ (kể cả địa chỉ)
 df.to_csv(OUT, index=False, encoding="utf-8-sig")
 print("Đã lưu", len(df), "tin ->", OUT)

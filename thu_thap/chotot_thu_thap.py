@@ -51,7 +51,7 @@ while "--flatten-only" not in sys.argv:      # tải mọi trang cho tới khi h
 
 # Riêng tư: không lưu thông tin người đăng (tên, mã tài khoản, ảnh đại diện) và che số điện thoại trong tin
 sys.path.insert(0, str(ROOT / "cong_cu"))
-from an_danh_du_lieu import an_danh_tin, dong_jsonl
+from an_danh_du_lieu import an_danh_tin, an_danh_bang, dong_jsonl
 ads = [an_danh_tin(a) for a in ads]
 ngay = ads[0].get("_ngay_thu_thap") or dt.date.today().isoformat()
 if "--flatten-only" not in sys.argv:
@@ -102,5 +102,5 @@ if CAN_HO:      # thông tin riêng của căn hộ
 if DAT:          # thông tin riêng của đất
     for r, a in zip(rows, ads):
         r.update({"loai_dat": nhan("land_type", a.get("land_type")), "so_tang": None, "phong_ngu": None, "so_wc": None, "dt_su_dung": None})
-pd.DataFrame(rows).to_csv(OUT_CSV, index=False, encoding="utf-8-sig")
+pd.DataFrame(rows).pipe(lambda d: an_danh_bang(d.astype(object).where(d.notna(), "").astype(str))[0]).to_csv(OUT_CSV, index=False, encoding="utf-8-sig")   # che SĐT mọi cột chữ
 print("Đã lưu", len(rows), "tin ->", OUT_CSV)

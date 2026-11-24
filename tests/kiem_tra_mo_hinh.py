@@ -126,17 +126,17 @@ def _():
 def _():
     import json, re
     sys.path.insert(0, str(GOC / "cong_cu"))
-    from an_danh_du_lieu import TRUONG_NGUOI_BAN, SDT
+    from an_danh_du_lieu import TRUONG_NGUOI_BAN, an_danh_tin, an_danh_bang
     for f in sorted((GOC / "data").rglob("*.jsonl")):
         dong = [l for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
         for i, l in enumerate(dong):
             a = json.loads(l)                                   # lỗi -> phép kiểm không đạt
             assert not (TRUONG_NGUOI_BAN & set(a)), f"{f.name} dòng {i + 1}: còn trường người đăng {TRUONG_NGUOI_BAN & set(a)}"
-            assert not SDT.search(str(a.get("body", "")) + " " + str(a.get("subject", ""))), f"{f.name} dòng {i + 1}: còn số điện thoại"
-    for f in sorted((GOC / "data").rglob("*.csv")):
-        d = pd.read_csv(f, dtype=str, keep_default_na=False)
-        for c in [c for c in d.columns if c in ("mo_ta", "tieu_de")]:
-            assert not d[c].str.contains(SDT).any(), f"{f.name}: cột {c} còn số điện thoại"
+            # ẩn danh thêm lần nữa mà không đổi gì = không còn SĐT ở bất kỳ trường chữ nào
+            assert an_danh_tin(json.loads(l)) == a, f"{f.name} dòng {i + 1}: còn số điện thoại"
+    for f in sorted((GOC / "data").rglob("*.csv")) + sorted((GOC / "ket_qua").glob("*.csv")):
+        n = an_danh_bang(pd.read_csv(f, dtype=str, keep_default_na=False))[1]
+        assert n == 0, f"{f.name}: còn {n} ô có số điện thoại"
 
 for ten, ok, loi in KQ:
     print(("ĐẠT       " if ok else "KHÔNG ĐẠT ") + ten + ("" if ok else f"\n           -> {loi}"))
