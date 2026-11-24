@@ -468,6 +468,15 @@ def muc_gia(p_log, nguong):
     return np.digitize(np.atleast_1d(p_log), nguong)
 
 
+def nhom_khoang(p_log, nguong, la_phu_hoa):
+    """Nhóm dùng để hiệu chỉnh khoang giá: căn Phú Hòa -> nhóm riêng "ph" (sai số ở Phú Hòa lớn hơn mặt bằng Thủ Dầu Một),
+    căn khác -> mức giá "0".."3". Không biết là Phú Hòa hay không (None) thì dùng mức giá."""
+    muc = muc_gia(p_log, nguong).astype(str)
+    if la_phu_hoa is None:
+        return muc
+    return np.where(np.broadcast_to(np.asarray(la_phu_hoa, bool), muc.shape), "ph", muc)
+
+
 # ----------------------------------------------------------------------------------------------
 # Xu hướng: dự báo Holt và kiểm định lùi (dùng khi đã có đủ kỳ ảnh chụp dữ liệu thật)
 # ----------------------------------------------------------------------------------------------

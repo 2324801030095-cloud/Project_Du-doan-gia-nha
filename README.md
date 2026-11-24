@@ -59,6 +59,6 @@ GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử m�
 | | Nhà phố – Phú Hòa | Căn hộ | Đất nền – TDM |
 |---|---|---|---|
 | Mô hình | LightGBM Huber + chữ | LightGBM Huber + chữ | Ridge |
-| MAPE tập test (kết quả chính) | 25,2% (KTC 18,2–32,7; 26 căn) | 10,8% | 30,4% (KTC 22,3–40,2; 72 lô) |
-| MAPE kiểm định chéo theo nhóm | 23,7% | 12,1% | 26,2% |
-| Baseline (đơn giá khu vực) | 29,1% | 15,5% | 38,4% |
+| MAPE tập test (kết quả chính) | 26,5% (KTC 21,0–33,5; 44 căn) | 10,8% | 30,4% (KTC 22,3–40,2; 72 lô) |
+| MAPE kiểm định chéo theo nhóm | 23,9% | 12,1% | 26,2% |
+| Baseline (đơn giá khu vực), kiểm định chéo | 30,0% | 15,5% | 38,4% |

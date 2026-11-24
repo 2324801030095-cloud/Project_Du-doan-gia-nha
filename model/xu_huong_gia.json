@@ -87,50 +87,50 @@
   {
    "Vị trí trong Phú Hòa": "Hẻm nhỏ 2,5 m",
    "Giá (tỷ)": 3.023,
-   "Thấp 80%": 2.283,
-   "Cao 80%": 3.944,
+   "Thấp 80%": 2.103,
+   "Cao 80%": 4.485,
    "So với hẻm xe hơi (%)": -7.688
   },
   {
    "Vị trí trong Phú Hòa": "Hẻm xe hơi 5 m",
    "Giá (tỷ)": 3.275,
-   "Thấp 80%": 2.473,
-   "Cao 80%": 4.273,
+   "Thấp 80%": 2.278,
+   "Cao 80%": 4.858,
    "So với hẻm xe hơi (%)": 0.0
   },
   {
    "Vị trí trong Phú Hòa": "Hẻm xe tải 7 m, khu dân cư",
    "Giá (tỷ)": 3.438,
-   "Thấp 80%": 2.597,
-   "Cao 80%": 4.486,
+   "Thấp 80%": 2.392,
+   "Cao 80%": 5.101,
    "So với hẻm xe hơi (%)": 4.995
   },
   {
    "Vị trí trong Phú Hòa": "Mặt tiền đường Nguyễn Thị Minh Khai",
    "Giá (tỷ)": 4.898,
-   "Thấp 80%": 3.305,
-   "Cao 80%": 7.564,
+   "Thấp 80%": 3.407,
+   "Cao 80%": 7.267,
    "So với hẻm xe hơi (%)": 49.581
   },
   {
    "Vị trí trong Phú Hòa": "Mặt tiền đường Lê Hồng Phong",
    "Giá (tỷ)": 5.747,
-   "Thấp 80%": 3.67,
-   "Cao 80%": 11.054,
+   "Thấp 80%": 3.997,
+   "Cao 80%": 8.525,
    "So với hẻm xe hơi (%)": 75.479
   },
   {
    "Vị trí trong Phú Hòa": "Mặt tiền đường Nguyễn Thái Bình",
    "Giá (tỷ)": 5.526,
-   "Thấp 80%": 3.529,
-   "Cao 80%": 10.63,
+   "Thấp 80%": 3.844,
+   "Cao 80%": 8.198,
    "So với hẻm xe hơi (%)": 68.743
   },
   {
    "Vị trí trong Phú Hòa": "Mặt tiền đường Phú Lợi",
    "Giá (tỷ)": 5.714,
-   "Thấp 80%": 3.649,
-   "Cao 80%": 10.992,
+   "Thấp 80%": 3.975,
+   "Cao 80%": 8.477,
    "So với hẻm xe hơi (%)": 74.498
   }
  ],
@@ -227,24 +227,24 @@
    "khu_vuc": "Ngoài TDM",
    "Số căn": 880,
    "% tin 'bán gấp/giảm giá'": 20.34,
-   "% rẻ hơn thị trường": 9.43,
-   "% cao hơn thị trường": 7.05,
+   "% rẻ hơn thị trường": 10.45,
+   "% cao hơn thị trường": 8.3,
    "Giá rao lệch trung vị so với ước lượng (%)": -0.29
   },
   {
    "khu_vuc": "Phú Hòa",
    "Số căn": 220,
    "% tin 'bán gấp/giảm giá'": 5.45,
-   "% rẻ hơn thị trường": 9.09,
-   "% cao hơn thị trường": 10.0,
+   "% rẻ hơn thị trường": 10.91,
+   "% cao hơn thị trường": 11.36,
    "Giá rao lệch trung vị so với ước lượng (%)": -0.41
   },
   {
    "khu_vuc": "TDM (phường khác)",
    "Số căn": 386,
    "% tin 'bán gấp/giảm giá'": 13.73,
-   "% rẻ hơn thị trường": 8.81,
-   "% cao hơn thị trường": 7.25,
+   "% rẻ hơn thị trường": 9.33,
+   "% cao hơn thị trường": 9.59,
    "Giá rao lệch trung vị so với ước lượng (%)": 2.64
   }
  ],

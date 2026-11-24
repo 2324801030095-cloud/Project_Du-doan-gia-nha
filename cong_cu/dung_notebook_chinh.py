@@ -486,14 +486,16 @@ md(r"""
 Như bài giảng: mô hình học trên tập **train**, rồi được chấm trên tập **test** gồm những căn nó **chưa từng thấy**. Chấm trên chính dữ liệu đã học sẽ cho kết quả đẹp giả (mô hình chỉ "nhớ bài").
 
 - **Tập test** = 20% số căn ở Thủ Dầu Một, giữ riêng, không dùng cho bất kỳ quyết định nào (chọn mô hình, chọn tham số).
-- **Không rò rỉ:** cùng một căn thường được đăng nhiều lần. Các tin gần trùng (cột `nhom`, Bước 4) luôn được chia **về cùng một phía**, nếu không mô hình sẽ "gặp lại" căn đang kiểm tra dưới một tin khác. Vì vậy dùng `GroupShuffleSplit` (chia ngẫu nhiên theo nhóm) thay cho `train_test_split` của bài thực hành; tỷ lệ 80/20 và cách dùng giống hệt.
+- **Không rò rỉ:** cùng một căn thường được đăng nhiều lần. Các tin gần trùng (cột `nhom`, Bước 4) luôn được chia **về cùng một phía**, nếu không mô hình sẽ "gặp lại" căn đang kiểm tra dưới một tin khác. Vì vậy dùng `StratifiedGroupKFold` (lấy 1 trong 5 phần = 20%) thay cho `train_test_split` của bài thực hành: vừa chia **theo nhóm**, vừa **phân tầng** (stratify, như tham số `stratify=` của `train_test_split`) theo Phú Hòa / không Phú Hòa, để tập test luôn có tỷ lệ căn Phú Hòa giống toàn bộ dữ liệu. Chia ngẫu nhiên thuần túy thì số căn Phú Hòa trong test dao động mạnh theo hạt giống ngẫu nhiên (thử 5 hạt giống: 33 đến 48 căn), mà Phú Hòa là nơi cần đánh giá.
 """)
 
 code(r"""
-from sklearn.model_selection import GroupShuffleSplit
+from sklearn.model_selection import StratifiedGroupKFold
 
 idx_tdm = df.index[df["tdm"] == 1].to_numpy()
-_, vt_test = next(GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=RANDOM_STATE).split(idx_tdm, groups=df.loc[idx_tdm, "nhom"]))
+# 1 trong 5 phần (20%), chia theo nhóm tin gần trùng và phân tầng theo Phú Hòa -> tập test có tỷ lệ căn Phú Hòa như toàn bộ
+_, vt_test = next(StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+                  .split(idx_tdm, y=df.loc[idx_tdm, "phu_hoa"], groups=df.loc[idx_tdm, "nhom"]))
 df["tap"] = np.where(df.index.isin(idx_tdm[vt_test]), "test", "train")
 train, test = df[df["tap"] == "train"].reset_index(drop=True), df[df["tap"] == "test"].reset_index(drop=True)
 assert not set(train["nhom"]) & set(test["nhom"])            # không nhóm nào nằm ở cả hai tập
@@ -611,13 +613,13 @@ md(r"""
 **Đọc kết quả phần cơ bản:**
 - **Quá khớp** (bài giảng 3) thấy rõ ở cả hai đường cong: cây càng sâu, hay k càng nhỏ, thì sai số trên phần học càng giảm (KNN với k = 1 gần như "thuộc lòng" tập train: sai số phần học gần bằng 0) trong khi sai số kiểm định đi lên. Siêu tham số được chọn ở điểm sai số kiểm định thấp nhất: độ sâu 8, k = 8.
 - Các luật if-then ở gốc cây cho biết mô hình "hỏi" gì đầu tiên: **diện tích** (log_dt), rồi **sổ chung** và **vị trí** (vĩ độ), khớp với phần khám phá dữ liệu.
-- **Dò lưới siêu tham số** (GridSearchCV) quan trọng với SVR và MLP: SVR chọn C = 1, γ = 0,01 (kernel RBF "trơn" hơn mặc định); MLP chọn 1 lớp ẩn 16 nơ-ron – mạng **nhỏ nhất** trong lưới – với hệ số phạt **α = 1** – mức phạt **lớn nhất** trong lưới: trên ~1.400 căn, mạng cần bị **ràng buộc mạnh** mới không quá khớp.
-- **Chọn mô hình bằng kiểm định chéo** (không nhìn tập test): Random Forest tốt nhất (sai số kiểm định ≈ 27%), rồi SVR (≈ 28%), hồi quy tuyến tính (≈ 30%), MLP (≈ 31%), cây đơn (≈ 34%), KNN (≈ 37%). Mọi mô hình đều thắng baseline đơn giá phường (≈ 41%).
+- **Dò lưới siêu tham số** (GridSearchCV) quan trọng với SVR và MLP: SVR chọn C = 1, ε = 0,1, γ = 0,01 (kernel RBF "trơn" hơn mặc định); MLP chọn 1 lớp ẩn 16 nơ-ron – mạng **nhỏ nhất** trong lưới – với hệ số phạt **α = 1** – mức phạt **lớn nhất** trong lưới: trên ~1.400 căn, mạng cần bị **ràng buộc mạnh** mới không quá khớp.
+- **Chọn mô hình bằng kiểm định chéo** (không nhìn tập test): Random Forest tốt nhất (sai số kiểm định ≈ 26%), rồi SVR (≈ 28%), hồi quy tuyến tính và MLP (≈ 29%), cây đơn (≈ 35%), KNN (≈ 39%). Mọi mô hình đều thắng baseline đơn giá phường (≈ 41%).
 - **Cây quyết định đơn lẻ** kém các mô hình khác: cây đơn có **phương sai cao** (dữ liệu train đổi một chút là cấu trúc cây đổi hẳn). **Random Forest** trung bình 300 cây học trên các mẫu bootstrap khác nhau nên phương sai giảm mạnh – đúng lý do mô hình này được đưa vào TH10. Khoảng cách giữa sai số phần học (0,11) và kiểm định (0,23) của Random Forest cho thấy nó vẫn khớp tập train khá sát, nhưng sai số trên dữ liệu mới vẫn thấp nhất.
 - **Mạng nơ-ron MLP** chưa thắng các mô hình đơn giản hơn: ~1.400 căn với nhiều ô thiếu (điền trung vị) là ít cho một mạng học hàng trăm trọng số bằng gradient descent, nên lưới chọn mạng nhỏ nhất và phạt mạnh nhất; mạng nơ-ron phát huy khi có nhiều dữ liệu hơn (như bài toán ảnh ở bài giảng 4). **KNN** kém nhất trong các mô hình học máy: mọi đặc trưng có trọng số như nhau trong khoảng cách, kể cả 21 cờ từ khóa 0/1 ít liên quan, nên "căn giống nhất" theo KNN chưa chắc giống về giá.
 - **Tập test chưa được dùng ở Phần A.** Mô hình được chọn (Random Forest) học lại trên toàn bộ tập train và được chấm trên tập test **một lần duy nhất**, cùng mô hình của Phần B, ở Bước 9.
 
-**Kết thúc phần cơ bản.** Mô hình tốt nhất trong phạm vi môn học là Random Forest (kiểm định chéo ≈ 27%, baseline ≈ 41%); kết quả của nó trên tập test nằm trong bảng ở Bước 9. Phần B dưới đây dùng các kỹ thuật ngoài bài giảng (giá khu vực, gradient boosting, stacking, bootstrap) để thử giảm sai số thêm và đo độ tin cậy của kết quả chặt chẽ hơn.
+**Kết thúc phần cơ bản.** Mô hình tốt nhất trong phạm vi môn học là Random Forest (kiểm định chéo ≈ 26%, baseline ≈ 41%); kết quả của nó trên tập test nằm trong bảng ở Bước 9. Phần B dưới đây dùng các kỹ thuật ngoài bài giảng (giá khu vực, gradient boosting, stacking, bootstrap) để thử giảm sai số thêm và đo độ tin cậy của kết quả chặt chẽ hơn.
 """)
 
 md(r"""
@@ -627,7 +629,7 @@ md(r"""
 
 ## Bước 8: So sánh và chọn mô hình nâng cao
 
-**Cách đánh giá chặt chẽ hơn phần A:** thay vì kiểm định chéo 5-fold một lần, dùng **kiểm định chéo 5-fold lặp 3 lần** (3 cách chia khác nhau), mỗi căn được dự đoán 3 lần bởi mô hình không học nó. Mỗi chỉ số kèm **khoảng tin cậy 95%** (bootstrap theo nhóm): với khoảng 190 căn Phú Hòa trong tập train, MAPE dao động vài điểm % chỉ do may rủi, nên chênh lệch nhỏ hơn mức đó **không có nghĩa**. Tập test vẫn chỉ dùng một lần, ở Bước 9.
+**Cách đánh giá chặt chẽ hơn phần A:** thay vì kiểm định chéo 5-fold một lần, dùng **kiểm định chéo 5-fold lặp 3 lần** (3 cách chia khác nhau), mỗi căn được dự đoán 3 lần bởi mô hình không học nó. Mỗi chỉ số kèm **khoảng tin cậy 95%** (bootstrap theo nhóm): với 176 căn Phú Hòa trong tập train, MAPE dao động vài điểm % chỉ do may rủi, nên chênh lệch nhỏ hơn mức đó **không có nghĩa**. Tập test vẫn chỉ dùng một lần, ở Bước 9.
 
 **Đặc trưng đầu vào** (tất cả lấy được từ tin rao):
 - Căn nhà: log(diện tích đất), ngang, dài, số tầng, diện tích sàn, tỷ lệ sàn/đất, phòng ngủ, WC, mặt tiền đường, cấp lối vào, độ rộng hẻm, sổ chung, nội thất.
@@ -646,7 +648,7 @@ md(r"""
 | Stacking (xếp chồng) | Dự đoán của mô hình chữ trở thành **một cột** cho mô hình chính; khi huấn luyện dùng dự đoán ngoài-fold **chia theo nhóm tin gần trùng** (tin đăng lại không lọt vào phần học của mô hình chữ) | Ghép hai nguồn thông tin mà không học vẹt |
 | Ngoại lai theo khu vực (`lech_don_gia_khu_vuc`, dùng ở Bước 4.4) | Với mỗi căn, tìm 15 căn gần nhất bằng `BallTree` (cây chia không gian, khoảng cách trên mặt cầu – haversine), so log đơn giá của căn với trung vị của 15 căn đó | Đơn giá thật chênh vài lần giữa các vùng, nên ngoại lai phải so với hàng xóm chứ không với toàn bộ dữ liệu như IQR |
 | Gom tin gần trùng (`nhom_gan_trung`, dùng ở Bước 4.4) | Hai tin cùng quận, diện tích lệch ≤ 3%, giá lệch ≤ 12% **và** có thêm bằng chứng (mô tả giống nhau – độ tương đồng cosine TF-IDF ≥ 0,45 – hoặc cùng kích thước, cùng đường) thì nối lại; các tin nối với nhau (trực tiếp hay qua tin khác) thành một nhóm (union-find) | Cùng một căn đăng nhiều lần không lọt sang cả train và test |
-| GroupShuffleSplit, GroupKFold (Bước 6–8) | Chia train/test và chia fold sao cho các tin cùng nhóm không bị tách ra | Chống rò rỉ từ tin đăng lại |
+| StratifiedGroupKFold, GroupKFold (Bước 6–8) | Chia train/test và chia fold sao cho các tin cùng nhóm không bị tách ra (khi chia train/test còn phân tầng theo Phú Hòa) | Chống rò rỉ từ tin đăng lại; tập test có đủ căn Phú Hòa |
 | Bootstrap | Lấy mẫu lại dữ liệu nhiều lần để xem chỉ số dao động bao nhiêu | Biết chênh lệch nào là thật, chênh lệch nào do may rủi |
 | Khoảng hiệu chỉnh từ sai số ngoài-fold (ý tưởng conformal) | Lấy phân vị của sai số ngoài-fold làm biên của khoảng giá | Khoảng giá có độ phủ kiểm chứng được trên test (thực nghiệm, không phải bảo đảm lý thuyết) |
 
@@ -773,7 +775,7 @@ print("Cấu hình tốt nhất:", kq_ts.iloc[0]["Cấu hình"], f"(MAPE TB {kq_
 """)
 
 md(r"""
-**Đọc kết quả:** cấu hình thử tốt nhất chỉ hơn cấu hình đang dùng khoảng 0,2 điểm % (MAPE trung bình 25,3% so với 25,5%) – nhỏ hơn nhiều so với độ rộng khoảng tin cậy (vài điểm %), tức là **không phân biệt được** với may rủi của cách chia. Vì vậy giữ nguyên cấu hình hiện tại thay vì chọn theo con số đẹp nhất (chọn theo chênh lệch nhỏ như vậy dễ là quá khớp vào chính các fold kiểm định). Với dữ liệu giá rao, giới hạn độ chính xác nằm ở chất lượng dữ liệu (giá ảo, thiếu thông tin) hơn là ở siêu tham số.
+**Đọc kết quả:** cấu hình thử tốt nhất chỉ hơn cấu hình đang dùng khoảng 0,1 điểm % (MAPE trung bình 24,6% so với 24,8%) – nhỏ hơn nhiều so với độ rộng khoảng tin cậy (vài điểm %), tức là **không phân biệt được** với may rủi của cách chia. Vì vậy giữ nguyên cấu hình hiện tại thay vì chọn theo con số đẹp nhất (chọn theo chênh lệch nhỏ như vậy dễ là quá khớp vào chính các fold kiểm định). Với dữ liệu giá rao, giới hạn độ chính xác nằm ở chất lượng dữ liệu (giá ảo, thiếu thông tin) hơn là ở siêu tham số.
 
 **Ba phép kiểm chứng cho mô hình được chọn** (đều bằng kiểm định chéo lặp trên tập train):
 - **Rò rỉ có ảnh hưởng không?** So MAPE khi chia fold ngẫu nhiên (tin gần trùng có thể nằm ở cả train lẫn test) với khi chia theo nhóm.
@@ -812,9 +814,9 @@ for nhan, ape_khac in [("chia ngẫu nhiên", sai_so_tung_can(train, P_thuong)[l
 
 md(r"""
 **Đọc kết quả** (xem các dòng in phía trên; chênh lệch có khoảng tin cậy không chứa 0 thì mới coi là thật):
-- **Rò rỉ:** chia ngẫu nhiên cho MAPE thấp hơn chia theo nhóm 0,41 điểm %, khoảng tin cậy (−1,14 … +0,35) chứa 0 → sau khi gộp tin trùng khớp hẳn (Bước 4.2), phần rò rỉ còn lại do tin đăng lại **không đáng kể**. Con số báo cáo vẫn là con số **chia theo nhóm** (khắt khe hơn).
-- **Phạm vi dữ liệu:** chỉ học trên Phú Hòa sai hơn học toàn vùng 4,09 điểm %, khoảng tin cậy (+1,55 … +6,83) **không chứa 0** → mở rộng thu thập ra toàn vùng giúp thật, có ý nghĩa thống kê.
-- **So với phiên bản 1:** cách làm phiên bản 1 sai hơn 3,69 điểm %, nhưng khoảng tin cậy (−0,56 … +9,16) **chứa 0**: trên khoảng 190 căn kiểm định chéo, cải thiện này chưa đủ chắc chắn về mặt thống kê. Trên tập test (Bước 9) cách làm phiên bản 1 sai 35,4% so với 25,2% ở Phú Hòa và 44,6% so với 25,5% trên toàn Thủ Dầu Một.
+- **Rò rỉ:** chia ngẫu nhiên cho MAPE thấp hơn chia theo nhóm 0,60 điểm %, khoảng tin cậy (−1,49 … +0,27) chứa 0 → sau khi gộp tin trùng khớp hẳn (Bước 4.2), phần rò rỉ còn lại do tin đăng lại **không đáng kể**. Con số báo cáo vẫn là con số **chia theo nhóm** (khắt khe hơn).
+- **Phạm vi dữ liệu:** chỉ học trên Phú Hòa sai hơn học toàn vùng 4,49 điểm %, khoảng tin cậy (+1,64 … +7,54) **không chứa 0** → mở rộng thu thập ra toàn vùng giúp thật, có ý nghĩa thống kê.
+- **So với phiên bản 1:** trên kiểm định chéo, cách làm phiên bản 1 sai hơn 3,61 điểm %, khoảng tin cậy (+0,45 … +7,29) **không chứa 0** → cải thiện có ý nghĩa thống kê trên 176 căn. Nhưng trên 44 căn Phú Hòa của tập test (Bước 9), phiên bản 1 lại sai **ít hơn** (22,1% so với 26,5%); khoảng tin cậy của hai con số chồng nhau, nên trên tập test nhỏ này không phân biệt được. Trên toàn Thủ Dầu Một (122 căn test), phiên bản 1 kém xa (33,2% so với 23,2%) vì chỉ học trên Phú Hòa.
 
 ## Bước 9: Kiểm tra lần cuối trên tập test
 Tập test chưa được dùng ở bất kỳ bước nào (kể cả Phần A). Đây là **lần duy nhất** nó được dùng: chấm cùng lúc mô hình được chọn ở Phần B, mô hình tốt nhất của Phần A, baseline và cách làm phiên bản 1. Vì chỉ có vài chục căn Phú Hòa, con số trên test **dao động mạnh** (xem khoảng tin cậy). Đây là **kết quả chính** của đề tài vì là bằng chứng sạch nhất; con số kiểm định chéo ở Bước 8 dùng để bổ trợ.
@@ -874,7 +876,7 @@ plt.tight_layout(); plt.show()
 """)
 
 md(r"""
-**Con số nên trình bày:** MAPE trên tập test kèm khoảng tin cậy (kết quả chính), cùng MAPE kiểm định chéo ở Bước 8 (bổ trợ). **Phần A so với Phần B trên tập test:** mô hình tốt nhất trong phạm vi môn học (Random Forest) sai 23,5% ở Phú Hòa và 25,5% trên toàn Thủ Dầu Một; mô hình Phần B (LightGBM Huber + chữ) sai 25,2% và 25,5%. Trên tập test này hai mô hình **ngang nhau** (khoảng tin cậy chồng nhau gần hết; ở Phú Hòa Random Forest còn thấp hơn), dù ở kiểm định chéo Phần B tốt hơn khoảng 1–3 điểm %. Kết luận trung thực: kỹ thuật nâng cao **chưa chứng minh được** lợi ích trên dữ liệu chưa thấy; cả hai đều thắng rõ baseline (36,5% và 38,8%). Sai số cỡ 20–25% là mức thường gặp với **giá rao bán**: cùng một căn, các môi giới rao chênh nhau 5–15%, người bán còn để "phần thương lượng". Phần sai số này nằm ở chính dữ liệu, mô hình không thể loại bỏ.
+**Con số nên trình bày:** MAPE trên tập test kèm khoảng tin cậy (kết quả chính), cùng MAPE kiểm định chéo ở Bước 8 (bổ trợ). **So sánh trên tập test:** ở Phú Hòa (44 căn), mô hình Phần B (LightGBM Huber + chữ) sai 26,5%, Random Forest của Phần A 23,6%, phiên bản 1 22,1%, baseline 28,1% – khoảng tin cậy của **cả bốn** chồng nhau, nên tập test Phú Hòa không phân hạng được các mô hình. Trên toàn Thủ Dầu Một (122 căn), Phần B 23,2% và Random Forest 22,4% ngang nhau, cả hai thắng rõ baseline (35,4%) và phiên bản 1 (33,2%). Kết luận trung thực: mô hình học máy thắng rõ cách tính đơn giản trên toàn vùng, nhưng kỹ thuật nâng cao của Phần B **chưa chứng minh được** lợi ích so với Random Forest của Phần A trên dữ liệu chưa thấy. Sai số cỡ 20–25% là mức thường gặp với **giá rao bán**: cùng một căn, các môi giới rao chênh nhau 5–15%, người bán còn để "phần thương lượng". Phần sai số này nằm ở chính dữ liệu, mô hình không thể loại bỏ.
 
 ### Mô hình có định giá lệch theo loại nhà không?
 Kiểm tra **sai lệch có dấu** của dự đoán ngoài-fold (dương = mô hình đoán cao hơn giá rao) theo loại lối vào và theo mức giá. Nếu mô hình lệch có hệ thống với một loại nhà, trung vị sai lệch của loại đó sẽ xa 0.
@@ -928,7 +930,7 @@ plt.show()
 """)
 
 md(r"""
-**Quan sát:** Diện tích đất là yếu tố số một (xáo trộn làm MAE log tăng ≈ 0,16). Nhóm **vị trí** (tọa độ, phường, đường – đưa vào mô hình qua đặc trưng giá khu vực) đứng thứ hai (≈ 0,06), sát sau là **mô tả tin** (≈ 0,06, nhờ cột t_chu của mô hình chữ), rồi số tầng, sàn, phòng (≈ 0,04). Lưu ý: tin guland chỉ có tiêu đề nên nhóm "mô tả tin" chưa phát huy hết ở Phú Hòa.
+**Quan sát:** Diện tích đất là yếu tố số một (xáo trộn làm MAE log tăng ≈ 0,17). Các nhóm tiếp theo đóng góp gần bằng nhau: **mô tả tin** (≈ 0,05, nhờ cột t_chu của mô hình chữ), số tầng, sàn, phòng (≈ 0,05) và **vị trí** (≈ 0,04; vị trí còn đi vào mô hình qua đặc trưng giá khu vực và cả qua mô tả tin, nên xáo riêng tọa độ chỉ đo được một phần). Lưu ý: tin guland chỉ có tiêu đề nên nhóm "mô tả tin" chưa phát huy hết ở Phú Hòa.
 
 ## Bước 10: Khoảng giá 80% (hiệu chỉnh từ sai số ngoài-fold)
 Một con số dự đoán đơn lẻ chưa đủ để ra quyết định. Ta muốn khoảng [thấp, cao] **chứa giá rao thật của khoảng 80% số căn**.
@@ -937,30 +939,32 @@ Một con số dự đoán đơn lẻ chưa đủ để ra quyết định. Ta m
 
 **Về tên gọi:** cách làm này mượn ý tưởng của *conformal prediction* (dùng phân vị sai số trên dữ liệu mô hình chưa thấy làm biên khoảng), nhưng **không phải** conformal "chuẩn" có bảo đảm lý thuyết: sai số lấy từ kiểm định chéo (ngoài-fold) trong khi khoảng được áp cho mô hình cuối huấn luyện trên toàn bộ dữ liệu, và dữ liệu có thể không hoán đổi được (tin đăng theo thời gian, theo khu). Vì vậy ta gọi đây là **khoảng hiệu chỉnh thực nghiệm** và chỉ tin vào nó qua **độ phủ quan sát được trên tập test riêng** (kèm kiểm định nhị thức), không tuyên bố bảo đảm 80%.
 
-**Biên độ riêng theo mức giá (hiệu chỉnh theo nhóm, giống ý tưởng Mondrian conformal).** Nếu dùng một biên độ chung cho mọi căn, độ phủ trung bình đúng 80% nhưng **không đều**: nhà giá cao dao động mạnh hơn nên khoảng quá hẹp, nhà rẻ thì khoảng thừa rộng. Vì vậy chia các căn thành 4 mức theo **giá dự đoán** (tứ phân vị) và tính phân vị sai số riêng cho từng mức. Phân nhóm theo giá **dự đoán** (không theo giá thật) để dùng được cho căn mới chưa biết giá. Ô dưới so độ phủ từng nhóm giữa hai cách.
+**Biên độ riêng theo mức giá (hiệu chỉnh theo nhóm, giống ý tưởng Mondrian conformal).** Nếu dùng một biên độ chung cho mọi căn, độ phủ trung bình đúng 80% nhưng **không đều**: nhà giá cao dao động mạnh hơn nên khoảng quá hẹp, nhà rẻ thì khoảng thừa rộng. Vì vậy chia các căn thành nhóm và tính phân vị sai số riêng cho từng nhóm: căn **Phú Hòa** – nơi cần định giá – là một nhóm riêng, được hiệu chỉnh bằng chính sai số ngoài-fold của các căn Phú Hòa trong tập train; các căn còn lại chia 4 mức theo **giá dự đoán** (tứ phân vị). Phân nhóm theo giá **dự đoán** (không theo giá thật) để dùng được cho căn mới chưa biết giá. Mọi biên độ chỉ tính từ sai số ngoài-fold của **tập train**; tập test chỉ dùng để kiểm tra độ phủ. Ô dưới so độ phủ từng nhóm giữa biên độ chung và biên độ theo nhóm.
 """)
 
 code(r"""
-from mo_hinh_gia import hieu_chinh_khoang, phan_vi_cho, muc_gia
+from mo_hinh_gia import hieu_chinh_khoang, phan_vi_cho, muc_gia, nhom_khoang
 P_tdm, Y_tdm = OOF[ten_tot_nhat][:, la_tdm], train["y"].to_numpy()[la_tdm]
 NGUONG = np.quantile(P_tdm.mean(axis=0), [0.25, 0.5, 0.75]).tolist()          # ngưỡng 4 mức giá (log tỷ)
 r = (Y_tdm - P_tdm).ravel()
-KHOANG = hieu_chinh_khoang(r, muc_gia(P_tdm.ravel(), NGUONG))
+la_ph_tdm = np.tile(train["phu_hoa"].to_numpy()[la_tdm] == 1, P_tdm.shape[0])  # căn Phú Hòa, lặp theo số lần kiểm định chéo
+m_all = nhom_khoang(P_tdm.ravel(), NGUONG, la_ph_tdm)                       # nhóm: "ph" cho Phú Hòa, "0".."3" cho căn khác
+KHOANG = hieu_chinh_khoang(r, m_all)
 KHOANG["nguong"] = NGUONG
 Q = KHOANG["chung"]                                                           # biên độ chung (để so sánh)
 
-ten_muc = ["Rẻ nhất 25%", "25–50%", "50–75%", "Đắt nhất 25%"]
-m_all = muc_gia(P_tdm.ravel(), NGUONG)
+NHOM_KH = ["0", "1", "2", "3", "ph"]
+ten_muc = ["Rẻ nhất 25% (ngoài Phú Hòa)", "25–50% (ngoài Phú Hòa)", "50–75% (ngoài Phú Hòa)", "Đắt nhất 25% (ngoài Phú Hòa)", "Phú Hòa (mọi mức giá)"]
 q_rieng = phan_vi_cho(m_all, KHOANG)
 so_sanh_kh = pd.DataFrame({
-    "Số căn": [int((muc_gia(P_tdm.mean(0), NGUONG) == k).sum()) for k in range(4)],
-    "Độ phủ – biên độ chung (%)": [np.mean(((r >= Q["q10"]) & (r <= Q["q90"]))[m_all == k]) * 100 for k in range(4)],
-    "Độ phủ – biên độ theo mức (%)": [np.mean(((r >= q_rieng["q10"]) & (r <= q_rieng["q90"]))[m_all == k]) * 100 for k in range(4)],
-    "Biên độ 80% theo mức": [f"{(np.exp(KHOANG['nhom'][str(k)]['q10']) - 1) * 100:+.0f}% … {(np.exp(KHOANG['nhom'][str(k)]['q90']) - 1) * 100:+.0f}%" for k in range(4)],
+    "Số sai số ngoài-fold": [int((m_all == k).sum()) for k in NHOM_KH],
+    "Độ phủ – biên độ chung (%)": [np.mean(((r >= Q["q10"]) & (r <= Q["q90"]))[m_all == k]) * 100 for k in NHOM_KH],
+    "Độ phủ – biên độ theo nhóm (%)": [np.mean(((r >= q_rieng["q10"]) & (r <= q_rieng["q90"]))[m_all == k]) * 100 for k in NHOM_KH],
+    "Biên độ 80% theo nhóm": [f"{(np.exp(KHOANG['nhom'][k]['q10']) - 1) * 100:+.0f}% … {(np.exp(KHOANG['nhom'][k]['q90']) - 1) * 100:+.0f}%" for k in NHOM_KH],
 }, index=ten_muc)
 display(so_sanh_kh.round(1))
 
-q_test = phan_vi_cho(muc_gia(p_test[ten_tot_nhat], NGUONG), KHOANG)
+q_test = phan_vi_cho(nhom_khoang(p_test[ten_tot_nhat], NGUONG, test["phu_hoa"].to_numpy() == 1), KHOANG)
 lo80, hi80 = p_test[ten_tot_nhat] + q_test["q10"], p_test[ten_tot_nhat] + q_test["q90"]
 lo50, hi50 = p_test[ten_tot_nhat] + q_test["q25"], p_test[ten_tot_nhat] + q_test["q75"]
 yt = test["y"].to_numpy()
@@ -982,16 +986,17 @@ for nhan, m_ in [("test TDM", m_tdm), ("test Phú Hòa", m_ph)]:
     print(f"{nhan}: {k}/{n} căn trong khoảng ({k / n * 100:.0f}%), p = {p_:.2f} → "
           + ("không đủ bằng chứng để nói khoảng quá hẹp (p ≥ 0,05)" if p_ >= 0.05 else "khoảng có thể quá hẹp (p < 0,05)"))
 # Độ phủ theo mức giá TRÊN TẬP TEST (chưa dùng để tính biên độ) – kiểm tra cách chia theo mức có giữ được trên dữ liệu mới
-m_te = muc_gia(p_test[ten_tot_nhat], NGUONG)
+m_te = nhom_khoang(p_test[ten_tot_nhat], NGUONG, test["phu_hoa"].to_numpy() == 1)
 q_chung_lo, q_chung_hi = p_test[ten_tot_nhat] + Q["q10"], p_test[ten_tot_nhat] + Q["q90"]
-display(pd.DataFrame({"Số căn test": [int((m_te == k).sum()) for k in range(4)],
-                      "Biên độ chung (%)": [np.mean(((yt >= q_chung_lo) & (yt <= q_chung_hi))[m_te == k]) * 100 for k in range(4)],
-                      "Biên độ theo mức (%)": [np.mean(trong[m_te == k]) * 100 for k in range(4)]}, index=ten_muc).round(0))
+display(pd.DataFrame({"Số căn test": [int((m_te == k).sum()) for k in NHOM_KH],
+                      "Biên độ chung (%)": [np.mean(((yt >= q_chung_lo) & (yt <= q_chung_hi))[m_te == k]) * 100 for k in NHOM_KH],
+                      "Biên độ theo nhóm (%)": [np.mean(trong[m_te == k]) * 100 for k in NHOM_KH]}, index=ten_muc).round(0))
 """)
 
 md(r"""
 **Quan sát:**
-- Với biên độ chung, nhóm nhà đắt nhất bị phủ thiếu rõ rệt (61%); biên độ theo mức đưa độ phủ của cả 4 nhóm về gần 80% (bảng đầu). Trên tập test (dữ liệu chưa dùng để tính biên độ), biên độ theo mức sửa được đúng chỗ yếu của biên độ chung: nhóm đắt nhất từ 69% lên 85%; đổi lại các nhóm rẻ phủ thấp hơn biên độ chung (nhóm 25–50%: 74% so với 87%). Mỗi nhóm test chỉ 16–39 căn nên dao động lớn; độ phủ chung trên test là 83% (kiểm định nhị thức không bác bỏ mức 80%).
+- Trên sai số ngoài-fold của tập train, biên độ chung phủ thiếu nhóm nhà đắt nhất (68%) và phủ thừa nhóm rẻ (87–89%); biên độ theo nhóm đưa cả 5 nhóm về gần 80% (bảng đầu). Riêng Phú Hòa, biên độ chung vốn đã phủ 79,5% trên tập train, nên nhóm riêng chủ yếu giúp khoảng **đúng độ rộng cho chính Phú Hòa** (−30% … +48%).
+- **Trên tập test** (dữ liệu chưa dùng để tính biên độ): độ phủ toàn Thủ Dầu Một 77%, Phú Hòa 70% (31/44 căn); kiểm định nhị thức **không bác bỏ** mức 80% ở cả hai (p = 0,24 và 0,09). Trên toàn bộ 220 căn Phú Hòa (dự đoán chéo theo nhóm, Bước 11) độ phủ là 78%. Độ phủ ở Phú Hòa hơi dưới 80% ở mọi cách đo, nên khi trình bày nên nói khoảng này phủ **khoảng 3/4** số căn Phú Hòa, và cần thêm dữ liệu để kết luận chắc hơn.
 - Đọc độ phủ cùng kết quả kiểm định nhị thức: chỉ khi p < 0,05 mới có cơ sở nói khoảng giá quá hẹp.
 - Khoảng 80% khá rộng và **lệch lên trên** vì có những tin rao cao hơn hẳn mặt bằng. Đó là mức bất định thật của giá rao, báo cáo cần nêu rõ thay vì chỉ đưa một con số.
 
@@ -1005,7 +1010,7 @@ Với **mỗi tin rao Phú Hòa**, so giá rao với giá thị trường mô h�
 code(r"""
 oof_all = du_doan_cheo_lap(MO_HINH[ten_tot_nhat], df, so_lan=SO_LAN, seed=7).mean(axis=0)
 df["gia_uoc_luong_ty"] = np.exp(oof_all)
-q_all = phan_vi_cho(muc_gia(oof_all, NGUONG), KHOANG)                       # biên độ theo mức giá của từng căn
+q_all = phan_vi_cho(nhom_khoang(oof_all, NGUONG, df["phu_hoa"].to_numpy() == 1), KHOANG)   # biên độ theo nhóm của từng căn
 df["khoang80_thap"] = np.exp(oof_all + q_all["q10"]); df["khoang80_cao"] = np.exp(oof_all + q_all["q90"])
 df["chenh_lech_pt"] = (df["gia_ty"] / df["gia_uoc_luong_ty"] - 1) * 100
 df["chan_doan"] = np.select([df["gia_ty"] < df["khoang80_thap"], df["gia_ty"] > df["khoang80_cao"]],
@@ -1030,7 +1035,7 @@ print("Đã ghi ket_qua/input.csv (thông số", len(xuat), "căn Phú Hòa) và
 """)
 
 md(r"""
-**Quan sát:** 81% căn Phú Hòa có giá rao "hợp lý" theo mô hình, 9,1% "rẻ hơn" và 10,0% "cao hơn" thị trường – sát với kỳ vọng của khoảng 80% (mỗi phía khoảng 10%). Nhóm "cao hơn thị trường" gồm tin rao kỳ vọng cao và căn có yếu tố mô hình không thấy (nhà mới xây cao cấp, vị trí đặc biệt), xem phân tích co về trung bình ở Bước 9. Nhóm "rẻ hơn" là ứng viên đáng xem (thường có tin "bán gấp/ngộp"), nhưng cũng cần kiểm tra pháp lý và hiện trạng. Kết quả là **gợi ý sàng lọc**, không thay thế thẩm định thực tế.
+**Quan sát:** 78% căn Phú Hòa có giá rao "hợp lý" theo mô hình, 10,9% "rẻ hơn" và 11,4% "cao hơn" thị trường – gần với kỳ vọng của khoảng 80% (mỗi phía khoảng 10%). Nhóm "cao hơn thị trường" gồm tin rao kỳ vọng cao và căn có yếu tố mô hình không thấy (nhà mới xây cao cấp, vị trí đặc biệt), xem phân tích co về trung bình ở Bước 9. Nhóm "rẻ hơn" là ứng viên đáng xem (thường có tin "bán gấp/ngộp"), nhưng cũng cần kiểm tra pháp lý và hiện trạng. Kết quả là **gợi ý sàng lọc**, không thay thế thẩm định thực tế.
 
 """)
 
@@ -1283,7 +1288,7 @@ def du_doan_gia(dt_dat, ngang=None, dai=None, so_tang=None, dt_san=None, phong_n
     can["kc_trung_tam_km"] = np.hypot((lat - TRUNG_TAM_TDM[0]) * 110.6, (lon - TRUNG_TAM_TDM[1]) * 109.3)
     can = can.astype({c_: float for c_ in ["ngang", "dai", "so_tang", "dt_san", "phong_ngu", "so_wc", "cap_loi_vao", "hem_rong"]})
     p = float(goi["model"].predict(can)[0])
-    q = {k_: float(v[0]) for k_, v in phan_vi_cho(muc_gia(p, goi["khoang_theo_muc"]["nguong"]), goi["khoang_theo_muc"]).items()}
+    q = {k_: float(v[0]) for k_, v in phan_vi_cho(nhom_khoang(p, goi["khoang_theo_muc"]["nguong"], phuong == "phu hoa"), goi["khoang_theo_muc"]).items()}
     return {"gia_du_doan_ty": round(np.exp(p), 2), "khoang_80_ty": (round(np.exp(p + q["q10"]), 2), round(np.exp(p + q["q90"]), 2))}
 
 vi_du = {
@@ -1302,7 +1307,7 @@ md(r"""
 ## Kết luận
 
 **Kết quả đạt được**
-- **Phần A (cơ bản, đúng phạm vi môn học):** tiền xử lý (thiếu, trùng, ngoại lai), phân cụm K-means để khám phá vùng giá, rồi 6 mô hình có giám sát của môn học – hồi quy tuyến tính, cây quyết định (minh họa quá khớp, chọn độ sâu bằng tập kiểm định), KNN, SVM, mạng nơ-ron MLP, Random Forest – chọn bằng kiểm định chéo K-fold, không dùng tập test (Bước 5–7). Tốt nhất là Random Forest; chấm trên tập test ở Bước 9: 25,5% trên toàn Thủ Dầu Một và 23,5% trên Phú Hòa (baseline 38,8% và 36,5%), **ngang** mô hình Phần B (25,5% và 25,2%).
+- **Phần A (cơ bản, đúng phạm vi môn học):** tiền xử lý (thiếu, trùng, ngoại lai), phân cụm K-means để khám phá vùng giá, rồi 6 mô hình có giám sát của môn học – hồi quy tuyến tính, cây quyết định (minh họa quá khớp, chọn độ sâu bằng tập kiểm định), KNN, SVM, mạng nơ-ron MLP, Random Forest – chọn bằng kiểm định chéo K-fold, không dùng tập test (Bước 5–7). Tốt nhất là Random Forest; chấm trên tập test ở Bước 9: 22,4% trên toàn Thủ Dầu Một và 23,6% trên Phú Hòa (baseline 35,4% và 28,1%), **ngang** mô hình Phần B (23,2% và 26,5%).
 - Dữ liệu **thật** từ 3 nguồn (guland, Chợ Tốt Nhà, alonhadat). Sau khi hợp nhất, sửa lỗi, loại trùng và loại tin không phải giá thị trường còn 1.486 căn, trong đó Phú Hòa 220 căn. Không dùng dữ liệu mô phỏng.
 - Đánh giá bằng **kiểm định chéo lặp, chia theo nhóm tin gần trùng**, mọi chỉ số có khoảng tin cậy 95%. Mô hình được chọn theo quy tắc "đơn giản nhất mà không kém có ý nghĩa" (Bước 8). Con số trình bày gồm **ba cách đo** trên các căn Phú Hòa: kiểm định chéo (Bước 8), tập test giữ riêng (Bước 9) và dự đoán chéo theo nhóm trên toàn bộ căn Phú Hòa (Bước 11), mỗi số kèm khoảng tin cậy và cách đọc (bảng ngay dưới phần kết luận).
 - So với cách làm của phiên bản 1 và baseline đơn giá phường: xem bảng kiểm chứng ở Bước 8, có kèm khoảng tin cậy của chênh lệch.
@@ -1316,7 +1321,8 @@ md(r"""
 **Hạn chế còn lại (cần nêu khi trình bày)**
 - Mô hình ước lượng **mặt bằng giá rao**, không phải giá giao dịch: vẫn là **giá rao bán**, chưa phải giá giao dịch công chứng (dữ liệu này không công khai). Sai số 20–25% phần lớn đến từ độ "ảo" của giá rao.
 - **Sai số không đều:** tin thiếu thông số sai 28% so với 21% ở tin đủ thông số; nhóm giá rẻ nhất sai nhiều nhất; vài phường chưa đủ mẫu (Bước 11, kiểm tra độ tin cậy).
-- **Tập test Phú Hòa nhỏ** (vài chục căn): MAPE test cao hơn MAPE kiểm định chéo và khoảng tin cậy của nó rất rộng. Hai khoảng tin cậy chồng nhau nên kết quả không mâu thuẫn, nhưng **chưa đủ để khẳng định độ chính xác ổn định ở riêng Phú Hòa**; cần thêm tin Phú Hòa độc lập qua các kỳ thu thập định kỳ.
+- **Tập test Phú Hòa nhỏ** (44 căn): khoảng tin cậy của MAPE rộng (21,0–33,5%) đến mức không phân hạng được các mô hình ở riêng Phú Hòa (Bước 9); cần thêm tin Phú Hòa độc lập qua các kỳ thu thập định kỳ.
+- **Khoảng 80% phủ hơi thiếu ở Phú Hòa:** 70% trên 44 căn test (chưa bác bỏ được mức 80%, p = 0,09) và 78% trên toàn bộ 220 căn; đã hiệu chỉnh riêng cho Phú Hòa từ sai số của tập train, cần thêm dữ liệu để chắc hơn.
 - Vị trí chỉ chính xác tới **tuyến đường hoặc phường** với phần lớn tin; muốn tốt hơn cần số nhà hoặc tọa độ do người đăng ghim.
 - Tin guland (phần lớn dữ liệu Phú Hòa) hiện chỉ có tiêu đề. Script `thu_thap/guland_thu_thap.js` đã được sửa để lưu cả mô tả; lần thu thập tới notebook tự dùng cột này.
 - Không có thông tin chất lượng xây dựng thật (vật liệu, tuổi nhà); chỉ đọc được gián tiếp qua mô tả.

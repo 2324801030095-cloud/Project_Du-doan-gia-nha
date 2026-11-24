@@ -24,6 +24,7 @@ BUOC = [
     ("build_site", TRANG),
     ("tro_ly_y_dinh", nb("tro_ly_y_dinh")),
     ("build_site_lan_2", TRANG),
+    ("cap_nhat_readme", [PY, "-X", "utf8", "cong_cu/cap_nhat_readme.py"]),     # bảng kết quả README lấy từ model/*.json
     ("kiem_tra_mo_hinh", [PY, "-X", "utf8", "tests/kiem_tra_mo_hinh.py"]),
     ("kiem_tra_tro_ly", ["node", "tests/kiem_tra_tro_ly.js"]),
 ]

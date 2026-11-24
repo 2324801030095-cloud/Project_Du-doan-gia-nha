@@ -61,7 +61,7 @@ sys.path.insert(0, str(GOC / "src"))
 RAW, PROC, LICH_SU = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "data" / "lich_su"
 MODEL_DIR, KET_QUA = GOC / "model", GOC / "ket_qua"
 MODEL_DIR.mkdir(exist_ok=True); KET_QUA.mkdir(exist_ok=True); PROC.mkdir(parents=True, exist_ok=True)
-from mo_hinh_gia import khong_dau, trich_dac_trung_chu, phan_vi_cho, muc_gia
+from mo_hinh_gia import khong_dau, trich_dac_trung_chu, phan_vi_cho, nhom_khoang
 
 warnings.filterwarnings("ignore")
 sns.set_theme(style="whitegrid")
@@ -99,7 +99,8 @@ def tao_can(lat, lon, phuong, quan="thu dau mot", duong=None, cap_loi_vao=2, hem
 
 def dinh_gia(can):
     p = float(mo_hinh.predict(can)[0])
-    q = {k: float(v[0]) for k, v in phan_vi_cho(muc_gia(p, goi["khoang_theo_muc"]["nguong"]), goi["khoang_theo_muc"]).items()}   # biên độ theo mức giá
+    q = {k: float(v[0]) for k, v in phan_vi_cho(nhom_khoang(p, goi["khoang_theo_muc"]["nguong"], can["phuong"].iloc[0] == "phu hoa"),
+                                                    goi["khoang_theo_muc"]).items()}   # biên độ theo nhóm (Phú Hòa riêng)
     return np.exp(p), np.exp(p + q["q10"]), np.exp(p + q["q90"])
 
 tdm = df[df["quan"] == "thu dau mot"]
