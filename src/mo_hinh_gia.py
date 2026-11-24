@@ -286,6 +286,18 @@ def chi_so_danh_gia(y_log, p_log):
 
 
 # ----------------------------------------------------------------------------------------------
+# Ngoại lai theo khu vực: đơn giá của một căn lệch bao nhiêu so với các căn ở gần nó
+# ----------------------------------------------------------------------------------------------
+def lech_don_gia_khu_vuc(df, k=15):
+    """|log đơn giá − log trung vị đơn giá của k căn gần nhất| (không tính chính căn đó).
+    Khoảng cách trên mặt cầu (haversine) giữa các tọa độ; BallTree tìm láng giềng nhanh thay cho so từng cặp."""
+    xy = np.radians(df[["lat", "lon"]].to_numpy())
+    u = np.log(df["don_gia"].to_numpy())
+    _, idx = BallTree(xy, metric="haversine").query(xy, k=k + 1)      # láng giềng đầu tiên là chính căn đó -> bỏ
+    return np.abs(u - np.median(u[idx[:, 1:]], axis=1))
+
+
+# ----------------------------------------------------------------------------------------------
 # Chống rò rỉ khi đánh giá: gom các tin "gần trùng" (nhiều khả năng là CÙNG MỘT CĂN đăng lại) thành nhóm
 # ----------------------------------------------------------------------------------------------
 def nhom_gan_trung(df, sai_dt=0.03, sai_gia=0.12, nguong_chu=0.45, dung_vi_tri=True):

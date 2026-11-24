@@ -44,7 +44,7 @@ md(r"""
 
 | Phần | Các bước | Liên hệ tài liệu môn học |
 |---|---|---|
-| **PHẦN A – CƠ BẢN** | 1. Thu thập → 2. Hợp nhất → 3. Trích đặc trưng từ văn bản → 4. Làm sạch (thiếu, trùng, ngoại lai) → 5. Khám phá dữ liệu + **phân cụm K-means** → 6. Chia train/test → 7. Học có giám sát: hồi quy tuyến tính, **cây quyết định** (quá khớp, chọn độ sâu), KNN, **SVM**, **mạng nơ-ron MLP**, Random Forest; chọn mô hình bằng kiểm định chéo K-fold; chấm trên test | Bài giảng 1 (định nghĩa bài toán T–E–P), 3 (cây quyết định, quá khớp), 4 (mạng nơ-ron, gradient descent, lan truyền ngược), 6 (SVM). Thực hành: tiền xử lý (TH4), văn bản (TH6), xây dựng mô hình có giám sát (TH9–TH10), phân cụm K-means (TH12–TH15) |
+| **PHẦN A – CƠ BẢN** | 1. Thu thập → 2. Hợp nhất → 3. Trích đặc trưng từ văn bản → 4. Làm sạch (thiếu, trùng, ngoại lai) → 5. Khám phá dữ liệu + **phân cụm K-means** → 6. Chia train/test → 7. Học có giám sát: hồi quy tuyến tính, **cây quyết định** (quá khớp, chọn độ sâu), KNN, **SVM**, **mạng nơ-ron MLP**, Random Forest; chọn mô hình bằng kiểm định chéo K-fold, **không dùng tập test** (mô hình tốt nhất được chấm trên test cùng Phần B ở Bước 9) | Bài giảng 1 (định nghĩa bài toán T–E–P), 3 (cây quyết định, quá khớp), 4 (mạng nơ-ron, gradient descent, lan truyền ngược), 6 (SVM). Thực hành: tiền xử lý (TH4), văn bản (TH6), xây dựng mô hình có giám sát (TH9–TH10), phân cụm K-means (TH12–TH15) |
 | **PHẦN B – NÂNG CAO VÀ MỞ RỘNG** | 8. Giá khu vực, boosting (LightGBM, CatBoost), stacking, kiểm định chéo lặp + bootstrap, quy tắc chọn mô hình → 9. Kiểm tra trên test, giải thích sai số → 10. Khoảng giá 80% → 11. Chẩn đoán từng căn → 12. Lưu mô hình, giải thích SHAP | Kiến thức ngoài bài giảng (TH10 chỉ ghi gradient boosting là "tìm hiểu thêm"), dùng để tăng độ chính xác và đo độ tin cậy của kết quả |
 
 Giải thuật di truyền (bài giảng 5) không dùng: bài toán có đủ dữ liệu để chọn tham số bằng kiểm định chéo, không cần tìm kiếm tiến hóa.
@@ -344,13 +344,13 @@ Phân tích sai số ở bản nháp cho thấy phần lớn sai số rất lớ
 | Diện tích thổ cư < 50% diện tích đất | Phần lớn là đất nông nghiệp, đơn giá thấp hơn hẳn |
 | Đơn giá lệch hơn **3 lần** so với trung vị 15 căn gần nhất | Gần như chắc chắn là lỗi nhập (sai đơn vị, nhầm diện tích) |
 
-Đây là bước **xử lý ngoại lai** của bài thực hành tiền xử lý (TH4). Khác ở chỗ ngoại lai được so với **các căn lân cận** thay vì với toàn bộ dữ liệu (như phương pháp IQR/boxplot), vì đơn giá ở lõi Thủ Dầu Một và ở Bàu Bàng chênh nhau vài lần mà đều là giá thật. Việc tìm 15 căn gần nhất dùng `BallTree` (cấu trúc tìm láng giềng nhanh, khoảng cách trên mặt cầu) và việc gom tin gần trùng ngay sau đây (TF-IDF + gom nhóm) là **kỹ thuật nâng cao**; trong Phần A chỉ cần hiểu mục đích của chúng.
+Đây là bước **xử lý ngoại lai** của bài thực hành tiền xử lý (TH4). Khác ở chỗ ngoại lai được so với **các căn lân cận** thay vì với toàn bộ dữ liệu (như phương pháp IQR/boxplot), vì đơn giá ở lõi Thủ Dầu Một và ở Bàu Bàng chênh nhau vài lần mà đều là giá thật. Hai bước dùng kỹ thuật nâng cao được đóng gói thành hàm trong `src/mo_hinh_gia.py`, Phần A chỉ gọi hàm và dùng kết quả: `lech_don_gia_khu_vuc` (tìm 15 căn gần nhất) và `nhom_gan_trung` (gom tin gần trùng, ngay sau đây). Chúng phải chạy **trước** khi chia train/test nên không thể dời xuống dưới; cách hoạt động được giải thích trong bảng kỹ thuật ở Phần B (Bước 8).
 
 **Lưu ý trung thực:** quy tắc "đơn giá lệch > 3 lần khu vực" dùng **giá** của chính tin đó, và được áp trước khi chia train/test, nên các tin bất thường bị loại khỏi cả tập test. Điều này có thể làm sai số đo được đẹp hơn một chút so với khi gặp tin thật ngoài thị trường. Bước 11 (phép kiểm 2) học và chấm lại với 4 ngưỡng, kể cả **không lọc**: sai số gần như không đổi (21,7–22,4%), nên ảnh hưởng này nhỏ.
 """)
 
 code(r"""
-from sklearn.neighbors import BallTree
+from mo_hinh_gia import lech_don_gia_khu_vuc
 
 ly_do = pd.Series("", index=df.index)
 def danh_dau(mask, s):
@@ -364,10 +364,7 @@ danh_dau(tieu_de_kd.str.contains(r"can ho|chung cu|\bcan (?:happy|c sky|the )") 
          "Căn hộ chung cư đăng nhầm mục nhà")
 danh_dau(v.str.contains(r"\d\s*(?:ty|t)\s*x{2,}|gia[^\n\d]{0,12}\d+(?:[.,]\d+)?\s*(?:ty)?\s*-\s*\d+(?:[.,]\d+)?\s*ty\b"), "Giá mồi / không rõ ràng")
 danh_dau(df["t_dt_tho_cu"] / df["dt_dat"] < 0.5, "Thổ cư < 50% diện tích")
-xy = np.radians(df[["lat", "lon"]].to_numpy())
-u = np.log(df["don_gia"].to_numpy())
-_, idx = BallTree(xy, metric="haversine").query(xy, k=16)
-df["lech_log"] = np.abs(u - np.median(u[idx[:, 1:]], axis=1))       # |log đơn giá − log trung vị 15 căn gần nhất|
+df["lech_log"] = lech_don_gia_khu_vuc(df, k=15)      # |log đơn giá − log trung vị đơn giá 15 căn gần nhất| (cách tính: Phần B)
 danh_dau(df["lech_log"] > np.log(3), "Đơn giá lệch > 3 lần khu vực")
 df["ly_do_loai"] = ly_do
 df_truoc_loc = df.copy()                       # giữ lại để thử các ngưỡng lọc khác (Bước 11, kiểm tra độ nhạy)
@@ -592,22 +589,21 @@ MO_HINH_CO_BAN = {
 }
 # Chọn mô hình bằng kiểm định chéo trên tập train (không nhìn tập test)
 bang_cheo = pd.DataFrame({ten: mae_cheo(tao) for ten, tao in MO_HINH_CO_BAN.items()}, index=["MAE log – phần học", "MAE log – kiểm định"]).T
+# Baseline trên cùng 5 fold (baseline cần cột phường và diện tích nên tính riêng)
+bang_cheo.loc["Baseline (đơn giá phường)"] = [np.nan, np.mean([np.mean(np.abs(BaselineDonGiaPhuong().fit(train.iloc[a], ytr[a]).predict(train.iloc[b]) - ytr[b]))
+                                                                for a, b in FOLD])]
 bang_cheo["MAE ≈ sai số %"] = (np.exp(bang_cheo["MAE log – kiểm định"]) - 1) * 100
 print("Kiểm định chéo 5-fold trên tập train (sắp theo sai số kiểm định):"); display(bang_cheo.sort_values("MAE log – kiểm định").round(3))
-TOT_CO_BAN = bang_cheo["MAE log – kiểm định"].idxmin()
+TOT_CO_BAN = bang_cheo.drop("Baseline (đơn giá phường)")["MAE log – kiểm định"].idxmin()
 print(f"Mô hình cơ bản tốt nhất theo kiểm định chéo: {TOT_CO_BAN}")
 """)
 
 code(r"""
-# Chấm trên tập test: tất cả mô hình học lại trên toàn bộ tập train
-da_hoc = {ten: tao().fit(Xtr, ytr) for ten, tao in MO_HINH_CO_BAN.items()}
-cay_tot = da_hoc[f"Cây quyết định (độ sâu {DO_SAU_TOT})"]
-p_co_ban = {"Baseline (đơn giá phường)": BaselineDonGiaPhuong().fit(train, ytr).predict(test),
-            **{ten: m.predict(Xte) for ten, m in da_hoc.items()}}
-print("TẬP TEST – các căn Phú Hòa:"); display(bang_danh_gia(test, p_co_ban, (test["phu_hoa"] == 1).to_numpy()).round(2))
-print("TẬP TEST – toàn bộ Thủ Dầu Một:"); display(bang_danh_gia(test, p_co_ban, np.ones(len(test), bool)).round(2))
-print("(Hai cột 'MAPE thấp/cao (95%)' là khoảng tin cậy bootstrap – kỹ thuật nâng cao, giải thích ở Phần B.)")
-print("Ba tầng đầu của cây quyết định, dạng luật if-then (giá trị lá = log giá dự đoán):")
+# Tập test KHÔNG dùng ở Phần A. Chỉ học lại mô hình tốt nhất trên toàn bộ tập train;
+# nó được chấm trên tập test MỘT lần, cùng lúc với mô hình của Phần B (Bước 9).
+mo_hinh_co_ban_tot = MO_HINH_CO_BAN[TOT_CO_BAN]().fit(Xtr, ytr)
+cay_tot = cay(DO_SAU_TOT).fit(Xtr, ytr)
+print("Ba tầng đầu của cây quyết định (học trên toàn bộ tập train), dạng luật if-then (giá trị lá = log giá dự đoán):")
 print(export_text(cay_tot.named_steps["decisiontreeregressor"], feature_names=DT_CO_BAN, max_depth=2))
 """)
 
@@ -616,12 +612,12 @@ md(r"""
 - **Quá khớp** (bài giảng 3) thấy rõ ở cả hai đường cong: cây càng sâu, hay k càng nhỏ, thì sai số trên phần học càng giảm (KNN với k = 1 gần như "thuộc lòng" tập train: sai số phần học gần bằng 0) trong khi sai số kiểm định đi lên. Siêu tham số được chọn ở điểm sai số kiểm định thấp nhất: độ sâu 8, k = 8.
 - Các luật if-then ở gốc cây cho biết mô hình "hỏi" gì đầu tiên: **diện tích** (log_dt), rồi **sổ chung** và **vị trí** (vĩ độ), khớp với phần khám phá dữ liệu.
 - **Dò lưới siêu tham số** (GridSearchCV) quan trọng với SVR và MLP: SVR chọn C = 1, γ = 0,01 (kernel RBF "trơn" hơn mặc định); MLP chọn 2 lớp ẩn (32, 16 nơ-ron) với hệ số phạt **α = 1** – mức phạt lớn nhất trong lưới, tức mạng cần bị **ràng buộc mạnh** mới không quá khớp trên ~1.400 căn.
-- **Chọn mô hình bằng kiểm định chéo** (không nhìn tập test): Random Forest tốt nhất (sai số kiểm định ≈ 26%), rồi SVR (≈ 28%), hồi quy tuyến tính (≈ 29%), MLP (≈ 30%); cây đơn (≈ 34%) và KNN (≈ 37%) kém nhất.
-- **Trên tập test** (thước đo **P**), toàn Thủ Dầu Một: Random Forest 27,6%, SVR 30,7%, hồi quy tuyến tính 30,8%, MLP 32,2%, cây đơn 33,0%, baseline 37,0%. Trên 40 căn Phú Hòa, hồi quy tuyến tính (28,8%), Random Forest (29,2%) và SVR (29,8%) ngang nhau – khoảng tin cậy chồng nhau gần hết, vì 40 căn quá ít để phân hạng.
-- **Cây quyết định đơn lẻ** gần như không hơn baseline trên Phú Hòa: cây đơn có **phương sai cao** (dữ liệu train đổi một chút là cấu trúc cây đổi hẳn). **Random Forest** trung bình 300 cây học trên các mẫu bootstrap khác nhau nên phương sai giảm mạnh – đúng lý do mô hình này được đưa vào TH10.
-- **Mạng nơ-ron MLP** chưa thắng các mô hình đơn giản hơn, và trên 40 căn Phú Hòa có R² âm vì đoán sai rất xa vài căn giá cao: ~1.400 căn với nhiều ô thiếu (điền trung vị) là ít cho một mạng học hơn nghìn trọng số bằng gradient descent; mạng nơ-ron phát huy khi có nhiều dữ liệu hơn (như bài toán ảnh ở bài giảng 4). **KNN** kém nhất, thua cả baseline: mọi đặc trưng có trọng số như nhau trong khoảng cách, kể cả 21 cờ từ khóa 0/1 ít liên quan, nên "căn giống nhất" theo KNN chưa chắc giống về giá.
+- **Chọn mô hình bằng kiểm định chéo** (không nhìn tập test): Random Forest tốt nhất (sai số kiểm định ≈ 26%), rồi SVR (≈ 28%), hồi quy tuyến tính (≈ 29%), MLP (≈ 30%), cây đơn (≈ 34%), KNN (≈ 37%). Mọi mô hình đều thắng baseline đơn giá phường (≈ 42%).
+- **Cây quyết định đơn lẻ** kém các mô hình khác: cây đơn có **phương sai cao** (dữ liệu train đổi một chút là cấu trúc cây đổi hẳn). **Random Forest** trung bình 300 cây học trên các mẫu bootstrap khác nhau nên phương sai giảm mạnh – đúng lý do mô hình này được đưa vào TH10. Khoảng cách giữa sai số phần học (0,11) và kiểm định (0,23) của Random Forest cho thấy nó vẫn khớp tập train khá sát, nhưng sai số trên dữ liệu mới vẫn thấp nhất.
+- **Mạng nơ-ron MLP** chưa thắng các mô hình đơn giản hơn: ~1.400 căn với nhiều ô thiếu (điền trung vị) là ít cho một mạng học hơn nghìn trọng số bằng gradient descent, nên phải phạt rất mạnh (α = 1) mới không quá khớp; mạng nơ-ron phát huy khi có nhiều dữ liệu hơn (như bài toán ảnh ở bài giảng 4). **KNN** kém nhất trong các mô hình học máy: mọi đặc trưng có trọng số như nhau trong khoảng cách, kể cả 21 cờ từ khóa 0/1 ít liên quan, nên "căn giống nhất" theo KNN chưa chắc giống về giá.
+- **Tập test chưa được dùng ở Phần A.** Mô hình được chọn (Random Forest) học lại trên toàn bộ tập train và được chấm trên tập test **một lần duy nhất**, cùng mô hình của Phần B, ở Bước 9.
 
-**Kết thúc phần cơ bản.** Mô hình tốt nhất trong phạm vi môn học là Random Forest (≈ 27–29% trên test), thắng rõ baseline. Phần B dưới đây dùng các kỹ thuật ngoài bài giảng (giá khu vực, gradient boosting, stacking, bootstrap) để giảm sai số thêm và đo độ tin cậy của kết quả chặt chẽ hơn.
+**Kết thúc phần cơ bản.** Mô hình tốt nhất trong phạm vi môn học là Random Forest (kiểm định chéo ≈ 26%, baseline ≈ 42%); kết quả của nó trên tập test nằm trong bảng ở Bước 9. Phần B dưới đây dùng các kỹ thuật ngoài bài giảng (giá khu vực, gradient boosting, stacking, bootstrap) để giảm sai số thêm và đo độ tin cậy của kết quả chặt chẽ hơn.
 """)
 
 md(r"""
@@ -631,7 +627,7 @@ md(r"""
 
 ## Bước 8: So sánh và chọn mô hình nâng cao
 
-**Cách đánh giá chặt chẽ hơn phần A:** thay vì một lần chia, dùng **kiểm định chéo 5-fold lặp 3 lần** (3 cách chia khác nhau), mỗi căn được dự đoán 3 lần bởi mô hình không học nó. Mỗi chỉ số kèm **khoảng tin cậy 95%** (bootstrap theo nhóm): với 180 căn Phú Hòa trong tập train, MAPE dao động vài điểm % chỉ do may rủi, nên chênh lệch nhỏ hơn mức đó **không có nghĩa**. Tập test vẫn chỉ dùng một lần, ở Bước 9.
+**Cách đánh giá chặt chẽ hơn phần A:** thay vì kiểm định chéo 5-fold một lần, dùng **kiểm định chéo 5-fold lặp 3 lần** (3 cách chia khác nhau), mỗi căn được dự đoán 3 lần bởi mô hình không học nó. Mỗi chỉ số kèm **khoảng tin cậy 95%** (bootstrap theo nhóm): với 180 căn Phú Hòa trong tập train, MAPE dao động vài điểm % chỉ do may rủi, nên chênh lệch nhỏ hơn mức đó **không có nghĩa**. Tập test vẫn chỉ dùng một lần, ở Bước 9.
 
 **Đặc trưng đầu vào** (tất cả lấy được từ tin rao):
 - Căn nhà: log(diện tích đất), ngang, dài, số tầng, diện tích sàn, tỷ lệ sàn/đất, phòng ngủ, WC, mặt tiền đường, cấp lối vào, độ rộng hẻm, sổ chung, nội thất.
@@ -648,7 +644,9 @@ md(r"""
 | Hàm mất mát Huber | Lỗi nhỏ phạt bình phương, lỗi lớn chỉ phạt tuyến tính | Vài tin rao giá "ảo" không kéo lệch cả mô hình |
 | Mô hình chữ TF-IDF + Ridge | Đếm các cụm ký tự trong mô tả, hồi quy tuyến tính ra đơn giá | Tận dụng thông tin người đăng viết bằng lời |
 | Stacking (xếp chồng) | Dự đoán của mô hình chữ trở thành **một cột** cho mô hình chính; khi huấn luyện dùng dự đoán ngoài-fold **chia theo nhóm tin gần trùng** (tin đăng lại không lọt vào phần học của mô hình chữ) | Ghép hai nguồn thông tin mà không học vẹt |
-| GroupKFold | Chia fold sao cho các tin cùng nhóm không bị tách ra | Chống rò rỉ từ tin đăng lại |
+| Ngoại lai theo khu vực (`lech_don_gia_khu_vuc`, dùng ở Bước 4.4) | Với mỗi căn, tìm 15 căn gần nhất bằng `BallTree` (cây chia không gian, khoảng cách trên mặt cầu – haversine), so log đơn giá của căn với trung vị của 15 căn đó | Đơn giá thật chênh vài lần giữa các vùng, nên ngoại lai phải so với hàng xóm chứ không với toàn bộ dữ liệu như IQR |
+| Gom tin gần trùng (`nhom_gan_trung`, dùng ở Bước 4.4) | Hai tin cùng quận, diện tích lệch ≤ 3%, giá lệch ≤ 12% **và** có thêm bằng chứng (mô tả giống nhau – độ tương đồng cosine TF-IDF ≥ 0,45 – hoặc cùng kích thước, cùng đường) thì nối lại; các tin nối với nhau (trực tiếp hay qua tin khác) thành một nhóm (union-find) | Cùng một căn đăng nhiều lần không lọt sang cả train và test |
+| GroupShuffleSplit, GroupKFold (Bước 6–8) | Chia train/test và chia fold sao cho các tin cùng nhóm không bị tách ra | Chống rò rỉ từ tin đăng lại |
 | Bootstrap | Lấy mẫu lại dữ liệu nhiều lần để xem chỉ số dao động bao nhiêu | Biết chênh lệch nào là thật, chênh lệch nào do may rủi |
 | Khoảng hiệu chỉnh từ sai số ngoài-fold (ý tưởng conformal) | Lấy phân vị của sai số ngoài-fold làm biên của khoảng giá | Khoảng giá có độ phủ kiểm chứng được trên test (thực nghiệm, không phải bảo đảm lý thuyết) |
 
@@ -821,15 +819,15 @@ md(r"""
 - **So với phiên bản 1:** cách làm phiên bản 1 sai hơn 4,20 điểm %, nhưng khoảng tin cậy (−0,02 … +9,84) **vừa chạm 0**: trên 180 căn kiểm định chéo, cải thiện này lớn nhưng chưa đủ chắc chắn về mặt thống kê. Trên tập test (Bước 9) cách làm phiên bản 1 sai 31,6% so với 27,5% ở Phú Hòa và 42,0% so với 26,6% trên toàn Thủ Dầu Một.
 
 ## Bước 9: Kiểm tra lần cuối trên tập test
-Tập test chưa được dùng ở bất kỳ bước nào. Vì chỉ có vài chục căn Phú Hòa, con số trên test **dao động mạnh** (xem khoảng tin cậy). Đây là **kết quả chính** của đề tài vì là bằng chứng sạch nhất; con số kiểm định chéo ở Bước 8 dùng để bổ trợ.
+Tập test chưa được dùng ở bất kỳ bước nào (kể cả Phần A). Đây là **lần duy nhất** nó được dùng: chấm cùng lúc mô hình được chọn ở Phần B, mô hình tốt nhất của Phần A, baseline và cách làm phiên bản 1. Vì chỉ có vài chục căn Phú Hòa, con số trên test **dao động mạnh** (xem khoảng tin cậy). Đây là **kết quả chính** của đề tài vì là bằng chứng sạch nhất; con số kiểm định chéo ở Bước 8 dùng để bổ trợ.
 """)
 
 code(r"""
 mo_hinh_tot = MO_HINH[ten_tot_nhat]().fit(train, train["y"])
 baseline = BaselineDonGiaPhuong().fit(train, train["y"])
 v1 = PhienBan1().fit(ph_train, ph_train["y"])
-p_test = {ten_tot_nhat: mo_hinh_tot.predict(test), "Baseline (đơn giá phường)": baseline.predict(test),
-          "Cách làm phiên bản 1 (Ridge, chỉ Phú Hòa)": v1.predict(test)}
+p_test = {ten_tot_nhat: mo_hinh_tot.predict(test), f"Phần A – {TOT_CO_BAN}": mo_hinh_co_ban_tot.predict(Xte),
+          "Baseline (đơn giá phường)": baseline.predict(test), "Cách làm phiên bản 1 (Ridge, chỉ Phú Hòa)": v1.predict(test)}
 m_ph, m_tdm = (test["phu_hoa"] == 1).to_numpy(), np.ones(len(test), bool)
 bang_test_ph, bang_test_tdm = bang_danh_gia(test, p_test, m_ph), bang_danh_gia(test, p_test, m_tdm)
 print("TẬP TEST – các căn Phú Hòa:"); display(bang_test_ph.round(2))
@@ -878,7 +876,7 @@ plt.tight_layout(); plt.show()
 """)
 
 md(r"""
-**Con số nên trình bày:** MAPE trên tập test kèm khoảng tin cậy (kết quả chính), cùng MAPE kiểm định chéo ở Bước 8 (bổ trợ). Sai số cỡ 20–25% là mức thường gặp với **giá rao bán**: cùng một căn, các môi giới rao chênh nhau 5–15%, người bán còn để "phần thương lượng". Phần sai số này nằm ở chính dữ liệu, mô hình không thể loại bỏ.
+**Con số nên trình bày:** MAPE trên tập test kèm khoảng tin cậy (kết quả chính), cùng MAPE kiểm định chéo ở Bước 8 (bổ trợ). **Phần A so với Phần B trên tập test:** mô hình tốt nhất trong phạm vi môn học (Random Forest) sai 29,2% ở Phú Hòa và 27,6% trên toàn Thủ Dầu Một; mô hình Phần B (LightGBM với giá khu vực) sai 27,5% và 26,6%. Kỹ thuật nâng cao giảm thêm khoảng 1–2 điểm %, nhưng khoảng tin cậy chồng nhau gần hết, nên trên tập test nhỏ này **chưa khẳng định được** Phần B hơn Phần A; cả hai đều thắng rõ baseline (35,3% và 37,0%). Sai số cỡ 20–25% là mức thường gặp với **giá rao bán**: cùng một căn, các môi giới rao chênh nhau 5–15%, người bán còn để "phần thương lượng". Phần sai số này nằm ở chính dữ liệu, mô hình không thể loại bỏ.
 
 ### Mô hình có định giá lệch theo loại nhà không?
 Kiểm tra **sai lệch có dấu** của dự đoán ngoài-fold (dương = mô hình đoán cao hơn giá rao) theo loại lối vào và theo mức giá. Nếu mô hình lệch có hệ thống với một loại nhà, trung vị sai lệch của loại đó sẽ xa 0.
@@ -1306,7 +1304,7 @@ md(r"""
 ## Kết luận
 
 **Kết quả đạt được**
-- **Phần A (cơ bản, đúng phạm vi môn học):** tiền xử lý (thiếu, trùng, ngoại lai), phân cụm K-means để khám phá vùng giá, rồi 6 mô hình có giám sát của môn học – hồi quy tuyến tính, cây quyết định (minh họa quá khớp, chọn độ sâu bằng tập kiểm định), KNN, SVM, mạng nơ-ron MLP, Random Forest – chọn bằng kiểm định chéo K-fold và chấm trên tập test (Bước 5–7). Tốt nhất là Random Forest (27,6% trên test Thủ Dầu Một, baseline 37,0%).
+- **Phần A (cơ bản, đúng phạm vi môn học):** tiền xử lý (thiếu, trùng, ngoại lai), phân cụm K-means để khám phá vùng giá, rồi 6 mô hình có giám sát của môn học – hồi quy tuyến tính, cây quyết định (minh họa quá khớp, chọn độ sâu bằng tập kiểm định), KNN, SVM, mạng nơ-ron MLP, Random Forest – chọn bằng kiểm định chéo K-fold, không dùng tập test (Bước 5–7). Tốt nhất là Random Forest; chấm trên tập test ở Bước 9: 27,6% trên toàn Thủ Dầu Một và 29,2% trên Phú Hòa (baseline 37,0% và 35,3%), chỉ kém mô hình Phần B (26,6% và 27,5%) khoảng 1–2 điểm %.
 - Dữ liệu **thật** từ 3 nguồn (guland, Chợ Tốt Nhà, alonhadat). Sau khi hợp nhất, sửa lỗi, loại trùng và loại tin không phải giá thị trường còn 1.489 căn, trong đó Phú Hòa 220 căn. Không dùng dữ liệu mô phỏng.
 - Đánh giá bằng **kiểm định chéo lặp, chia theo nhóm tin gần trùng**, mọi chỉ số có khoảng tin cậy 95%. Mô hình được chọn theo quy tắc "đơn giản nhất mà không kém có ý nghĩa" (Bước 8). Con số trình bày gồm **ba cách đo** trên các căn Phú Hòa: kiểm định chéo (Bước 8), tập test giữ riêng (Bước 9) và dự đoán chéo theo nhóm trên toàn bộ căn Phú Hòa (Bước 11), mỗi số kèm khoảng tin cậy và cách đọc (bảng ngay dưới phần kết luận).
 - So với cách làm của phiên bản 1 và baseline đơn giá phường: xem bảng kiểm chứng ở Bước 8, có kèm khoảng tin cậy của chênh lệch.
