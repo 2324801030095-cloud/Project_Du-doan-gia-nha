@@ -1,7 +1,7 @@
 """Kiểm thử tự động cho mã dùng chung (src/mo_hinh_gia.py) và kết quả đã sinh ra.
 Chạy từ thư mục gốc đề tài:  python tests/kiem_tra_mo_hinh.py
 Mỗi phép kiểm in ĐẠT / KHÔNG ĐẠT; mã thoát khác 0 nếu có phép kiểm không đạt."""
-import sys, traceback, warnings
+import sys, warnings
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # in được tiếng Việt cả trên PowerShell / cmd mặc định
 from pathlib import Path
 warnings.filterwarnings("ignore")
@@ -28,7 +28,7 @@ def du_lieu_gia(n=300, seed=0):
     d["y"] = np.log(d["dt_dat"] * 0.04) + rng.normal(0, 0.1, n)
     return d
 
-@kiem("Đặc trưng giá khu vực không dùng giá của CHÍNH căn đó khi học (leave-one-out)")
+@kiem("Đặc trưng giá khu vực không dùng giá của CHÍNH căn đó và các tin cùng nhóm khi học (leave-group-out)")
 def _():
     d = du_lieu_gia(); y = d["y"].to_numpy().copy()
     a = M.GiaLangGieng().fit_transform(d, y)
@@ -36,6 +36,18 @@ def _():
     b = M.GiaLangGieng().fit_transform(d, y2)
     for c in ["lg_knn", "lg_knn_med", "lg_phuong", "lg_duong"]:
         assert abs(a[c].iloc[0] - b[c].iloc[0]) < 1e-9, f"{c} của căn 0 thay đổi khi đổi giá căn 0"
+    # leave-group-out: căn 1 là tin đăng lại của căn 0 (cùng nhóm) -> đổi giá căn 1 cũng không được ảnh hưởng căn 0
+    d["nhom"] = np.arange(len(d)); d.loc[1, "nhom"] = 0
+    vi_tri = ["quan", "phuong", "duong", "lat", "lon"]
+    d.loc[1, vi_tri] = d.loc[0, vi_tri].to_numpy()       # tin đăng lại: cùng phường, đường, tọa độ
+    a = M.GiaLangGieng().fit_transform(d, y)
+    y3 = y.copy(); y3[1] += 5.0
+    b = M.GiaLangGieng().fit_transform(d, y3)
+    for c in ["lg_knn", "lg_knn_med", "lg_phuong", "lg_duong"]:
+        assert abs(a[c].iloc[0] - b[c].iloc[0]) < 1e-9, f"{c} của căn 0 thay đổi khi đổi giá tin cùng nhóm (căn 1)"
+    # nhưng căn ngoài nhóm thì vẫn được dùng: đổi giá căn 2 phải làm đổi giá khu vực của ít nhất vài căn
+    y4 = y.copy(); y4[2] += 5.0
+    assert not np.allclose(M.GiaLangGieng().fit_transform(d, y4)["lg_knn"], a["lg_knn"]), "giá khu vực không dùng căn nào khác"
 
 @kiem("Kiểm định chéo theo nhóm: không nhóm nào vừa ở tập học vừa ở tập kiểm tra")
 def _():
@@ -124,7 +136,7 @@ def _():
 
 @kiem("Dữ liệu gốc đọc lại được và đã ẩn danh: mỗi dòng JSONL là 1 bản ghi hợp lệ (kể cả khi tách dòng kiểu Unicode), không còn thông tin người đăng / số điện thoại")
 def _():
-    import json, re
+    import json
     sys.path.insert(0, str(GOC / "cong_cu"))
     from an_danh_du_lieu import TRUONG_NGUOI_BAN, an_danh_tin, an_danh_bang
     for f in sorted((GOC / "data").rglob("*.jsonl")):
@@ -137,6 +149,27 @@ def _():
     for f in sorted((GOC / "data").rglob("*.csv")) + sorted((GOC / "ket_qua").glob("*.csv")):
         n = an_danh_bang(pd.read_csv(f, dtype=str, keep_default_na=False))[1]
         assert n == 0, f"{f.name}: còn {n} ô có số điện thoại"
+
+@kiem("Số liệu viết trong notebook chính và README khớp kết quả đã lưu (không lệch sau khi chạy lại với dữ liệu mới)")
+def _():
+    # Phần nhận xét là markdown viết tay; dữ liệu cập nhật định kỳ thì số liệu thật đổi. Phép kiểm này bắt chỗ quên sửa chữ.
+    import json
+    dg = json.loads((GOC / "model" / "danh_gia_mo_hinh.json").read_text(encoding="utf-8"))
+    vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    chon = dg["ten_mo_hinh"]
+    te_ph = next(m for m in dg["test_phu_hoa"] if m["Mô hình"] == chon)
+    te_tdm = next(m for m in dg["test_tdm"] if m["Mô hình"] == chon)
+    cv_ph = next(m for m in dg["kiem_dinh_cheo_phu_hoa"] if m["Mô hình"] == chon)
+    can = {"tên mô hình được chọn": chon, "số căn sau làm sạch": vn(dg["so_can"]["tat_ca"], 0),
+           "MAPE test Phú Hòa": vn(te_ph["MAPE (%)"]), "MAPE test Thủ Dầu Một": vn(te_tdm["MAPE (%)"])}
+    nb = json.loads((GOC / "notebooks" / "2324801030095.ipynb").read_text(encoding="utf-8"))
+    md = "\n".join("".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "markdown")
+    thieu = [f"{k} = {v}" for k, v in can.items() if v not in md]
+    assert not thieu, "markdown notebook chính chưa cập nhật: " + "; ".join(thieu)
+    readme = (GOC / "README.md").read_text(encoding="utf-8")
+    can_rm = {"tên mô hình": chon, "MAPE test Phú Hòa": vn(te_ph["MAPE (%)"]), "MAPE kiểm định chéo Phú Hòa": vn(cv_ph["MAPE (%)"])}
+    thieu = [f"{k} = {v}" for k, v in can_rm.items() if v not in readme]
+    assert not thieu, "README chưa cập nhật: " + "; ".join(thieu)
 
 for ten, ok, loi in KQ:
     print(("ĐẠT       " if ok else "KHÔNG ĐẠT ") + ten + ("" if ok else f"\n           -> {loi}"))

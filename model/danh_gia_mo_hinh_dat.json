@@ -2,46 +2,46 @@
  "ten_mo_hinh": "Ridge",
  "kiem_dinh_cheo_tdm": [
   {
-   "Mô hình": "LightGBM",
-   "MAPE (%)": 25.848,
-   "MAPE thấp (95%)": 22.944,
-   "MAPE cao (95%)": 28.838,
-   "MdAPE (%)": 18.505,
-   "Trong ±10% (%)": 29.947,
-   "Trong ±20% (%)": 52.063,
-   "MAE (tỷ)": 1.51,
-   "R²": 0.552,
-   "Số căn": 315.0
-  },
-  {
    "Mô hình": "LightGBM + chữ",
-   "MAPE (%)": 25.856,
-   "MAPE thấp (95%)": 22.981,
-   "MAPE cao (95%)": 28.844,
-   "MdAPE (%)": 17.514,
-   "Trong ±10% (%)": 28.677,
-   "Trong ±20% (%)": 53.862,
-   "MAE (tỷ)": 1.515,
-   "R²": 0.497,
+   "MAPE (%)": 26.032,
+   "MAPE thấp (95%)": 23.018,
+   "MAPE cao (95%)": 29.211,
+   "MdAPE (%)": 18.153,
+   "Trong ±10% (%)": 30.053,
+   "Trong ±20% (%)": 53.122,
+   "MAE (tỷ)": 1.495,
+   "R²": 0.542,
    "Số căn": 315.0
   },
   {
    "Mô hình": "Ridge",
-   "MAPE (%)": 26.035,
-   "MAPE thấp (95%)": 23.099,
-   "MAPE cao (95%)": 29.192,
-   "MdAPE (%)": 20.689,
-   "Trong ±10% (%)": 27.302,
-   "Trong ±20% (%)": 48.466,
-   "MAE (tỷ)": 1.575,
-   "R²": 0.51,
+   "MAPE (%)": 26.151,
+   "MAPE thấp (95%)": 23.17,
+   "MAPE cao (95%)": 29.299,
+   "MdAPE (%)": 20.524,
+   "Trong ±10% (%)": 26.667,
+   "Trong ±20% (%)": 48.995,
+   "MAE (tỷ)": 1.589,
+   "R²": 0.508,
+   "Số căn": 315.0
+  },
+  {
+   "Mô hình": "LightGBM",
+   "MAPE (%)": 26.253,
+   "MAPE thấp (95%)": 23.08,
+   "MAPE cao (95%)": 29.697,
+   "MdAPE (%)": 18.446,
+   "Trong ±10% (%)": 28.466,
+   "Trong ±20% (%)": 52.593,
+   "MAE (tỷ)": 1.53,
+   "R²": 0.529,
    "Số căn": 315.0
   },
   {
    "Mô hình": "Baseline (đơn giá phường)",
-   "MAPE (%)": 38.369,
-   "MAPE thấp (95%)": 34.009,
-   "MAPE cao (95%)": 43.14,
+   "MAPE (%)": 38.366,
+   "MAPE thấp (95%)": 34.002,
+   "MAPE cao (95%)": 43.137,
    "MdAPE (%)": 28.288,
    "Trong ±10% (%)": 16.825,
    "Trong ±20% (%)": 35.026,
@@ -53,37 +53,37 @@
  "chon_mo_hinh": [
   {
    "Mô hình": "Ridge",
-   "MAPE (%)": 26.035,
-   "Chênh so với tốt nhất": 0.187,
-   "KTC thấp": -1.235,
-   "KTC cao": 1.652
+   "MAPE (%)": 26.151,
+   "Chênh so với tốt nhất": 0.119,
+   "KTC thấp": -1.365,
+   "KTC cao": 1.602
   },
   {
    "Mô hình": "LightGBM",
-   "MAPE (%)": 25.848,
-   "Chênh so với tốt nhất": 0.0,
-   "KTC thấp": 0.0,
-   "KTC cao": 0.0
+   "MAPE (%)": 26.253,
+   "Chênh so với tốt nhất": 0.22,
+   "KTC thấp": -0.416,
+   "KTC cao": 0.927
   },
   {
    "Mô hình": "LightGBM + chữ",
-   "MAPE (%)": 25.856,
-   "Chênh so với tốt nhất": 0.009,
-   "KTC thấp": -0.743,
-   "KTC cao": 0.764
+   "MAPE (%)": 26.032,
+   "Chênh so với tốt nhất": 0.0,
+   "KTC thấp": 0.0,
+   "KTC cao": 0.0
   }
  ],
  "test_tdm": [
   {
    "Mô hình": "Ridge",
-   "MAPE (%)": 30.196,
-   "MAPE thấp (95%)": 22.267,
-   "MAPE cao (95%)": 39.796,
-   "MdAPE (%)": 18.469,
+   "MAPE (%)": 30.355,
+   "MAPE thấp (95%)": 22.3,
+   "MAPE cao (95%)": 40.169,
+   "MdAPE (%)": 18.086,
    "Trong ±10% (%)": 27.778,
    "Trong ±20% (%)": 52.778,
-   "MAE (tỷ)": 1.095,
-   "R²": 0.7,
+   "MAE (tỷ)": 1.114,
+   "R²": 0.687,
    "Số căn": 72.0
   },
   {
@@ -99,8 +99,8 @@
    "Số căn": 72.0
   }
  ],
- "do_phu_test_80": 79.2,
- "mo_hinh_web_mape_tdm": 28.56,
+ "do_phu_test_80": 75.0,
+ "mo_hinh_web_mape_tdm": 28.55,
  "so_lo": {
   "tat_ca": 930,
   "tdm": 387,

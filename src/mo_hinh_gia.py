@@ -53,9 +53,9 @@ TU_KHOA = {
     "t_kdc": r"\bkdc\b|khu dan cu|khu do thi|\bkdt\b|khu nha o|khu tai dinh cu|\btdc\b",
     "t_noi_bo": r"duong noi bo|\b[dn]\s?\d{1,2}\b",
     "t_cap4": r"cap 4|cap4|cap bon",
-    "t_nha_nat": r"nha nat|nha cu|tien dat|gia dat|tang nha",
+    "t_nha_nat": r"nha nat|\bnha cu\b|tien dat|gia dat|\btang nha\b",
     "t_nha_moi": r"moi xay|moi 100|nha moi|xay moi|moi tinh|moi hoan thien|chua o",
-    "t_so_rieng": r"so rieng|\bshr\b|so hong rieng|so san|so do",
+    "t_so_rieng": r"so rieng|\bshr\b|so hong rieng|so san|\bso do\b",
     "t_so_chung": r"so chung|vi bang|giay tay|giay to tay",
     "t_chua_hc": r"chua hoan cong",
     "t_goc": r"can goc|nha goc|lo goc|2 mat tien|hai mat tien|2 mt\b|3 mat tien",
@@ -108,8 +108,11 @@ class GiaLangGieng(BaseEstimator, TransformerMixin):
     - kc_knn_km: khoảng cách trung bình tới k căn đó (khu càng thưa thì thông tin càng kém chắc chắn);
     - lg_phuong, lg_duong: log đơn giá trung bình của cùng phường / cùng tuyến đường, co về trung bình chung
       khi ít mẫu (target encoding có làm trơn).
-    Khi gọi fit_transform trên tập train, mỗi căn được tính KHÔNG có chính nó (leave-one-out),
-    nên mô hình không "nhìn thấy" giá của chính căn đang học -> không rò rỉ nhãn."""
+    Khi gọi fit_transform trên tập train, mỗi căn được tính KHÔNG có chính nó (leave-one-out), và nếu X có cột 'nhom'
+    thì không có cả các tin gần trùng cùng nhóm (leave-group-out): tin đăng lại của cùng căn mang gần đúng giá của căn đó,
+    để lại sẽ làm đặc trưng ở tập học "biết trước đáp án" trong khi lúc dự đoán căn mới không có tin như vậy."""
+
+    loai_nhom = True       # thuộc tính lớp: mô hình lưu từ phiên bản cũ (không có) vẫn nạp được
 
     def __init__(self, k=12, tang_bac=False):
         # tang_bac=True (dùng cho căn hộ): đơn giá dự án co về đơn giá PHƯỜNG (thay vì toàn vùng) khi dự án ít tin,
@@ -120,6 +123,7 @@ class GiaLangGieng(BaseEstimator, TransformerMixin):
         self.xy_ = np.radians(X[["lat", "lon"]].to_numpy(float))
         self.u_ = np.asarray(y, float) - np.log(X["dt_dat"].to_numpy(float)) + np.log(1000)
         self.tree_ = BallTree(self.xy_, metric="haversine")
+        self.nhom_ = X["nhom"].to_numpy() if (self.loai_nhom and "nhom" in X) else np.arange(len(X))
         self.g_ = float(np.median(self.u_))
         self.phuong_ = pd.DataFrame({"k": self._kp(X), "u": self.u_}).groupby("k")["u"].agg(["sum", "count"])
         self.duong_ = pd.DataFrame({"k": self._kd(X), "u": self.u_}).groupby("k")["u"].agg(["sum", "count"])
@@ -137,38 +141,47 @@ class GiaLangGieng(BaseEstimator, TransformerMixin):
         return (X["quan"].astype(str) + "|" + X["duong"].fillna("?").astype(str)).to_numpy()
 
     def _ma_hoa(self, keys, bang, own=None, m=5.0, nen=None):
+        # own = (tổng u, số tin) của chính nhóm căn đó trong cùng khóa -> trừ ra khi tính cho tập học
         s = bang.reindex(keys)
         tong, n = s["sum"].fillna(0).to_numpy(), s["count"].fillna(0).to_numpy()
         if own is not None:
-            tong, n = tong - own, n - 1
+            tong, n = tong - own[0], n - own[1]
         nen = self.g_ if nen is None else nen
         return (tong + m * nen) / (n + m)
 
     def _tinh(self, X, loo):
         q = np.radians(X[["lat", "lon"]].to_numpy(float))
-        k = min(self.k + int(loo), len(self.u_))
+        # chỉ khi tính cho tập học mới cần nhom_ (mô hình lưu từ phiên bản cũ không có thuộc tính này vẫn dự đoán được)
+        k = min(self.k + (int(pd.Series(self.nhom_).value_counts().max()) if loo else 0), len(self.u_))
         dist, idx = self.tree_.query(q, k=k)
         if loo:
-            # bỏ đúng chính căn đó (không chỉ bỏ cột đầu, vì có thể có căn khác trùng tọa độ)
-            self_pos = np.arange(len(X))
-            keep = idx != self_pos[:, None]
-            idx = np.array([r[m][: self.k] for r, m in zip(idx, keep)])
-            dist = np.array([r[m][: self.k] for r, m in zip(dist, keep)])
+            # bỏ mọi tin cùng nhóm với căn đó (kể cả chính nó), không chỉ bỏ cột đầu: nhiều căn có thể trùng tọa độ
+            keep = self.nhom_[idx] != self.nhom_[:, None]
+            idx = np.array([r[m][: self.k] for r, m in zip(idx, keep, strict=True)])
+            dist = np.array([r[m][: self.k] for r, m in zip(dist, keep, strict=True)])
         u = self.u_[idx]
         w = 1.0 / (dist * 6371 + 0.3)
         out = pd.DataFrame(index=X.index)
         out["lg_knn"] = (u * w).sum(1) / w.sum(1)
         out["lg_knn_med"] = np.median(u, 1)
         out["kc_knn_km"] = dist.mean(1) * 6371
-        own = self.u_ if loo else None
-        out["lg_phuong"] = self._ma_hoa(self._kp(X), self.phuong_, own)
+        kp, kd = self._kp(X), self._kd(X)
+        own_p = self._cua_nhom(kp) if loo else None
+        own_d = self._cua_nhom(kd) if loo else None
+        out["lg_phuong"] = self._ma_hoa(kp, self.phuong_, own_p)
         if getattr(self, "tang_bac", False):
-            out["lg_duong"] = self._ma_hoa(self._kd(X), self.duong_, own, m=3.0, nen=out["lg_phuong"].to_numpy())
-            n = self.duong_.reindex(self._kd(X))["count"].fillna(0).to_numpy() - (1 if loo else 0)
+            out["lg_duong"] = self._ma_hoa(kd, self.duong_, own_d, m=3.0, nen=out["lg_phuong"].to_numpy())
+            n = self.duong_.reindex(kd)["count"].fillna(0).to_numpy() - (own_d[1] if loo else 0)
             out["n_duong"] = np.where(X["duong"].isna().to_numpy(), 0, np.maximum(n, 0))
         else:
-            out["lg_duong"] = self._ma_hoa(self._kd(X), self.duong_, own, m=3.0)
+            out["lg_duong"] = self._ma_hoa(kd, self.duong_, own_d, m=3.0)
         return out
+
+    def _cua_nhom(self, keys):
+        # (tổng u, số tin) của các tin CÙNG NHÓM và cùng khóa với từng dòng tập học
+        g = pd.DataFrame({"k": keys, "n": self.nhom_, "u": self.u_}).groupby(["k", "n"])["u"]
+        tong, dem = g.transform("sum").to_numpy(), g.transform("size").to_numpy()
+        return tong, dem
 
     def fit_transform(self, X, y):
         return self.fit(X, y)._tinh(X, loo=True)
@@ -293,8 +306,11 @@ def lech_don_gia_khu_vuc(df, k=15):
     Khoảng cách trên mặt cầu (haversine) giữa các tọa độ; BallTree tìm láng giềng nhanh thay cho so từng cặp."""
     xy = np.radians(df[["lat", "lon"]].to_numpy())
     u = np.log(df["don_gia"].to_numpy())
-    _, idx = BallTree(xy, metric="haversine").query(xy, k=k + 1)      # láng giềng đầu tiên là chính căn đó -> bỏ
-    return np.abs(u - np.median(u[idx[:, 1:]], axis=1))
+    _, idx = BallTree(xy, metric="haversine").query(xy, k=k + 1)
+    # bỏ đúng chính căn đó: nhiều căn trùng tọa độ (tâm phường), nên láng giềng đầu tiên chưa chắc là chính nó
+    keep = idx != np.arange(len(df))[:, None]
+    lang_gieng = np.array([r[m][:k] for r, m in zip(idx, keep, strict=True)])
+    return np.abs(u - np.median(u[lang_gieng], axis=1))
 
 
 # ----------------------------------------------------------------------------------------------

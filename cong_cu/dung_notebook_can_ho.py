@@ -55,7 +55,6 @@ Thị trường căn hộ Bình Dương cũ tập trung ở Dĩ An và Thuận A
 """)
 
 code(r"""
-import re
 import warnings
 from pathlib import Path
 
@@ -73,7 +72,7 @@ RAW, PROC, LICH_SU = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "da
 MODEL_DIR, KET_QUA = GOC / "model", GOC / "ket_qua"
 MODEL_DIR.mkdir(exist_ok=True); KET_QUA.mkdir(exist_ok=True); PROC.mkdir(parents=True, exist_ok=True)
 from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_du_an, trich_dac_trung_chu, nhom_gan_trung, hieu_chinh_khoang, phan_vi_cho,
-                         MoHinhGia, XepChongChu, BaselineDonGiaDuAn, chi_so_danh_gia,
+                         MoHinhGia, XepChongChu, BaselineDonGiaDuAn,
                          du_doan_cheo_lap, sai_so_tung_can, ktc_bootstrap, bang_danh_gia)
 
 warnings.filterwarnings("ignore")

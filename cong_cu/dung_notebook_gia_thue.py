@@ -50,7 +50,7 @@ GOC = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 sys.path.insert(0, str(GOC / "src"))
 RAW, PROC, MODEL_DIR, KET_QUA = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "model", GOC / "ket_qua"
 from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_duong, ten_du_an, trich_dac_trung_chu, nhom_gan_trung,
-                         MoHinhGia, du_doan_cheo_lap, sai_so_tung_can, ktc_bootstrap, bang_danh_gia, hieu_chinh_khoang, phan_vi_cho)
+                         MoHinhGia, du_doan_cheo_lap, sai_so_tung_can, ktc_bootstrap, bang_danh_gia, hieu_chinh_khoang)
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.linear_model import RidgeCV
 from sklearn.model_selection import GroupShuffleSplit
