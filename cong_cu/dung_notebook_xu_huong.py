@@ -16,7 +16,7 @@ md(r"""
 **Họ và tên:** Nguyễn Quang Long
 **Lớp:** D23KTPM01
 
-**Thay đổi so với phiên bản 1.** Phiên bản 1 tạo **lịch sử giá mô phỏng** 2021–2026 theo giả định, rồi huấn luyện mô hình trên chính dữ liệu đó, nên kết quả chỉ phản ánh giả định. Phiên bản 2 **bỏ hoàn toàn dữ liệu mô phỏng** (bản cũ lưu ở `luu_tru/`). Mọi con số dưới đây tính từ tin rao thật hoặc trích từ báo cáo thị trường đã công bố (có ghi nguồn).
+**Thay đổi so với phiên bản 1.** Phiên bản 1 tạo **lịch sử giá mô phỏng** 2021–2026 theo giả định, rồi huấn luyện mô hình trên chính dữ liệu đó, nên kết quả chỉ phản ánh giả định. Phiên bản 2 **bỏ hoàn toàn dữ liệu mô phỏng** (bản cũ đã gỡ khỏi project, còn trong lịch sử git). Mọi con số dưới đây tính từ tin rao thật hoặc trích từ báo cáo thị trường đã công bố (có ghi nguồn).
 
 **Dữ liệu thật đang có và chưa có**
 

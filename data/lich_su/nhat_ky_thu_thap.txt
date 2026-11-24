@@ -152,3 +152,8 @@ Traceback (most recent call last):
                              output=stdout, stderr=stderr)
 subprocess.CalledProcessError: Command '['d:\\Nam 4 HK_I\\Hoc May\\.venv\\Scripts\\python.exe', '-X', 'utf8', 'D:\\Nam 4 HK_I\\Hoc May\\Bao Cao\\Du Doan Gia Nha Phu Hoa\\thu_thap\\alonhadat_thu_thap.py', '--can-ho']' returned non-zero exit status 1.
 Ket thuc, ma loi = 1 
+==== Sun 11/22/2026 13:22:10.87 ====
+== Thu thập chotot ...
+o=0: +50 (tổng 50/1967)
+o=50: +50 (tổng 100/1967)
+o=100: +50 (tổng 150/1967)

@@ -24,7 +24,7 @@ md(r"""
 
 **Mô tả:** cho thông tin một căn nhà (diện tích, kích thước, số tầng, số phòng, lối vào, vị trí, mô tả tin), mô hình dự đoán **giá bán (tỷ đồng)** kèm **khoảng giá tin cậy**, rồi **chẩn đoán** giá rao đang rẻ, hợp lý hay cao so với mặt bằng thị trường. Đây là bài toán **học có giám sát – hồi quy**.
 
-**Phiên bản 2 khắc phục các hạn chế của phiên bản 1** (bản cũ lưu ở `luu_tru/`):
+**Phiên bản 2 khắc phục các hạn chế của phiên bản 1** (bản cũ đã gỡ khỏi project, còn trong lịch sử git):
 
 | Hạn chế ở phiên bản 1 | Cách khắc phục trong phiên bản 2 |
 |---|---|
