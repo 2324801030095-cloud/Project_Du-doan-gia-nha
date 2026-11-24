@@ -943,7 +943,7 @@ Một con số dự đoán đơn lẻ chưa đủ để ra quyết định. Ta m
 """)
 
 code(r"""
-from mo_hinh_gia import hieu_chinh_khoang, phan_vi_cho, muc_gia, nhom_khoang
+from mo_hinh_gia import hieu_chinh_khoang, phan_vi_cho, nhom_khoang
 P_tdm, Y_tdm = OOF[ten_tot_nhat][:, la_tdm], train["y"].to_numpy()[la_tdm]
 NGUONG = np.quantile(P_tdm.mean(axis=0), [0.25, 0.5, 0.75]).tolist()          # ngưỡng 4 mức giá (log tỷ)
 r = (Y_tdm - P_tdm).ravel()
