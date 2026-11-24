@@ -35,6 +35,8 @@ docs/           Tai_lieu_ky_thuat_tong_hop.docx
 
 ## Chạy lại toàn bộ (đúng thứ tự, ~30 phút)
 
+Một lệnh: `python cong_cu/chay_toan_bo.py` (thêm `--thu-thap` để tải dữ liệu mới trước, `--tu <bước>` để chạy tiếp từ bước lỗi). Các lệnh nó chạy, theo thứ tự:
+
 ```
 python thu_thap/cap_nhat_dinh_ky.py                                                  # tùy chọn: dữ liệu mới
 jupyter nbconvert --to notebook --execute --inplace notebooks/2324801030095.ipynb
@@ -48,6 +50,9 @@ python demo/_build/build_site.py
 python tests/kiem_tra_mo_hinh.py && node tests/kiem_tra_tro_ly.js
 ```
 Lý do của thứ tự và các bẫy thường gặp: tài liệu kỹ thuật tổng hợp, mục 8.4.
+GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử mỗi lần đẩy code.
+
+**Thu thập định kỳ:** chạy `thu_thap/bat_lich_tu_dong.bat` một lần (tự xin quyền Administrator) để đăng ký tác vụ 08:00 Chủ nhật, chạy cả khi không đăng nhập. Khi đủ 8 kỳ ảnh chụp, `cap_nhat_dinh_ky.py` tự chạy lại notebook xu hướng (có kiểm định lùi) và dựng lại trang.
 
 ## Kết quả chính (dữ liệu 17/11/2026)
 

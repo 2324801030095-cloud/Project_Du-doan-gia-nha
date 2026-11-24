@@ -1047,7 +1047,7 @@ md(r"""
 - **Theo mức giá:** nhóm rẻ nhất sai nhiều nhất (30,5%), nhóm giữa ít nhất (18–20%). Tin rẻ bất thường thường là giá mồi, nhà nát, đất chưa thổ cư mà quy tắc lọc chưa bắt hết.
 - **Theo phường:** chênh nhiều (Hiệp An 13%, Phú Mỹ 17% … Chánh Mỹ 35%); 9 phường dưới 20 căn ghi "chưa đủ mẫu", không nên kết luận về các phường này.
 - **Ngưỡng lọc đơn giá:** chấm trên cùng 1.355 căn, MAPE Thủ Dầu Một của 4 ngưỡng chỉ trong khoảng 21,7–22,4%, khoảng tin cậy chồng nhau → **kết quả không phụ thuộc đáng kể vào ngưỡng lọc**. Lọc chặt hơn (loại thêm 134 tin) không làm mô hình tốt hơn, nên giữ ngưỡng 3 lần.
-- **Gom tin trùng:** chờ gán nhãn tay 50 cặp trong `data/kiem_tra_tay/cap_tin_gan_trung.csv`.
+- **Gom tin trùng:** 50 cặp trong `data/kiem_tra_tay/cap_tin_gan_trung.csv` đã gán nhãn (Claude, 24/11/2026; mỗi cặp ghi lý do ở cột `ly_do`, nên có người kiểm lại). **Gom đúng 52% (13/25)**: quy tắc cố ý gom rộng, các cặp gom thừa phần lớn là nhà cùng mẫu trong cùng dự án/khu dân cư; gom thừa chỉ làm đánh giá khắt khe hơn. **Bỏ sót 4% (1/25)**: rất ít tin trùng lọt qua giữa train và test, nên kết quả đánh giá không bị đẹp giả đáng kể.
 """)
 
 md(r"""

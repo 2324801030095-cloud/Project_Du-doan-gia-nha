@@ -72,4 +72,12 @@ bang = [(m[1], m[2], len(pd.read_csv(p, usecols=["ngay_thu_thap"]))) for p in LS
         if (m := re.match(r"(.+)_(\d{4}-\d{2}-\d{2})\.csv$", p.name))]
 print("Số tin theo kỳ và nguồn:\n" + pd.DataFrame(bang, columns=["nguon", "ky", "so_tin"]).pivot(index="ky", columns="nguon", values="so_tin").to_string())
 print("Ngày cập nhật:", dt.date.today().isoformat(), "| nguồn lỗi:", loi or "không")
+# Đủ 8 kỳ ảnh chụp nhà ở thì kiểm định lùi Holt mới chạy được: tự chạy lại notebook xu hướng + dựng lại trang
+so_ky = len(list(LS.glob("chotot_20*.csv")))
+if so_ky >= 8 and "--chi-luu" not in sys.argv:
+    print(f"== Đủ {so_ky} kỳ ảnh chụp: chạy lại notebook xu hướng (có kiểm định lùi) và dựng lại trang", flush=True)
+    if subprocess.run([sys.executable, "-X", "utf8", str(ROOT / "cong_cu" / "chay_toan_bo.py"), "--xu-huong"], cwd=ROOT).returncode != 0:
+        loi.append("notebook xu hướng")
+else:
+    print(f"Ảnh chụp nhà ở: {so_ky}/8 kỳ (đủ 8 kỳ sẽ tự chạy lại notebook xu hướng với kiểm định lùi)")
 sys.exit(1 if loi else 0)

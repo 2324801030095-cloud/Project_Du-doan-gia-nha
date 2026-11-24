@@ -1,0 +1,26 @@
+# Chạy 2 bộ kiểm thử mỗi lần đẩy lên GitHub hoặc mở pull request.
+# Không chạy lại notebook (mất ~30 phút): dùng mô hình và dữ liệu đã lưu trong repo.
+# Chạy lại toàn bộ trên máy: python cong_cu/chay_toan_bo.py
+name: Kiểm thử
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  kiem-thu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: pip install -r requirements.txt
+      - name: Kiểm thử mô hình và dữ liệu (10 phép)
+        run: python -X utf8 tests/kiem_tra_mo_hinh.py
+      - name: Kiểm thử trang demo và trợ lý (27 phép)
+        run: node tests/kiem_tra_tro_ly.js
