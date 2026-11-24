@@ -6,7 +6,7 @@ Học máy có giám sát ước lượng **mặt bằng giá rao** của nhà p
 Phú Hòa), kèm khoảng giá 80%, chẩn đoán giá rao rẻ / hợp lý / cao, phân tích xu hướng và trang web demo có trợ lý hỏi đáp.
 Dữ liệu là tin rao thật (Chợ Tốt Nhà, alonhadat, guland), đã ẩn danh. **Giá rao không phải giá giao dịch.**
 
-**Báo cáo bàn giao chi tiết (Word): [docs/Bao_cao_ban_giao_ky_thuat.docx](docs/Bao_cao_ban_giao_ky_thuat.docx)** – cấu trúc, công nghệ, thuật toán, logic dữ liệu, đầu vào/đầu ra, huấn luyện, web demo, kiểm thử, hạn chế, checklist.
+**Tài liệu kỹ thuật tổng hợp (Word): [docs/Tai_lieu_ky_thuat_tong_hop.docx](docs/Tai_lieu_ky_thuat_tong_hop.docx)** – cấu trúc, cài đặt, công nghệ, thuật toán, logic dữ liệu, đầu vào/đầu ra, huấn luyện và kết quả, web demo, trợ lý, kiểm thử, hạn chế, checklist, câu hỏi bảo vệ.
 
 ## Bắt đầu nhanh
 
@@ -30,7 +30,7 @@ model/          mô hình (.joblib), mô hình rút gọn và số liệu cho we
 ket_qua/        bảng định giá, chẩn đoán, tỷ suất cho thuê
 demo/           trang_ban_nha.html + _build/ (mẫu trang, build_site.py)
 tests/          kiểm thử mô hình (Python) và trang web / trợ lý (Node)
-docs/           Bao_cao_ban_giao_ky_thuat.docx
+docs/           Tai_lieu_ky_thuat_tong_hop.docx
 ```
 
 ## Chạy lại toàn bộ (đúng thứ tự, ~30 phút)
@@ -47,7 +47,7 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/tro_ly_y_dinh.ipyn
 python demo/_build/build_site.py
 python tests/kiem_tra_mo_hinh.py && node tests/kiem_tra_tro_ly.js
 ```
-Lý do của thứ tự và các bẫy thường gặp: báo cáo bàn giao, mục 8.4.
+Lý do của thứ tự và các bẫy thường gặp: tài liệu kỹ thuật tổng hợp, mục 8.4.
 
 ## Kết quả chính (dữ liệu 17/11/2026)
 
