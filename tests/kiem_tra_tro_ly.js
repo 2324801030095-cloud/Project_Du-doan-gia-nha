@@ -185,6 +185,20 @@ kiem("Mọi phần tử mã trang gọi bằng $('id') đều có trong HTML (DO
   const thieu = [...new Set([...h.matchAll(/\$\("([a-z0-9_-]+)"\)/g)].map((m) => m[1]))].filter((x) => !ids.has(x));
   return thieu.length ? "thiếu id: " + thieu.join(", ") : "";
 });
+kiem("Chế độ AI: nhập khóa một lần – mở lại trang tự bật (ghi nhớ mặc định); tắt thì xóa sạch", () => {
+  const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+  const cu = [global.localStorage, global.sessionStorage];
+  global.localStorage = kho(); global.sessionStorage = kho();
+  try {
+    T.AI.key = "sk-ant-thu"; T.AI.model = "claude-sonnet-5-5"; T.aiLuuCaiDat(true);
+    T.AI.key = ""; T.AI.model = "claude-opus-5-5";                       // như vừa mở lại trang
+    const noi = T.aiDocCaiDat();
+    if (noi !== "localStorage" || T.AI.key !== "sk-ant-thu" || T.AI.model !== "claude-sonnet-5-5") return `đọc lại: ${noi} ${T.AI.key} ${T.AI.model}`;
+    T.AI.key = ""; T.aiLuuCaiDat(false);                                    // nút "Tắt và xóa khóa"
+    T.AI.model = "claude-opus-5-5";
+    return T.aiDocCaiDat() === null && T.AI.key === "" ? "" : "tắt rồi vẫn còn khóa";
+  } finally { [global.localStorage, global.sessionStorage] = cu; T.AI.key = ""; }
+});
 // Client Claude giả lập: trả lần lượt các tin nhắn soạn sẵn, ghi lại yêu cầu
 function claudeGia(kichBan, loi) {
   class APIError extends Error { constructor(status, m) { super(m); this.status = status; } }

@@ -1040,7 +1040,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
         <p><b>Chế độ AI (Claude):</b> trợ lý dùng mô hình ngôn ngữ Claude để hiểu câu hỏi tự nhiên và trò chuyện nhiều lượt; con số vẫn tính bằng mô hình của đề tài. Cần khóa <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener noreferrer">Claude API</a> của bạn (tính phí theo lượng dùng).</p>
         <label>Khóa API <input id="ai-key" type="password" placeholder="sk-ant-..." spellcheck="false" autocomplete="off"></label>
         <label>Mô hình <select id="ai-mh"></select></label>
-        <label class="ai-nho"><input id="ai-nho" type="checkbox"> Ghi nhớ khóa trên trình duyệt này (không chọn: chỉ giữ tới khi đóng tab)</label>
+        <label class="ai-nho"><input id="ai-nho" type="checkbox" checked> Ghi nhớ khóa trên trình duyệt này: lần sau mở trang tự bật chế độ AI, không phải nhập lại (bỏ chọn: chỉ giữ tới khi đóng tab)</label>
         <p class="ghi">Khi bật, câu hỏi và kết quả công cụ được gửi tới Claude API của Anthropic. Khóa chỉ lưu trên trình duyệt này, không nằm trong file trang. Đừng bật trên máy dùng chung.</p>
         <div class="ai-nut"><button class="btn btn-primary btn-sm" type="submit">Bật / lưu</button><button class="btn btn-outline btn-sm" type="button" id="ai-tat" hidden>Tắt và xóa khóa</button><span id="ai-loi" role="alert"></span></div>
       </form>
@@ -2776,8 +2776,8 @@ async function aiHoi(q) {
 function aiInit() {
   const kho = aiDocCaiDat();
   $("ai-mh").innerHTML = Object.entries(AI_MO_HINH).map(([k, v]) => `<option value="${k}">${esc(v)}${k === "claude-opus-5-5" ? " (mặc định)" : ""}</option>`).join("");
-  $("ai-mh").value = AI.model; $("ai-nho").checked = kho === "localStorage";
-  $("ai-btn").addEventListener("click", () => { $("ai-panel").hidden = !$("ai-panel").hidden; if (!$("ai-panel").hidden) $("ai-key").focus(); });
+  $("ai-mh").value = AI.model; $("ai-nho").checked = kho !== "sessionStorage";   // mặc định ghi nhớ: nhập khóa một lần
+  $("ai-btn").addEventListener("click", () => { $("ai-panel").hidden = !$("ai-panel").hidden; if (!$("ai-panel").hidden) { $("ai-key").placeholder = AI.key ? "Đã lưu khóa – để trống nếu không đổi" : "sk-ant-..."; $("ai-key").focus(); } });
   $("ai-panel").addEventListener("submit", (ev) => {
     ev.preventDefault();
     const k = $("ai-key").value.trim();
