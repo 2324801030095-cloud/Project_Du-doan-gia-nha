@@ -1,7 +1,9 @@
-"""Cập nhật dữ liệu định kỳ (nên chạy mỗi tuần hoặc mỗi 2 tuần, ví dụ bằng Task Scheduler của Windows).
+"""Cập nhật dữ liệu hằng ngày (Task Scheduler gọi lúc 07:00, xem bat_lich_tu_dong.bat).
 
 1. Chạy lại 2 script thu thập tự động (Chợ Tốt, alonhadat) -> ghi đè data/raw/*_raw.csv bằng dữ liệu mới nhất.
 2. Lưu một bản sao có ghi ngày vào data/lich_su/ (ví dụ data/lich_su/chotot_2026-11-14.csv).
+3. Chạy lại toàn bộ đề tài (cong_cu/chay_toan_bo.py): notebook, trang web, README, kiểm thử -> mọi số liệu theo dữ liệu mới nhất.
+   Notebook xu hướng tính MỖI TUẦN là một kỳ (ảnh chụp mới nhất của tuần), nên ảnh chụp hằng ngày không làm sai chỉ số xu hướng.
 
 Mỗi bản sao là một "ảnh chụp" thị trường thật tại ngày đó. Notebook du_doan_xu_huong_gia.ipynb đọc tất cả
 ảnh chụp trong data/lich_su/ để dựng chỉ số giá theo thời gian (cùng một tin xuất hiện ở nhiều ảnh chụp
@@ -9,6 +11,7 @@ cho biết người bán đã tăng hay giảm giá). Càng nhiều ảnh chụp
 
 Cách dùng (từ thư mục đề tài):  python thu_thap/cap_nhat_dinh_ky.py
 Chỉ lưu ảnh chụp, không thu thập lại:  python thu_thap/cap_nhat_dinh_ky.py --chi-luu
+Thu thập nhưng không chạy lại notebook:  python thu_thap/cap_nhat_dinh_ky.py --khong-chay-lai
 """
 import datetime as dt
 import sys as _sys
@@ -83,12 +86,12 @@ bang = [(m[1], m[2], len(pd.read_csv(p, usecols=["ngay_thu_thap"]))) for p in LS
         if (m := re.match(r"(.+)_(\d{4}-\d{2}-\d{2})\.csv$", p.name))]
 print("Số tin theo kỳ và nguồn:\n" + pd.DataFrame(bang, columns=["nguon", "ky", "so_tin"]).pivot(index="ky", columns="nguon", values="so_tin").to_string())
 print("Ngày cập nhật:", dt.date.today().isoformat(), "| nguồn lỗi:", loi or "không")
-# Đủ 8 kỳ ảnh chụp nhà ở thì kiểm định lùi Holt mới chạy được: tự chạy lại notebook xu hướng + dựng lại trang
-so_ky = len(list(LS.glob("chotot_20*.csv")))
-if so_ky >= 8 and "--chi-luu" not in sys.argv:
-    print(f"== Đủ {so_ky} kỳ ảnh chụp: chạy lại notebook xu hướng (có kiểm định lùi) và dựng lại trang", flush=True)
-    if subprocess.run([sys.executable, "-X", "utf8", str(ROOT / "cong_cu" / "chay_toan_bo.py"), "--xu-huong"], cwd=ROOT).returncode != 0:
-        loi.append("notebook xu hướng")
-else:
-    print(f"Ảnh chụp nhà ở: {so_ky}/8 kỳ (đủ 8 kỳ sẽ tự chạy lại notebook xu hướng với kiểm định lùi)")
+# Kỳ của chỉ số xu hướng = tuần (ISO); đủ 8 tuần thì notebook xu hướng tự kiểm định lùi Holt
+so_tuan = len({dt.date.fromisoformat(p.stem[-10:]).isocalendar()[:2] for p in LS.glob("chotot_20*.csv")})
+print(f"Ảnh chụp nhà ở: {so_tuan}/8 tuần (đủ 8 tuần, notebook xu hướng tự kiểm định lùi mô hình dự báo)")
+# Chạy lại toàn bộ để notebook, mô hình, trang web và README dùng dữ liệu vừa thu
+if not {"--chi-luu", "--khong-chay-lai"} & set(sys.argv):
+    print("== Chạy lại toàn bộ đề tài với dữ liệu mới", flush=True)
+    if subprocess.run([sys.executable, "-X", "utf8", str(ROOT / "cong_cu" / "chay_toan_bo.py")], cwd=ROOT, check=False).returncode != 0:
+        loi.append("chạy lại đề tài (xem các dòng DỪNG ở trên)")
 sys.exit(1 if loi else 0)

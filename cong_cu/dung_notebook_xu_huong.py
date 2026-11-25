@@ -32,7 +32,7 @@ md(r"""
 1. Đo **mặt bằng giá hiện tại** bằng mô hình định giá (Bước 1);
 2. Đo **xu hướng ngắn hạn** từ các tín hiệu thật trong dữ liệu (Bước 2–4) và đối chiếu với báo cáo thị trường (Bước 5);
 3. Đưa ra **nhận định 6–12 tháng có điều kiện**, ghi rõ cách tính từng con số (Bước 6);
-4. Xây sẵn **bộ chỉ số theo ảnh chụp định kỳ** (Bước 7): mỗi lần chạy `thu_thap/cap_nhat_dinh_ky.py` thêm một kỳ dữ liệu thật. Khi đủ kỳ, mô hình dự báo được huấn luyện và **kiểm định lùi** tự động.
+4. Xây sẵn **bộ chỉ số theo ảnh chụp định kỳ** (Bước 7): `thu_thap/cap_nhat_dinh_ky.py` chạy hằng ngày, lưu một ảnh chụp dữ liệu thật mỗi ngày; mỗi tuần là một kỳ của chỉ số. Khi đủ kỳ, mô hình dự báo được huấn luyện và **kiểm định lùi** tự động.
 """)
 
 md(r"""
@@ -362,11 +362,13 @@ Mỗi lần chạy `python thu_thap/cap_nhat_dinh_ky.py`, một ảnh chụp d�
 
 Bảng biến động còn cho biết **tốc độ luân chuyển tin**: bao nhiêu tin biến mất (đã bán, hết hạn hoặc gỡ) và bao nhiêu tin mới giữa hai kỳ.
 
-Khi có **≥ 8 kỳ**, ô cuối huấn luyện mô hình dự báo xu hướng (Holt – làm trơn hàm mũ có xu hướng) và **kiểm định lùi** so với baseline "không đổi". Chỉ khi thắng baseline mới dùng mô hình để dự báo. Khi chưa đủ kỳ, ô in ra số kỳ còn thiếu, không bịa số. Các kỳ cách nhau quá gần (1 ngày) hầu như chưa có biến động giá; cần duy trì thu thập mỗi 1–2 tuần để chuỗi có ý nghĩa.
+Khi có **≥ 8 kỳ**, ô cuối huấn luyện mô hình dự báo xu hướng (Holt – làm trơn hàm mũ có xu hướng) và **kiểm định lùi** so với baseline "không đổi". Chỉ khi thắng baseline mới dùng mô hình để dự báo. Khi chưa đủ kỳ, ô in ra số kỳ còn thiếu, không bịa số. Dữ liệu được thu **hằng ngày**, nhưng các ảnh chụp cách nhau 1 ngày hầu như chưa có biến động giá, nên **mỗi kỳ là một tuần** (lấy ảnh chụp mới nhất của tuần).
 """)
 
 code(r"""
 anh = sorted(glob.glob(str(LICH_SU / "chotot_20*.csv")))     # chỉ ảnh chụp NHÀ Ở (bỏ chotot_can_ho_*, chotot_dat_*)
+tuan_cua = lambda f: pd.Timestamp(re.search(r"(\d{4}-\d{2}-\d{2})\.csv$", f)[1]).strftime("%G-%V")
+anh = list({tuan_cua(f): f for f in anh}.values())             # một kỳ = một tuần ISO: giữ ảnh chụp mới nhất của tuần
 ky = []
 for f in anh:
     s = pd.read_csv(f); s = s[s["loai_tin"] == "ban"]
@@ -393,9 +395,9 @@ from mo_hinh_gia import holt, kiem_dinh_lui        # có kiểm thử tự độ
 KY_TOI_THIEU = 8
 if len(CHI_SO) < KY_TOI_THIEU:
     thieu = KY_TOI_THIEU - len(CHI_SO)
-    du_kien = pd.Timestamp(CHI_SO["ky"].iloc[-1]) + pd.offsets.Week(thieu, weekday=6)   # lịch chạy vào Chủ nhật
+    du_kien = pd.Timestamp(CHI_SO["ky"].iloc[-1]) + pd.Timedelta(weeks=thieu)          # mỗi tuần thêm một kỳ
     print(f"Mới có {len(CHI_SO)} kỳ thật; cần ít nhất {KY_TOI_THIEU} kỳ để huấn luyện và kiểm định lùi mô hình dự báo (còn thiếu {thieu} kỳ).\n"
-          f"Lịch thu thập tự động chạy mỗi Chủ nhật -> dự kiến đủ kỳ vào khoảng {du_kien:%d/%m/%Y}. "
+          f"Lịch thu thập tự động chạy hằng ngày, mỗi tuần là một kỳ -> dự kiến đủ kỳ vào khoảng {du_kien:%d/%m/%Y}. "
           "Cho tới lúc đó, phần 6–12 tháng ở Bước 6 chỉ là KỊCH BẢN THAM KHẢO, không phải dự báo đã kiểm chứng.")
 else:
     y = np.log(CHI_SO["chi_so_lap_lai"].to_numpy())

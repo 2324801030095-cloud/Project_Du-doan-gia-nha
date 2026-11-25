@@ -1,6 +1,6 @@
 @echo off
 rem Thu thap du lieu dinh ky: tai lai tin rao moi nhat + luu anh chup co ghi ngay vao data\lich_su\
-rem Duoc Task Scheduler goi moi tuan (xem bat_lich_tu_dong.bat). Co the bam dup de chay tay.
+rem Duoc Task Scheduler goi moi ngay luc 07:00 (xem bat_lich_tu_dong.bat). Co the bam dup de chay tay.
 chcp 65001 >nul
 cd /d "%~dp0.."
 set "PY=%~dp0..\..\..\.venv\Scripts\python.exe"

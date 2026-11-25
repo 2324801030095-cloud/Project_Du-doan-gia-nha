@@ -382,36 +382,19 @@
  },
  "chi_so_dinh_ky": [
   {
-   "ky": "2026-11-14",
+   "ky": "2026-11-15",
    "chi_so_lap_lai": 100.0
   },
   {
-   "ky": "2026-11-15",
-   "chi_so_lap_lai": 99.9675
-  },
-  {
    "ky": "2026-11-17",
-   "chi_so_lap_lai": 99.9454
+   "chi_so_lap_lai": 99.9779
   },
   {
    "ky": "2026-11-24",
-   "chi_so_lap_lai": 99.8392
+   "chi_so_lap_lai": 99.8716
   }
  ],
  "bien_dong_giua_cac_ky": [
-  {
-   "Từ": "2026-11-14",
-   "Đến": "2026-11-15",
-   "Số ngày": 1,
-   "Tin ở cả hai kỳ": 1473,
-   "Giảm giá": 9,
-   "Tăng giá": 3,
-   "Mức đổi trung vị của tin đổi giá (%)": -4.744,
-   "Thay đổi bình quân mọi tin (%)": -0.032,
-   "Tin biến mất": 92,
-   "% biến mất/ngày": 5.879,
-   "Tin mới": 98
-  },
   {
    "Từ": "2026-11-15",
    "Đến": "2026-11-17",

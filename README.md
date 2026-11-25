@@ -52,7 +52,7 @@ python tests/kiem_tra_mo_hinh.py && node tests/kiem_tra_tro_ly.js
 Lý do của thứ tự và các bẫy thường gặp: tài liệu kỹ thuật tổng hợp, mục 8.4.
 GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử mỗi lần đẩy code.
 
-**Thu thập định kỳ:** chạy `thu_thap/bat_lich_tu_dong.bat` một lần (tự xin quyền Administrator) để đăng ký tác vụ 08:00 Chủ nhật, chạy cả khi không đăng nhập. Khi đủ 8 kỳ ảnh chụp, `cap_nhat_dinh_ky.py` tự chạy lại notebook xu hướng (có kiểm định lùi) và dựng lại trang. Chợ Tốt và alonhadat thu tự động; **guland** (nguồn chính của tin Phú Hòa) chặn trình duyệt tự động nên phải thu tay: mở trang guland Phú Hòa trong trình duyệt, chạy `thu_thap/guland_thu_thap.js` trong Console, chép file tải về thành `data/raw/nha_phu_hoa_guland_raw.csv`. Tác vụ ghi nhắc vào nhật ký khi dữ liệu guland cũ quá 14 ngày.
+**Thu thập định kỳ:** chạy `thu_thap/bat_lich_tu_dong.bat` một lần (tự xin quyền Administrator) để đăng ký tác vụ 07:00 hằng ngày, chạy cả khi không đăng nhập. Mỗi lần chạy: thu tin mới nhất → lưu ảnh chụp có ghi ngày vào `data/lich_su/` → chạy lại toàn bộ notebook, trang web, README và kiểm thử (không tự commit hay đẩy lên GitHub). Chỉ số xu hướng lấy mỗi tuần một kỳ. Khi đủ 8 kỳ tuần, notebook xu hướng tự kiểm định lùi mô hình dự báo. Chợ Tốt và alonhadat thu tự động; **guland** (nguồn chính của tin Phú Hòa) chặn trình duyệt tự động nên phải thu tay: mở trang guland Phú Hòa trong trình duyệt, chạy `thu_thap/guland_thu_thap.js` trong Console, chép file tải về thành `data/raw/nha_phu_hoa_guland_raw.csv`. Tác vụ ghi nhắc vào nhật ký khi dữ liệu guland cũ quá 14 ngày.
 
 ## Kết quả chính (dữ liệu đến 24/11/2026)
 
