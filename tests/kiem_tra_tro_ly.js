@@ -410,6 +410,20 @@ kiemAsync("Groq: câu hỏi sau rút gọn kết quả công cụ cũ; tạo l�
   } finally { T.AI.goi = null; Object.assign(T.AI, { key: "", nha: "claude", model: "claude-opus-5-5", ds: [], msgs: [] }); }
 });
 
+kiem("Khóa mặc định của máy (demo/khoa_ai.local.js): tự bật Groq; đã tắt thì không tự bật; khóa đã lưu được ưu tiên; file khóa không lên git", () => {
+  const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+  const cu = [global.localStorage, globalThis.PHH_KHOA_MAC_DINH]; global.localStorage = kho(); globalThis.PHH_KHOA_MAC_DINH = "gsk_khoa-mac-dinh";
+  try {
+    Object.assign(T.AI, { key: "", nha: "claude", model: "claude-opus-5-5", ds: [] });
+    if (!T.aiKhoaMacDinh() || T.AI.nha !== "groq" || T.AI.model !== "openai/gpt-oss-120b" || T.AI.key !== "gsk_khoa-mac-dinh") return "không tự bật Groq";
+    Object.assign(T.AI, { key: "sk-ant-da-luu", nha: "claude" });
+    if (T.aiKhoaMacDinh() || T.AI.key !== "sk-ant-da-luu") return "ghi đè khóa đã lưu";
+    T.AI.key = ""; global.localStorage.setItem("phh_ai_tat", "1");
+    if (T.aiKhoaMacDinh() || T.AI.key) return "đã tắt mà vẫn tự bật";
+    const gi = require("fs").readFileSync(require("path").join(__dirname, "..", ".gitignore"), "utf8");
+    return /^demo\/khoa_ai\.local\.js$/m.test(gi) ? "" : "file khóa chưa nằm trong .gitignore";
+  } finally { [global.localStorage, globalThis.PHH_KHOA_MAC_DINH] = cu; Object.assign(T.AI, { key: "", nha: "claude", model: "claude-opus-5-5", ds: [], macDinh: false }); }
+});
 (async () => {
   for (const [ten, f] of kiemSau) { try { const loi = await f(); kq.push([ten, !loi, loi || ""]); } catch (e) { kq.push([ten, false, "LỖI " + e.message]); } }
   for (const [ten, ok, loi] of kq) console.log((ok ? "ĐẠT       " : "KHÔNG ĐẠT ") + ten + (ok ? "" : `

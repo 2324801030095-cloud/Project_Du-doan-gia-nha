@@ -667,6 +667,8 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+<!-- Khóa AI mặc định của máy này (nếu có): demo/khoa_ai.local.js, KHÔNG đưa lên git (.gitignore). Thiếu file thì trang cho nhập khóa. -->
+<script src="khoa_ai.local.js"></script>
 </head>
 <body>
 <!--@@ICONS@@-->
@@ -2513,7 +2515,7 @@ Quy tắc:
 - Thiếu thông tin bắt buộc (ví dụ diện tích khi định giá) thì hỏi lại ngắn gọn. Thông tin không bắt buộc thì cứ gọi công cụ: công cụ dùng mức trung vị và kết quả ghi rõ mục nào chưa có.
 - Người dùng hay hỏi tiếp dựa trên câu trước ("nếu là mặt tiền thì sao?", "còn 120m²?"): dùng lại các thông số đã biết trong hội thoại, chỉ đổi phần được nhắc.
 - Kết quả mỗi công cụ hiện thành một thẻ ngay trong câu trả lời (có bảng và nút bấm). Chỉ cần tóm tắt con số chính và giải thích ngắn, không chép lại cả bảng.
-- Khi nói về giá luôn kèm khoảng giá hoặc sai số. Đây là giá rao bán trên các trang tin (dữ liệu ngày ${String(TREND.ngay_du_lieu).split("-").reverse().join("/")}), không phải giá giao dịch.
+- Khi nói về giá luôn kèm khoảng giá hoặc sai số, gọi đúng tên mà công cụ trả về ("khoảng 80%", "khoảng tham khảo"); không tự đổi thành "±x%". Đây là giá rao bán trên các trang tin (dữ liệu ngày ${String(TREND.ngay_du_lieu).split("-").reverse().join("/")}), không phải giá giao dịch.
 - Không khẳng định chắc chắn về pháp lý hay đầu tư; khuyên kiểm tra thực tế khi cần.
 - Câu ngoài phạm vi: từ chối lịch sự và nói mình làm được gì.
 - Trả lời bằng tiếng Việt, tự nhiên, ngắn gọn (thường 2–5 câu), in đậm (**...**) con số quan trọng. Không vẽ lại bảng: thẻ kết quả đã có bảng.`;
@@ -2987,12 +2989,22 @@ async function aiBat(k, model, nho) {
   if (cu.key !== AI.key || cu.model !== AI.model || cu.nha !== AI.nha) AI.msgs = [];   // đổi khóa/mô hình: hội thoại mới
   aiLuuCaiDat(nho);
 }
+// Khóa mặc định của máy (window.PHH_KHOA_MAC_DINH trong khoa_ai.local.js): dùng khi chưa lưu khóa nào và người dùng chưa tắt chế độ AI
+const AI_TAT = "phh_ai_tat";
+const daTatAI = () => { try { return globalThis.localStorage?.getItem(AI_TAT) === "1"; } catch { return false; } };
+function aiKhoaMacDinh() {
+  const k = String(globalThis.PHH_KHOA_MAC_DINH || "").trim();
+  if (!k || AI.key || daTatAI()) return false;
+  AI.key = k; AI.nha = nhaCuaKhoa(k); AI.ds = []; AI.model = macDinhCua(AI.nha, AI.ds); AI.macDinh = true;
+  return true;
+}
 function aiInit() {
   const kho = aiDocCaiDat();
+  aiKhoaMacDinh();
   aiDsMoHinh(); $("ai-nho").checked = kho !== "sessionStorage";   // mặc định ghi nhớ: nhập khóa một lần
   $("ai-btn").addEventListener("click", () => {
     $("ai-panel").hidden = !$("ai-panel").hidden;
-    if (!$("ai-panel").hidden) { aiDsMoHinh(); $("ai-key").placeholder = AI.key ? `Đã lưu khóa ${AI_NHA[AI.nha].ten} – để trống nếu không đổi` : "Khóa Groq (gsk_...), Claude (sk-ant-...) hoặc Gemini"; $("ai-key").focus(); }
+    if (!$("ai-panel").hidden) { aiDsMoHinh(); $("ai-key").placeholder = AI.macDinh ? `Đang dùng khóa ${AI_NHA[AI.nha].ten} mặc định của máy này – để trống nếu không đổi` : AI.key ? `Đã lưu khóa ${AI_NHA[AI.nha].ten} – để trống nếu không đổi` : "Khóa Groq (gsk_...), Claude (sk-ant-...) hoặc Gemini"; $("ai-key").focus(); }
   });
   $("ai-key").addEventListener("input", () => {        // ô mô hình đổi theo loại khóa đang gõ
     const k = $("ai-key").value.trim(); if (!k) { aiDsMoHinh(); return; }
@@ -3003,15 +3015,18 @@ function aiInit() {
   $("ai-panel").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const k = $("ai-key").value.trim();
+    if (!k && !AI.key && globalThis.PHH_KHOA_MAC_DINH) { AI.key = ""; aiKhoaMacDinh(); }
     if (!k && !AI.key) { $("ai-loi").textContent = "Nhập khóa Groq (gsk_...), Claude (sk-ant-...) hoặc Gemini."; return; }
     $("ai-loi").textContent = "Đang kiểm tra khóa…";
     try { await aiBat(k || AI.key, k && nhaCuaKhoa(k) !== AI.nha ? "" : $("ai-mh").value, $("ai-nho").checked); }
     catch (err) { console.error(err); $("ai-loi").textContent = aiThongBaoLoi(err); return; }
+    try { globalThis.localStorage?.removeItem(AI_TAT); } catch { /* bỏ qua */ }
     $("ai-key").value = ""; $("ai-loi").textContent = ""; $("ai-panel").hidden = true; aiTrangThai();
     botTin(`<p>Đã bật <b>chế độ AI</b> với ${esc(AI_NHA[AI.nha].ten)} (${esc(tenMoHinh())}). Bạn cứ hỏi tự nhiên; số liệu vẫn lấy từ mô hình của đề tài.</p>`, true);
   });
   $("ai-tat").addEventListener("click", () => {
-    AI.key = ""; AI.msgs = []; AI.ds = []; aiLuuCaiDat(false); $("ai-panel").hidden = true; aiTrangThai();
+    AI.key = ""; AI.msgs = []; AI.ds = []; AI.macDinh = false; aiLuuCaiDat(false); $("ai-panel").hidden = true; aiTrangThai();
+    try { globalThis.localStorage?.setItem(AI_TAT, "1"); } catch { /* bỏ qua */ }   // nhớ là đã tắt: không tự bật lại bằng khóa mặc định
     botTin(`<p>Đã tắt chế độ AI và xóa khóa khỏi trình duyệt. Trợ lý quay về chế độ ngoại tuyến.</p>`, true);
   });
   aiTrangThai();

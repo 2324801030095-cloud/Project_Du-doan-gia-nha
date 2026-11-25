@@ -33,7 +33,7 @@ const api = new Function(scripts.join("\n;\n") + `
 ;return { botTrich, botYDinh, botYDinhLuat, botTraLoi, BOT, predict, presetVec, MODEL, CH_MODEL, LISTINGS, CH_LIST, TREND, THUE, DAT_MODEL, DAT_LIST, datDuDoan, ysNha, ysCanHo, MAP_PTS, whyBlock, favItem, CH_TOA, TL_MODEL, tlDuDoan,
          AI, aiTraLoi, aiTools, AI_CONG_CU, kiemThamSo, htmlRaChu, aiMd, AI_HE_THONG, aiLuuCaiDat, aiDocCaiDat,
          aiTraLoiGemini, geminiTools, geminiMacDinh, aiBat, nhaCuaKhoa, LoiGemini, aiThongBaoLoi,
-         aiTraLoiGroq, groqMacDinh, LoiGroq, aiMd: aiMd };`)();
+         aiTraLoiGroq, groqMacDinh, LoiGroq, aiMd: aiMd, aiKhoaMacDinh };`)();
 api.hoi = (q, giuNguCanh = false) => {
   if (!giuNguCanh) api.BOT.ctx = null;
   const { t, e } = api.botTrich(q);
