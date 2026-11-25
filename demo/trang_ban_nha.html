@@ -1038,11 +1038,11 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
       </div>
       <div class="ai-bar"><span id="ai-tt"></span></div>
       <form class="ai-panel" id="ai-panel" hidden autocomplete="off">
-        <p><b>Chế độ AI:</b> trợ lý dùng mô hình ngôn ngữ lớn để hiểu câu hỏi tự nhiên và trò chuyện nhiều lượt; con số vẫn tính bằng mô hình của đề tài. Dán khóa <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener noreferrer">Claude API</a> (sk-ant-…) hoặc khóa <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Gemini API</a> của bạn – trang tự nhận loại khóa. Tính phí (hoặc hạn mức) theo tài khoản của khóa.</p>
-        <label>Khóa API <input id="ai-key" type="password" placeholder="Khóa Claude (sk-ant-...) hoặc khóa Gemini" spellcheck="false" autocomplete="off"></label>
-        <label>Mô hình <select id="ai-mh"></select><span class="ghi" style="font-weight:400">Khóa Gemini: danh sách lấy trực tiếp từ Google khi bật.</span></label>
+        <p><b>Chế độ AI:</b> trợ lý dùng mô hình ngôn ngữ lớn để hiểu câu hỏi tự nhiên và trò chuyện nhiều lượt; con số vẫn tính bằng mô hình của đề tài. Dán khóa <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">Groq</a> (gsk_…, <b>có gói miễn phí</b>), <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener noreferrer">Claude API</a> (sk-ant-…) hoặc <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Gemini API</a> của bạn – trang tự nhận loại khóa. Phí hoặc hạn mức theo tài khoản của khóa.</p>
+        <label>Khóa API <input id="ai-key" type="password" placeholder="Khóa Groq (gsk_...), Claude (sk-ant-...) hoặc Gemini" spellcheck="false" autocomplete="off"></label>
+        <label>Mô hình <select id="ai-mh"></select><span class="ghi" style="font-weight:400">Khóa Groq, Gemini: danh sách mô hình lấy trực tiếp từ nhà cung cấp khi bật.</span></label>
         <label class="ai-nho"><input id="ai-nho" type="checkbox" checked> Ghi nhớ khóa trên trình duyệt này: lần sau mở trang tự bật chế độ AI, không phải nhập lại (bỏ chọn: chỉ giữ tới khi đóng tab)</label>
-        <p class="ghi">Khi bật, câu hỏi và kết quả công cụ được gửi tới Claude API (Anthropic) hoặc Gemini API (Google), tùy khóa. Khóa chỉ lưu trên trình duyệt này, không nằm trong file trang. Đừng bật trên máy dùng chung.</p>
+        <p class="ghi">Khi bật, câu hỏi và kết quả công cụ được gửi tới Groq, Claude API (Anthropic) hoặc Gemini API (Google), tùy khóa. Khóa chỉ lưu trên trình duyệt này, không nằm trong file trang. Đừng bật trên máy dùng chung.</p>
         <div class="ai-nut"><button class="btn btn-primary btn-sm" type="submit">Bật / lưu</button><button class="btn btn-outline btn-sm" type="button" id="ai-tat" hidden>Tắt và xóa khóa</button><span id="ai-loi" role="alert"></span></div>
       </form>
       <div class="bot-log" id="bot-log" aria-live="polite"></div>
@@ -2518,7 +2518,7 @@ function botTraLoi(text) {
    Không có khóa, mất mạng hay API lỗi thì trang dùng trợ lý ngoại tuyến ở trên. */
 const AI_SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.8.0/+esm";   // SDK chính thức, nạp khi bật chế độ AI
 const AI_MO_HINH = { "claude-opus-5-5": "Claude Opus 5.5", "claude-sonnet-5-5": "Claude Sonnet 5.5", "claude-haiku-5-5": "Claude Haiku 5.5" };
-const AI = { key: "", nha: "claude", model: "claude-opus-5-5", msgs: [], sdk: null, dangChay: false, tuyChon: {}, dsGemini: [] };   // tuyChon: thêm tùy chọn client (kiểm thử)
+const AI = { key: "", nha: "claude", model: "claude-opus-5-5", msgs: [], sdk: null, dangChay: false, tuyChon: {}, ds: [] };   // tuyChon: thêm tùy chọn client (kiểm thử)
 const AI_SO_VONG = 8;                                    // tối đa 8 lượt gọi công cụ cho một câu hỏi
 const LOI_VAO = ["hem_nho", "hem_xe_may", "hem_xe_hoi", "hem_xe_tai", "hem_lon", "mat_tien"];   // chỉ số = cấp lối vào e.vt
 const AI_HE_THONG = `Bạn là trợ lý của Phú Hòa Home – trang demo của đề tài học máy dự đoán giá nhà phường Phú Hòa, Thủ Dầu Một (Bình Dương cũ).
@@ -2532,14 +2532,15 @@ Quy tắc:
 - Khi nói về giá luôn kèm khoảng giá hoặc sai số. Đây là giá rao bán trên các trang tin (dữ liệu ngày ${String(TREND.ngay_du_lieu).split("-").reverse().join("/")}), không phải giá giao dịch.
 - Không khẳng định chắc chắn về pháp lý hay đầu tư; khuyên kiểm tra thực tế khi cần.
 - Câu ngoài phạm vi: từ chối lịch sự và nói mình làm được gì.
-- Trả lời bằng tiếng Việt, tự nhiên, ngắn gọn (thường 2–5 câu), in đậm (**...**) con số quan trọng.`;
+- Trả lời bằng tiếng Việt, tự nhiên, ngắn gọn (thường 2–5 câu), in đậm (**...**) con số quan trọng. Không vẽ lại bảng: thẻ kết quả đã có bảng.`;
 
 let AI_TOOLS = null;
 function aiTools() {
   if (AI_TOOLS) return AI_TOOLS;
   const so = (mo_ta, min = 0, max = 1e4) => ({ type: "number", minimum: min, maximum: max, description: mo_ta });
   const nguyen = (mo_ta, min = 0, max = 20) => ({ type: "integer", minimum: min, maximum: max, description: mo_ta });
-  const phuong = { type: "string", enum: PH_TDM.map((p) => p.ten), description: "Phường ở Thủ Dầu Một; bỏ trống = Phú Hòa" };
+  // không dùng enum: danh sách 17 phường lặp ở 5 công cụ làm tốn token (gói miễn phí của Groq giới hạn token/phút); tên sai thì aiPhuong báo lại danh sách
+  const phuong = { type: "string", description: "Tên phường ở Thủ Dầu Một (ví dụ Phú Hòa, Hiệp Thành, Phú Lợi, Chánh Nghĩa); bỏ trống = Phú Hòa" };
   const loiVao = { type: "string", enum: LOI_VAO, description: "Lối vào: hẻm nhỏ (<2,5 m), hẻm xe máy, hẻm xe hơi, hẻm xe tải, hẻm lớn, mặt tiền đường" };
   const duAn = { type: "string", description: "Tên dự án căn hộ, ví dụ 'Happy One Central', 'C SkyView'" };
   const cc = (name, description, properties, required = []) => ({
@@ -2703,14 +2704,22 @@ async function aiTraLoi(q, ui) {
 }
 // Chữ của Claude -> HTML an toàn: escape trước, rồi **đậm**, gạch đầu dòng, xuống dòng
 function aiMd(s) {
-  const kq = []; let ul = false;
+  const kq = []; let ul = false, bang = false;
   for (const dong of esc(s).split("\n")) {
     const d = dong.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"), m = d.match(/^\s*[-*•]\s+(.*)/);
+    if (/^\s*\|.*\|\s*$/.test(d)) {                                  // bảng markdown: | a | b |
+      if (ul) { kq.push("</ul>"); ul = false; }
+      if (/^\s*\|[\s:|-]+\|\s*$/.test(d)) continue;                    // dòng kẻ |---|---|
+      if (!bang) { kq.push("<table>"); bang = true; }
+      kq.push(`<tr>${d.trim().slice(1, -1).split("|").map((o) => `<td>${o.trim()}</td>`).join("")}</tr>`); continue;
+    }
+    if (bang) { kq.push("</table>"); bang = false; }
     if (m) { if (!ul) { kq.push("<ul>"); ul = true; } kq.push(`<li>${m[1]}</li>`); continue; }
     if (ul) { kq.push("</ul>"); ul = false; }
     if (d.trim()) kq.push(`<p>${d}</p>`);
   }
   if (ul) kq.push("</ul>");
+  if (bang) kq.push("</table>");
   return kq.join("");
 }
 
@@ -2781,6 +2790,71 @@ async function aiTraLoiGemini(q, ui) {
   } catch (err) { AI.msgs.length = batDau; throw err; }
 }
 
+/* ---------- Chế độ AI với Groq (có gói miễn phí): API chuẩn OpenAI (chat/completions), cùng 11 công cụ, cùng lời nhắc ----------
+   Thử với khóa thật ngày 25/11/2026: openai/gpt-oss-120b và gpt-oss-20b gọi đúng công cụ; qwen/qwen3.8-27b hay tạo tham số sai kiểu.
+   Gói miễn phí giới hạn 8.000 token/phút mà mỗi lượt gửi ~3.000 token (lời nhắc + công cụ), nên gặp 429 thì chờ theo retry-after
+   rồi tự gửi lại; Groq trả 400 "tool_use_failed" khi mô hình tạo lời gọi công cụ sai lược đồ thì cũng gửi lại. */
+const GROQ_API = "https://api.groq.com/openai/v1";
+class LoiGroq extends Error { constructor(status, msg, ma, cho) { super(msg); this.status = status; this.ma = ma; this.cho = cho; } }
+async function groqYeuCau(duong, than) {
+  let res;
+  try {
+    res = await aiGoi(`${GROQ_API}/${duong}`, { method: than ? "POST" : "GET",
+      headers: { Authorization: `Bearer ${AI.key}`, "Content-Type": "application/json" }, body: than ? JSON.stringify(than) : undefined });
+  } catch { throw new LoiGroq(0, "Không kết nối được tới Groq API (mất mạng?)."); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new LoiGroq(res.status, data.error?.message || `HTTP ${res.status}`, data.error?.code, parseFloat(res.headers?.get?.("retry-after")));
+  return data;
+}
+async function groqDsMoHinh() {   // chỉ giữ mô hình trò chuyện (bỏ nhận dạng giọng nói, đọc văn bản, lọc an toàn, ngữ cảnh ngắn)
+  const data = await groqYeuCau("models");
+  return (data.data || []).filter((m) => m.active !== false && (m.context_window || 0) >= 32000 && !/whisper|orpheus|guard|tts/.test(m.id)).map((m) => m.id).sort();
+}
+const groqMacDinh = (ds) => ["openai/gpt-oss-120b", "openai/gpt-oss-20b"].find((m) => ds.includes(m)) || ds[0] || "openai/gpt-oss-120b";
+const ngu = (ms) => new Promise((r) => setTimeout(r, ms));
+// Hạn mức token/phút của Groq tính riêng từng mô hình: hết ở mô hình đang dùng thì chuyển ngay sang mô hình gọi công cụ tốt còn lại
+const GROQ_DU_PHONG = { "openai/gpt-oss-120b": "openai/gpt-oss-20b", "openai/gpt-oss-20b": "openai/gpt-oss-120b" };
+async function groqGoiChat(than, ui) {
+  const daThu = new Set([than.model]);
+  for (let lan = 0; ; lan++) {
+    try { return await groqYeuCau("chat/completions", than); }
+    catch (err) {
+      if (!(err instanceof LoiGroq) || lan >= 3) throw err;
+      const khac = GROQ_DU_PHONG[than.model];
+      if (err.status === 429 && khac && AI.ds.includes(khac) && !daThu.has(khac)) { daThu.add(khac); than = { ...than, model: khac }; continue; }
+      if (err.status === 429 && Number.isFinite(err.cho) && err.cho <= 60) {
+        ui.tam?.(`Gói miễn phí của Groq đang hết hạn mức trong phút này – tự thử lại sau ${Math.ceil(err.cho)} giây…`);
+        await ngu(err.cho * 1000 + 300); continue;
+      }
+      if (err.status === 400 && err.ma === "tool_use_failed") continue;
+      throw err;
+    }
+  }
+}
+async function aiTraLoiGroq(q, ui) {
+  const batDau = AI.msgs.length;
+  AI.msgs.push({ role: "user", content: q });
+  const tools = aiTools().map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.input_schema } }));
+  try {
+    for (let vong = 0; vong < AI_SO_VONG; vong++) {
+      // kết quả công cụ của các câu hỏi TRƯỚC chỉ giữ phần đầu (con số chính) để hội thoại dài vẫn nằm trong hạn mức token/phút
+      const lichSu = AI.msgs.map((m, i) => (i < batDau && m.role === "tool" && m.content.length > 400 ? { ...m, content: m.content.slice(0, 400) + " …(đã rút gọn)" } : m));
+      const data = await groqGoiChat({ model: AI.model, messages: [{ role: "system", content: AI_HE_THONG }, ...lichSu], tools, tool_choice: "auto" }, ui);
+      const m = (data.choices || [])[0]?.message;
+      if (!m) throw new LoiGroq(0, "Groq không trả nội dung.");
+      AI.msgs.push({ role: "assistant", content: m.content ?? "", ...(m.tool_calls?.length ? { tool_calls: m.tool_calls } : {}) });
+      if (m.content) ui.chu(m.content);
+      if (!m.tool_calls?.length) return { xong: true };
+      for (const tc of m.tool_calls) {
+        let a = null; try { a = JSON.parse(tc.function.arguments || "{}"); } catch { /* tham số không phải JSON */ }
+        const r = a ? aiChayCongCu({ id: tc.id, name: tc.function.name, input: a }, ui) : { content: "Tham số không phải JSON hợp lệ.", is_error: true };
+        AI.msgs.push({ role: "tool", tool_call_id: tc.id, content: (r.is_error ? "LỖI: " : "") + r.content });
+      }
+    }
+    return { xong: true, hetVong: true };
+  } catch (err) { AI.msgs.length = batDau; throw err; }
+}
+
 /* ----- giao diện ----- */
 const BOT_NHOM = [
   ["calculator", "Định giá", ["Nhà 1 trệt 1 lầu 80m² hẻm xe hơi giá bao nhiêu?", "Nhà 5x20 mặt tiền Nguyễn Thị Minh Khai giá bao nhiêu?", "Căn hộ Happy One Central 2PN 68m² giá bao nhiêu?"]],
@@ -2799,16 +2873,18 @@ function botTin(html, ai, cls = "") {
 function botChips(ds) { $("bot-chips").innerHTML = (ds || []).map((q) => `<button class="bot-chip" type="button" data-q="${esc(q)}">${esc(q)}</button>`).join(""); }
 // ----- chế độ AI: cài đặt khóa, trạng thái, trả lời -----
 const AI_LUU = "phh_claude";            // tên ô lưu cài đặt; khóa API chỉ ở localStorage khi người dùng chọn "ghi nhớ"
-const AI_NHA = { claude: { ten: "Claude", cty: "Anthropic", api: "Claude API" }, gemini: { ten: "Gemini", cty: "Google", api: "Gemini API" } };
-const nhaCuaKhoa = (k) => (/^sk-ant-/.test(k) ? "claude" : "gemini");          // khóa Claude bắt đầu bằng sk-ant-
+const AI_NHA = { claude: { ten: "Claude", cty: "Anthropic", api: "Claude API" }, gemini: { ten: "Gemini", cty: "Google", api: "Gemini API" },
+                 groq: { ten: "Groq", cty: "Groq", api: "Groq API" } };
+const nhaCuaKhoa = (k) => (/^sk-ant-/.test(k) ? "claude" : /^gsk_/.test(k) ? "groq" : "gemini");   // khóa Claude: sk-ant-…, Groq: gsk_…
+const macDinhCua = (nha, ds) => (nha === "claude" ? "claude-opus-5-5" : nha === "groq" ? groqMacDinh(ds) : geminiMacDinh(ds));
 const tenMoHinh = () => (AI.nha === "claude" ? AI_MO_HINH[AI.model] : AI.model);
 function aiDocCaiDat() {
   for (const kho of ["localStorage", "sessionStorage"]) {
     try {
       const v = JSON.parse(globalThis[kho]?.getItem(AI_LUU) || "null");
       if (v && v.key) {
-        AI.key = v.key; AI.nha = AI_NHA[v.nha] ? v.nha : nhaCuaKhoa(v.key); AI.dsGemini = Array.isArray(v.ds) ? v.ds : [];
-        AI.model = AI.nha === "claude" ? (AI_MO_HINH[v.model] ? v.model : "claude-opus-5-5") : (v.model || geminiMacDinh(AI.dsGemini));
+        AI.key = v.key; AI.nha = AI_NHA[v.nha] ? v.nha : nhaCuaKhoa(v.key); AI.ds = Array.isArray(v.ds) ? v.ds : [];
+        AI.model = AI.nha === "claude" ? (AI_MO_HINH[v.model] ? v.model : "claude-opus-5-5") : (v.model || macDinhCua(AI.nha, AI.ds));
         return kho;
       }
     } catch { /* trình duyệt chặn lưu trữ */ }
@@ -2816,13 +2892,13 @@ function aiDocCaiDat() {
   return null;
 }
 function aiLuuCaiDat(nho) {
-  const v = JSON.stringify({ key: AI.key, nha: AI.nha, model: AI.model, ds: AI.nha === "gemini" ? AI.dsGemini : undefined });
+  const v = JSON.stringify({ key: AI.key, nha: AI.nha, model: AI.model, ds: AI.nha === "claude" ? undefined : AI.ds });
   for (const kho of ["localStorage", "sessionStorage"]) { try { globalThis[kho]?.removeItem(AI_LUU); } catch { /* bỏ qua */ } }
   try { if (AI.key) globalThis[nho ? "localStorage" : "sessionStorage"]?.setItem(AI_LUU, v); } catch { /* chỉ giữ trong phiên */ }
 }
 function aiDsMoHinh() {   // danh sách mô hình trong ô chọn, theo nhà cung cấp của khóa đang dùng
-  const ds = AI.nha === "gemini" ? (AI.dsGemini.length ? AI.dsGemini : [AI.model]).map((n) => [n, n]) : Object.entries(AI_MO_HINH);
-  const md = AI.nha === "gemini" ? geminiMacDinh(AI.dsGemini) : "claude-opus-5-5";
+  const ds = AI.nha === "claude" ? Object.entries(AI_MO_HINH) : (AI.ds.length ? AI.ds : [AI.model]).map((n) => [n, n]);
+  const md = macDinhCua(AI.nha, AI.ds);
   $("ai-mh").innerHTML = ds.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}${k === md ? " (mặc định)" : ""}</option>`).join("");
   $("ai-mh").value = AI.model;
 }
@@ -2833,7 +2909,7 @@ function aiTrangThai() {
   $("ai-tat").hidden = !bat;
   $("bot-rieng-tu").innerHTML = bat
     ? `${icon("shield-check", "ic ic-sm")}<span>Chế độ AI đang bật: câu hỏi và kết quả công cụ được gửi tới ${n.api} (${n.cty}) bằng khóa của bạn. Khóa chỉ lưu trên trình duyệt này. Số liệu vẫn lấy từ dữ liệu và mô hình của đề tài; chỉ để tham khảo.</span>`
-    : `${icon("shield-check", "ic ic-sm")}<span>Trợ lý chạy ngay trên trình duyệt, không gửi câu hỏi đi đâu. Bật chế độ AI (khóa Claude hoặc Gemini của bạn) để trò chuyện tự nhiên hơn. Số liệu lấy từ dữ liệu và mô hình của đề tài; chỉ để tham khảo.</span>`;
+    : `${icon("shield-check", "ic ic-sm")}<span>Trợ lý chạy ngay trên trình duyệt, không gửi câu hỏi đi đâu. Bật chế độ AI (khóa Groq miễn phí, Claude hoặc Gemini của bạn) để trò chuyện tự nhiên hơn. Số liệu lấy từ dữ liệu và mô hình của đề tài; chỉ để tham khảo.</span>`;
 }
 function aiBong() {
   const tin = botTin(`<span class="bot-typing" aria-label="Đang trả lời"><i></i><i></i><i></i></span>`, true), bub = tin.querySelector(".bub");
@@ -2844,6 +2920,7 @@ function aiBong() {
     chu(d) { xoaCho(); if (!doan) { doan = document.createElement("div"); doan.className = "ai-chu"; bub.appendChild(doan); chu = ""; } chu += d; doan.innerHTML = aiMd(chu); cuon(); },
     the(html, gy) { xoaCho(); const c = document.createElement("div"); c.className = "ai-the"; c.innerHTML = html; bub.appendChild(c); doan = null; if (gy) goiY = gy; cuon(); },
     ghi(html) { xoaCho(); const c = document.createElement("div"); c.innerHTML = html; bub.appendChild(c); cuon(); },
+    tam(t) { if (dau) bub.innerHTML = `<span class="bot-typing" aria-label="Đang trả lời"><i></i><i></i><i></i></span><span class="ghi">${esc(t)}</span>`; },
     get goiY() { return goiY; }, get trong() { return dau; },
   };
 }
@@ -2865,7 +2942,17 @@ function aiThongBaoLoi(err) {
       : !s ? m : "Gemini API báo lỗi.";
     return vi + (s && s !== 429 ? goc : "");
   }
-  if (AI.nha === "gemini") return err instanceof TypeError ? "Không kết nối được tới Gemini API (mất mạng?)." : "Có lỗi khi gọi Gemini.";
+  if (err instanceof LoiGroq) {
+    const s = err.status, m = err.message || "";
+    const vi = s === 401 ? "Khóa Groq không hợp lệ hoặc đã bị thu hồi – kiểm tra lại ở nút Chế độ AI."
+      : s === 429 ? "Gói miễn phí của Groq đã hết hạn mức (8.000 token/phút, hoặc số yêu cầu trong ngày) – đợi khoảng 1 phút rồi hỏi lại."
+      : s === 400 && err.ma === "tool_use_failed" ? "Mô hình Groq tạo lời gọi công cụ sai nhiều lần – hỏi lại hoặc chọn mô hình openai/gpt-oss-120b."
+      : s === 404 ? "Mô hình Groq này không còn – chọn mô hình khác ở nút Chế độ AI."
+      : s === 413 ? "Hội thoại quá dài so với hạn mức của gói miễn phí – bấm \"Hỏi lại từ đầu\"."
+      : !s ? m : "Groq API báo lỗi.";
+    return vi + (s && s !== 429 ? ` (Groq báo ${s}: “${m.slice(0, 300)}”)` : "");
+  }
+  if (AI.nha !== "claude") return err instanceof TypeError ? `Không kết nối được tới ${api} (mất mạng?).` : `Có lỗi khi gọi ${AI_NHA[AI.nha].ten}: ${String(err.message || err).slice(0, 200)}`;
   const E = AI.sdk || {};
   return !AI.sdk ? "Không tải được thư viện Claude (cần Internet)."
     : E.AuthenticationError && err instanceof E.AuthenticationError ? "Khóa API không hợp lệ hoặc đã bị thu hồi – kiểm tra lại ở nút Chế độ AI."
@@ -2880,7 +2967,7 @@ async function aiHoi(q) {
   const ui = aiBong();
   AI.dangChay = true; $("bot-q").disabled = true;
   try {
-    const kq = await (AI.nha === "gemini" ? aiTraLoiGemini : aiTraLoi)(q, ui);
+    const kq = await ({ gemini: aiTraLoiGemini, groq: aiTraLoiGroq }[AI.nha] || aiTraLoi)(q, ui);
     if (kq.tuChoi) ui.ghi(`<span class="ghi">${esc(AI_NHA[AI.nha].ten)} không trả lời câu này. Trả lời của trợ lý ngoại tuyến:</span>${botTraLoi(q).html}`);
     else if (kq.hetVong) ui.ghi(`<span class="ghi">Câu hỏi cần quá nhiều bước; bạn thử hỏi cụ thể hơn nhé.</span>`);
     else if (ui.trong) ui.ghi(`<p>(Không có nội dung trả lời.)</p>`);
@@ -2894,16 +2981,24 @@ async function aiHoi(q) {
 }
 // Bật với một khóa: Claude dùng danh sách mô hình cố định; Gemini gọi models.list để kiểm khóa và lấy mô hình đang có
 async function aiBat(k, model, nho) {
-  const nha = nhaCuaKhoa(k), cu = { key: AI.key, nha: AI.nha, model: AI.model, ds: AI.dsGemini };
+  const nha = nhaCuaKhoa(k), cu = { key: AI.key, nha: AI.nha, model: AI.model, ds: AI.ds };
   AI.key = k; AI.nha = nha;
   if (nha === "gemini") {
-    try { AI.dsGemini = await geminiDsMoHinh(); }
-    catch (err) { Object.assign(AI, { key: cu.key, nha: cu.nha, model: cu.model, dsGemini: cu.ds }); throw err; }
-    if (!AI.dsGemini.length) { Object.assign(AI, { key: cu.key, nha: cu.nha, model: cu.model, dsGemini: cu.ds }); throw new LoiGemini(0, "Khóa này không dùng được mô hình Gemini nào để trò chuyện."); }
-    AI.model = AI.dsGemini.includes(model) ? model : geminiMacDinh(AI.dsGemini);
+    try { AI.ds = await geminiDsMoHinh(); }
+    catch (err) { Object.assign(AI, { key: cu.key, nha: cu.nha, model: cu.model, ds: cu.ds }); throw err; }
+    if (!AI.ds.length) { Object.assign(AI, { key: cu.key, nha: cu.nha, model: cu.model, ds: cu.ds }); throw new LoiGemini(0, "Khóa này không dùng được mô hình Gemini nào để trò chuyện."); }
+    AI.model = AI.ds.includes(model) ? model : geminiMacDinh(AI.ds);
     // models.list chỉ cho biết khóa tồn tại, không bảo đảm được gọi mô hình: thử một câu rất ngắn để báo lỗi ngay khi bật
     try { await geminiYeuCau(`models/${encodeURIComponent(AI.model)}:generateContent`, { contents: [{ role: "user", parts: [{ text: "Trả lời: OK" }] }] }); }
-    catch (err) { Object.assign(AI, { key: cu.key, nha: cu.nha, model: cu.model, dsGemini: cu.ds }); throw err; }
+    catch (err) { Object.assign(AI, { key: cu.key, nha: cu.nha, model: cu.model, ds: cu.ds }); throw err; }
+  } else if (nha === "groq") {
+    const traLai = () => Object.assign(AI, { key: cu.key, nha: cu.nha, model: cu.model, ds: cu.ds });
+    try {
+      AI.ds = await groqDsMoHinh();
+      if (!AI.ds.length) throw new LoiGroq(0, "Khóa này không dùng được mô hình Groq nào để trò chuyện.");
+      AI.model = AI.ds.includes(model) ? model : groqMacDinh(AI.ds);
+      await groqYeuCau("chat/completions", { model: AI.model, messages: [{ role: "user", content: "Trả lời: OK" }], max_tokens: 64 });
+    } catch (err) { traLai(); throw err; }
   } else AI.model = AI_MO_HINH[model] ? model : "claude-opus-5-5";
   if (cu.key !== AI.key || cu.model !== AI.model || cu.nha !== AI.nha) AI.msgs = [];   // đổi khóa/mô hình: hội thoại mới
   aiLuuCaiDat(nho);
@@ -2913,17 +3008,18 @@ function aiInit() {
   aiDsMoHinh(); $("ai-nho").checked = kho !== "sessionStorage";   // mặc định ghi nhớ: nhập khóa một lần
   $("ai-btn").addEventListener("click", () => {
     $("ai-panel").hidden = !$("ai-panel").hidden;
-    if (!$("ai-panel").hidden) { aiDsMoHinh(); $("ai-key").placeholder = AI.key ? `Đã lưu khóa ${AI_NHA[AI.nha].ten} – để trống nếu không đổi` : "Khóa Claude (sk-ant-...) hoặc khóa Gemini"; $("ai-key").focus(); }
+    if (!$("ai-panel").hidden) { aiDsMoHinh(); $("ai-key").placeholder = AI.key ? `Đã lưu khóa ${AI_NHA[AI.nha].ten} – để trống nếu không đổi` : "Khóa Groq (gsk_...), Claude (sk-ant-...) hoặc Gemini"; $("ai-key").focus(); }
   });
   $("ai-key").addEventListener("input", () => {        // ô mô hình đổi theo loại khóa đang gõ
     const k = $("ai-key").value.trim(); if (!k) { aiDsMoHinh(); return; }
     if (nhaCuaKhoa(k) === "claude") $("ai-mh").innerHTML = Object.entries(AI_MO_HINH).map(([m, v]) => `<option value="${m}">${esc(v)}${m === "claude-opus-5-5" ? " (mặc định)" : ""}</option>`).join("");
+    else if (nhaCuaKhoa(k) === "groq") $("ai-mh").innerHTML = `<option value="">Groq: openai/gpt-oss-120b (danh sách lấy khi bật)</option>`;
     else $("ai-mh").innerHTML = `<option value="">Gemini: tự chọn Flash ổn định mới nhất (danh sách lấy khi bật)</option>`;
   });
   $("ai-panel").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const k = $("ai-key").value.trim();
-    if (!k && !AI.key) { $("ai-loi").textContent = "Nhập khóa Claude (sk-ant-...) hoặc khóa Gemini."; return; }
+    if (!k && !AI.key) { $("ai-loi").textContent = "Nhập khóa Groq (gsk_...), Claude (sk-ant-...) hoặc Gemini."; return; }
     $("ai-loi").textContent = "Đang kiểm tra khóa…";
     try { await aiBat(k || AI.key, k && nhaCuaKhoa(k) !== AI.nha ? "" : $("ai-mh").value, $("ai-nho").checked); }
     catch (err) { console.error(err); $("ai-loi").textContent = aiThongBaoLoi(err); return; }
@@ -2931,7 +3027,7 @@ function aiInit() {
     botTin(`<p>Đã bật <b>chế độ AI</b> với ${esc(AI_NHA[AI.nha].ten)} (${esc(tenMoHinh())}). Bạn cứ hỏi tự nhiên; số liệu vẫn lấy từ mô hình của đề tài.</p>`, true);
   });
   $("ai-tat").addEventListener("click", () => {
-    AI.key = ""; AI.msgs = []; AI.dsGemini = []; aiLuuCaiDat(false); $("ai-panel").hidden = true; aiTrangThai();
+    AI.key = ""; AI.msgs = []; AI.ds = []; aiLuuCaiDat(false); $("ai-panel").hidden = true; aiTrangThai();
     botTin(`<p>Đã tắt chế độ AI và xóa khóa khỏi trình duyệt. Trợ lý quay về chế độ ngoại tuyến.</p>`, true);
   });
   aiTrangThai();

@@ -297,7 +297,7 @@ kiemAsync("Gemini: bật bằng khóa – gọi models.list kiểm khóa, lọc 
       ["text-embedding-005", ["embedContent"]], ["gemini-3.5-flash-lite", ["generateContent", "countTokens"]]].map(([n, m]) => ({ name: "models/" + n, supportedGenerationMethods: m })) };
     const g = geminiGia([[200, ds], [200, { candidates: [{ content: { role: "model", parts: [{ text: "OK" }] } }] }]]); T.AI.goi = g.goi; T.AI.key = ""; T.AI.nha = "claude";
     await T.aiBat("AQ.khoa-gia", "", true);
-    if (T.AI.nha !== "gemini" || T.AI.model !== "gemini-3.8-flash" || T.AI.dsGemini.join() !== "gemini-3.8-flash,gemini-3.5-flash-lite") return `bật: ${T.AI.nha} ${T.AI.model} ${T.AI.dsGemini}`;
+    if (T.AI.nha !== "gemini" || T.AI.model !== "gemini-3.8-flash" || T.AI.ds.join() !== "gemini-3.8-flash,gemini-3.5-flash-lite") return `bật: ${T.AI.nha} ${T.AI.model} ${T.AI.ds}`;
     if (!/\/v1beta\/models\?pageSize=1000$/.test(g.yeuCau[0].url) || g.yeuCau[0].headers["x-goog-api-key"] !== "AQ.khoa-gia") return "gọi models.list sai";
     T.AI.key = ""; T.AI.model = "x"; if (T.aiDocCaiDat() !== "localStorage" || T.AI.nha !== "gemini" || T.AI.model !== "gemini-3.8-flash") return "không lưu được để mở lại trang";
     const g2 = geminiGia([[400, { error: { code: 400, message: "API key not valid. Please pass a valid API key.", status: "INVALID_ARGUMENT" } }]]); T.AI.goi = g2.goi;
@@ -350,6 +350,64 @@ kiemAsync("Gemini: bị chặn vì an toàn thì bỏ lượt; lỗi 429 báo l�
     let loi = null; try { await T.aiTraLoiGemini("câu mới", uiGia().ui); } catch (e) { loi = e; }
     return loi instanceof T.LoiGemini && loi.status === 429 && T.AI.msgs.length === 2 ? "" : `${loi} · ${T.AI.msgs.length}`;
   } finally { T.AI.goi = null; T.AI.nha = "claude"; T.AI.model = "claude-opus-5-5"; T.AI.key = ""; T.AI.msgs = []; }
+});
+
+// ---------- 7. chế độ AI với Groq (gói miễn phí) – fetch giả lập ----------
+const traVeH = (status, data, h = {}) => ({ ok: status >= 200 && status < 300, status, json: async () => data, headers: { get: (k) => h[k] ?? null } });
+function groqGia(kichBan) {
+  const yeuCau = [];
+  const goi = async (url, init) => { yeuCau.push({ url, headers: init.headers, body: init.body ? JSON.parse(init.body) : null }); const [st, d, h] = kichBan.shift(); return traVeH(st, d, h); };
+  return { goi, yeuCau };
+}
+kiem("Groq: nhận khóa gsk_; mô hình mặc định gpt-oss-120b; bảng markdown hiển thị thành bảng", () => {
+  if (T.nhaCuaKhoa("gsk_abc") !== "groq" || T.nhaCuaKhoa("sk-ant-x") !== "claude" || T.nhaCuaKhoa("AQ.x") !== "gemini") return "nhận sai loại khóa";
+  if (T.groqMacDinh(["qwen/qwen3.8-27b", "openai/gpt-oss-20b", "openai/gpt-oss-120b"]) !== "openai/gpt-oss-120b" || T.groqMacDinh(["qwen/qwen3.8-27b"]) !== "qwen/qwen3.8-27b") return "mặc định sai";
+  const h = T.aiMd("Kết quả:\n| Căn | Giá |\n|---|---|\n| 1 | **1,9 tỷ** |\nHết.");
+  return /<table><tr><td>Căn<\/td><td>Giá<\/td><\/tr><tr><td>1<\/td><td><b>1,9 tỷ<\/b><\/td><\/tr><\/table><p>Hết.<\/p>/.test(h) ? "" : h;
+});
+kiemAsync("Groq: bật khóa (lọc mô hình trò chuyện, gửi thử), vòng lặp công cụ đúng chuẩn OpenAI, hết hạn mức thì chuyển mô hình", async () => {
+  const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+  const cu = [global.localStorage, global.sessionStorage]; global.localStorage = kho(); global.sessionStorage = kho();
+  const ds = { data: ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "whisper-large-v3", "meta-llama/llama-prompt-guard-2-86m", "allam-2-7b"].map((id) => ({ id, active: true, context_window: /allam/.test(id) ? 4096 : 131072 })) };
+  const goiCC = { id: "call_1", type: "function", function: { name: "dinh_gia_nha_pho", arguments: JSON.stringify({ dien_tich_m2: 80, so_tang: 2, loi_vao: "hem_xe_hoi" }) } };
+  const g = groqGia([[200, ds], [200, { choices: [{ message: { role: "assistant", content: "OK" } }] }],
+    [200, { choices: [{ message: { role: "assistant", content: "", tool_calls: [goiCC] }, finish_reason: "tool_calls" }] }],
+    [429, { error: { message: "Rate limit reached for model openai/gpt-oss-120b (TPM)", code: "rate_limit_exceeded" } }, { "retry-after": "20" }],
+    [200, { choices: [{ message: { role: "assistant", content: "Khoảng **X tỷ**." }, finish_reason: "stop" }] }]]);
+  T.AI.goi = g.goi;
+  const { u, ui } = uiGia();
+  try {
+    await T.aiBat("gsk_khoa-gia", "", true);
+    if (T.AI.nha !== "groq" || T.AI.model !== "openai/gpt-oss-120b" || T.AI.ds.join() !== "openai/gpt-oss-120b,openai/gpt-oss-20b") return `bật: ${T.AI.nha} ${T.AI.model} ${T.AI.ds}`;
+    if (g.yeuCau[0].headers.Authorization !== "Bearer gsk_khoa-gia" || !/api\.groq\.com\/openai\/v1\/models$/.test(g.yeuCau[0].url)) return "gọi models sai";
+    T.AI.msgs = [];
+    const kq = await T.aiTraLoiGroq("nhà 80m2 1 trệt 1 lầu hẻm xe hơi bao nhiêu", ui);
+    const y = g.yeuCau[2].body, m = T.AI.msgs;
+    const kt = [
+      [kq.xong && u.chu === "Khoảng **X tỷ**." && u.the.length === 1, "không trả lời / thiếu thẻ"],
+      [y.messages[0].role === "system" && y.messages[0].content === T.AI_HE_THONG && y.tools.length === 11 && y.tools[0].type === "function" && y.tool_choice === "auto", "yêu cầu sai chuẩn OpenAI"],
+      [g.yeuCau[3].body.model === "openai/gpt-oss-120b" && g.yeuCau[4].body.model === "openai/gpt-oss-20b", "hết hạn mức không chuyển sang gpt-oss-20b"],
+      [m[1].tool_calls[0].id === "call_1" && m[2].role === "tool" && m[2].tool_call_id === "call_1", "lịch sử công cụ sai"],
+      [giaTy(m[2].content) === giaTy(T.hoi("nhà 80m2 1 trệt 1 lầu hẻm xe hơi giá bao nhiêu").text), "số gửi Groq khác số mô hình"],
+    ];
+    const sai = kt.find(([ok]) => !ok); return sai ? sai[1] : "";
+  } finally { [global.localStorage, global.sessionStorage] = cu; T.AI.goi = null; }
+});
+kiemAsync("Groq: câu hỏi sau rút gọn kết quả công cụ cũ; tạo lời gọi công cụ sai thì gửi lại; khóa sai báo đúng lỗi, lịch sử giữ nguyên", async () => {
+  Object.assign(T.AI, { key: "gsk_khoa-gia", nha: "groq", model: "openai/gpt-oss-120b", ds: ["openai/gpt-oss-120b", "openai/gpt-oss-20b"] });
+  T.AI.msgs = [{ role: "user", content: "cũ" }, { role: "assistant", content: "", tool_calls: [{ id: "c0", type: "function", function: { name: "xu_huong_gia", arguments: "{}" } }] },
+    { role: "tool", tool_call_id: "c0", content: "x".repeat(1500) }, { role: "assistant", content: "ok" }];
+  const g = groqGia([[400, { error: { message: "tool call validation failed", code: "tool_use_failed" } }], [200, { choices: [{ message: { role: "assistant", content: "Được." } }] }]]);
+  T.AI.goi = g.goi;
+  try {
+    await T.aiTraLoiGroq("câu mới", uiGia().ui);
+    const gui = g.yeuCau[1].body.messages.find((x) => x.role === "tool");
+    if (g.yeuCau.length !== 2 || !/đã rút gọn/.test(gui.content) || gui.content.length > 450 || T.AI.msgs[2].content.length !== 1500) return "không gửi lại / không rút gọn đúng";
+    T.AI.goi = groqGia([[401, { error: { message: "Invalid API Key", code: "invalid_api_key" } }]]).goi;
+    const n = T.AI.msgs.length; let loi = null;
+    try { await T.aiTraLoiGroq("câu nữa", uiGia().ui); } catch (e) { loi = e; }
+    return loi instanceof T.LoiGroq && /Khóa Groq không hợp lệ/.test(T.aiThongBaoLoi(loi)) && T.AI.msgs.length === n ? "" : `${loi} ${T.AI.msgs.length}/${n}`;
+  } finally { T.AI.goi = null; Object.assign(T.AI, { key: "", nha: "claude", model: "claude-opus-5-5", ds: [], msgs: [] }); }
 });
 
 (async () => {
