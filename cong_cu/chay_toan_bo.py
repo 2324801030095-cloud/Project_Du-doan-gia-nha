@@ -8,7 +8,11 @@ Vì sao thứ tự này:
 - giá thuê ghi thêm 2 cột vào data/processed/{nha,can_ho}_da_xu_ly.csv -> phải chạy SAU nhà phố và căn hộ;
 - đất dùng tọa độ tuyến đường của nhà phố -> sau nhà phố;
 - notebook trợ lý chạy luật của trang qua Node -> cần trang đã dựng; xong thì dựng lại trang để nhúng mô hình trợ lý."""
-import pathlib, shutil, subprocess, sys, time
+import pathlib
+import shutil
+import subprocess
+import sys
+import time
 
 GOC = pathlib.Path(__file__).resolve().parent.parent
 PY = sys.executable

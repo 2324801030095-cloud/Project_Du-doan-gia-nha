@@ -7,13 +7,20 @@ Cách dùng: python thu_thap/chotot_thu_thap.py            -> nhà ở:  data/ra
            python thu_thap/chotot_thu_thap.py --dat      -> đất (cg=1040): data/raw/chotot_dat_raw.jsonl + .csv
            Căn hộ có thêm: tên dự án, loại căn hộ (chung cư / duplex / penthouse...), tầng, block, tình trạng bàn giao.
 Nghỉ 1 giây giữa các lần gọi để không gây tải cho máy chủ."""
-import json, time, datetime as dt, pathlib, urllib.request
+import datetime as dt
+import json
+import pathlib
 import sys as _sys
+import time
+import urllib.request
+
 _sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # in được tiếng Việt trên mọi console Windows
 import pandas as pd
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-import collections, sys
+import collections
+import sys
+
 CAN_HO, DAT = "--can-ho" in sys.argv, "--dat" in sys.argv
 TEN = "chotot_can_ho_raw" if CAN_HO else "chotot_dat_raw" if DAT else "chotot_binh_duong_raw"
 OUT_JSONL, OUT_CSV = ROOT / "data" / "raw" / f"{TEN}.jsonl", ROOT / "data" / "raw" / f"{TEN}.csv"
@@ -51,7 +58,8 @@ while "--flatten-only" not in sys.argv:      # tải mọi trang cho tới khi h
 
 # Riêng tư: không lưu thông tin người đăng (tên, mã tài khoản, ảnh đại diện) và che số điện thoại trong tin
 sys.path.insert(0, str(ROOT / "cong_cu"))
-from an_danh_du_lieu import an_danh_tin, an_danh_bang, dong_jsonl
+from an_danh_du_lieu import an_danh_bang, an_danh_tin, dong_jsonl
+
 ads = [an_danh_tin(a) for a in ads]
 ngay = ads[0].get("_ngay_thu_thap") or dt.date.today().isoformat()
 if "--flatten-only" not in sys.argv:

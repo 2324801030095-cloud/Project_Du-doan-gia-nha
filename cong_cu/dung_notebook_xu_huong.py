@@ -3,6 +3,7 @@ Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_xu_huong.
 Sau đó chạy notebook:       jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_xu_huong_gia.ipynb
 """
 import sys
+
 import nbformat as nbf
 
 cells = []
@@ -302,9 +303,9 @@ tdm_row = BANG_DOI["Toàn TDM"]
 ph_row = BANG_DOI["Phú Hòa"]
 TIN_HIEU = pd.DataFrame([
     ["Đổi giá cùng một căn (TDM)", f"{tdm_row['Trong số đổi giá: % GIẢM']:.0f}% số lần đổi giá là GIẢM; mức đổi trung vị {tdm_row['Mức đổi trung vị (%)']:+.1f}%",
-     "Giảm", "Cao – đo trực tiếp trên cùng căn"],
+     "Giảm" if tdm_row["Trong số đổi giá: % GIẢM"] > 50 else "Tăng", "Cao – đo trực tiếp trên cùng căn"],
     ["Đổi giá cùng một căn (toàn vùng)", f"{BANG_DOI['Toàn Bình Dương cũ']['Trong số đổi giá: % GIẢM']:.0f}% là GIẢM; trung vị {BANG_DOI['Toàn Bình Dương cũ']['Mức đổi trung vị (%)']:+.1f}%",
-     "Giảm", "Cao"],
+     "Giảm" if BANG_DOI["Toàn Bình Dương cũ"]["Trong số đổi giá: % GIẢM"] > 50 else "Tăng", "Cao"],
     ["Đổi giá cùng một căn hộ chung cư (toàn vùng)", f"{BANG_DOI_CH.loc['Trong số đổi giá: % GIẢM', 'Căn hộ – toàn Bình Dương cũ']:.0f}% là GIẢM; trung vị {BANG_DOI_CH.loc['Mức đổi trung vị (%)', 'Căn hộ – toàn Bình Dương cũ']:+.1f}%",
      "Giảm" if BANG_DOI_CH.loc['Trong số đổi giá: % GIẢM', 'Căn hộ – toàn Bình Dương cũ'] > 50 else "Tăng", "Cao"],
     ["Giá rao theo tuần đăng", f"{slope:+.2f} điểm %/tháng (KTC 95% {slo:+.2f} … {shi:+.2f})",
@@ -336,15 +337,23 @@ display(DU_BAO.drop(columns="thang"))
 print(f"Biên mỗi tháng: {THANG_LO:+.2f}% … {THANG_HI:+.2f}%. Biên dưới 6 tháng = mức giảm trung vị người bán đang áp dụng ({giam_6t:+.1f}%); "
       f"biên trên 6 tháng = mức tăng quý gần nhất trước khi thị trường đảo chiều (DKRA Q2/2026, {tang_6t:+.1f}%). "
       "Kỳ hạn khác = biên mỗi tháng × số tháng. Trang demo cho chọn kỳ hạn 1–12, 18, 24 tháng theo đúng công thức này.")
+ktc_t = tdm_row.get("KTC 95% của % giảm")
+lo_t, hi_t = map(float, ktc_t.rstrip("%").split("–")) if isinstance(ktc_t, str) else (np.nan, np.nan)
+giam_ro, tang_ro = lo_t > 50, hi_t < 50
+xh = dict(zip(DU_BAO["thang"], DU_BAO["Xu hướng giá rao nhà phố Phú Hòa / TDM"]))
+hien_tai = (f"mặt bằng giá rao ở Thủ Dầu Một đang **điều chỉnh giảm**: {tdm_row['Trong số đổi giá: % GIẢM']:.0f}% số lần người bán đổi giá là **hạ giá** "
+            f"(KTC 95% {lo_t:.0f}–{hi_t:.0f}%, nằm hẳn trên 50%)" if giam_ro else
+            f"người bán đang **nâng giá** ({tdm_row['Trong số đổi giá: % GIẢM']:.0f}% số lần đổi giá là hạ giá, KTC nằm hẳn dưới 50%)" if tang_ro else
+            "**chưa rõ chiều**: tỷ lệ hạ giá trong các lần đổi giá có khoảng tin cậy chứa 50%")
+nx(f'''**Kết luận xu hướng (cần trình bày đúng mức độ chắc chắn):**
+- **Hiện tại ({pd.Timestamp(goi["ngay_du_lieu"]).strftime("%m/%Y")}):** {hien_tai}; DKRA tháng 10/2026 ghi nhận giá nhà phố thứ cấp giảm (bảng tín hiệu).
+- **1–3 tháng tới:** biên độ hẹp (xem bảng); xu hướng theo kịch bản: **{xh[1].lower()}** (1 tháng), **{xh[3].lower()}** (3 tháng).
+- **6 tháng tới (kịch bản tham khảo, chưa kiểm định):** **{xh[6].lower()}**.{" Khả năng tăng mạnh trở lại trong ngắn hạn thấp vì người bán đang hạ giá." if giam_ro else ""}''')
 """)
 
 md(r"""
-**Kết luận xu hướng (cần trình bày đúng mức độ chắc chắn):**
-- **Hiện tại (11/2026):** mặt bằng giá rao ở Thủ Dầu Một đang **chững lại và điều chỉnh giảm nhẹ**. Bằng chứng mạnh nhất là đa số người bán đổi giá đều **hạ giá**, cùng chiều với số liệu DKRA tháng 10/2026.
-- **1–3 tháng tới:** biên độ hẹp (xem bảng); giá rao gần như **đi ngang**, nghiêng về giảm nhẹ vì người bán đang hạ giá.
-- **6 tháng tới (kịch bản tham khảo, chưa kiểm định):** xu hướng có cơ sở nhất là **đi ngang đến giảm nhẹ**. Khả năng tăng mạnh trở lại trong ngắn hạn thấp vì thanh khoản đang yếu.
 - **12 tháng tới:** biên độ rộng; **18–24 tháng** chỉ là minh họa khi kéo dài tín hiệu hiện tại, không nên dùng để ra quyết định; chiều đi phụ thuộc lãi suất, tín dụng và hạ tầng (sáp nhập vào TP.HCM, kết nối vùng). **Không đủ dữ liệu lịch sử thật để đưa một con số chính xác** mà không phải tự đặt giả định. Đây là giới hạn trung thực của đề tài.
-- Với người mua ở Phú Hòa: giai đoạn này có lợi cho **thương lượng**. Dùng khoảng giá 80% của mô hình định giá (notebook chính) làm mốc trả giá.
+- Với người mua ở Phú Hòa: dùng khoảng giá 80% của mô hình định giá (notebook chính) làm mốc trả giá; khi người bán đang hạ giá (dòng "Hiện tại" ở trên) thì có thêm lợi thế **thương lượng**.
 
 ## Bước 7: Bộ chỉ số giá theo ảnh chụp định kỳ (tự hoàn thiện theo thời gian)
 Mỗi lần chạy `python thu_thap/cap_nhat_dinh_ky.py`, một ảnh chụp dữ liệu thật có ghi ngày được lưu vào `data/lich_su/`. Ô dưới đây tính cho mỗi kỳ:
@@ -429,7 +438,7 @@ print("Đã lưu model/xu_huong_gia.json")
 md(r"""
 ## Kết luận
 - Mô-đun xu hướng **chỉ dùng dữ liệu thật**: mặt bằng giá chuẩn hóa theo phường, đổi giá của cùng một căn, giá rao theo thời gian đăng, áp lực bán, cùng bối cảnh đã công bố có nguồn.
-- **Chẩn đoán hiện tại:** thị trường nhà phố Thủ Dầu Một/Phú Hòa tháng 11/2026 đang **chững, điều chỉnh giảm nhẹ**. **Kịch bản 6 tháng tới:** đi ngang đến giảm nhẹ (biên độ ở Bước 6) – suy luận từ tín hiệu hiện tại, **chưa phải dự báo đã kiểm định lùi**. **12 tháng:** bất định cao.
+- **Chẩn đoán hiện tại và kịch bản 6 tháng** được in kèm số liệu ở cuối Bước 6 – suy luận từ tín hiệu hiện tại, **chưa phải dự báo đã kiểm định lùi**. **12 tháng:** bất định cao.
 - **Hạn chế:** chưa có lịch sử giá thật nhiều năm của riêng Phú Hòa, nên chưa huấn luyện được mô hình dự báo có kiểm định lùi. Bộ chỉ số ở Bước 7 khắc phục dần khi chạy thu thập định kỳ. Mọi số liệu là **giá rao**, không phải giá giao dịch.
 """)
 

@@ -12,6 +12,7 @@ Chỉ lưu ảnh chụp, không thu thập lại:  python thu_thap/cap_nhat_dinh
 """
 import datetime as dt
 import sys as _sys
+
 _sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # in được tiếng Việt trên mọi console Windows
 import pathlib
 import shutil
@@ -29,6 +30,7 @@ NGUON = {"chotot": ("chotot_thu_thap.py", "chotot_binh_duong_raw.csv"),
          "alonhadat_dat": ("alonhadat_thu_thap.py --dat", "alonhadat_dat_tdm_raw.csv")}
 
 import time
+
 loi = []
 for ten, (script, csv) in NGUON.items():
     if "--chi-luu" not in sys.argv:
@@ -73,8 +75,10 @@ if g.exists():
         loi.append(f"guland cũ {tuoi} ngày")
         print(f"   NHẮC: dữ liệu guland (nguồn chính của Phú Hòa) đã {tuoi} ngày - chạy thu_thap/guland_thu_thap.js trong trình duyệt "
               "rồi chép file thành data/raw/nha_phu_hoa_guland_raw.csv", flush=True)
-import pandas as pd
 import re
+
+import pandas as pd
+
 bang = [(m[1], m[2], len(pd.read_csv(p, usecols=["ngay_thu_thap"]))) for p in LS.glob("*.csv")
         if (m := re.match(r"(.+)_(\d{4}-\d{2}-\d{2})\.csv$", p.name))]
 print("Số tin theo kỳ và nguồn:\n" + pd.DataFrame(bang, columns=["nguon", "ky", "so_tin"]).pivot(index="ky", columns="nguon", values="so_tin").to_string())

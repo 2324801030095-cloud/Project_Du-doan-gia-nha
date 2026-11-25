@@ -5,7 +5,11 @@ Chạy từ thư mục gốc đề tài:  python cong_cu/an_danh_du_lieu.py
 Không đổi bất kỳ cột số liệu nào (giá, diện tích, tọa độ...), nên kết quả mô hình không phụ thuộc vào việc chạy script này.
 Các script thu thập (thu_thap/) đã tự làm việc này cho dữ liệu tải mới.
 """
-import glob, json, os, re, sys
+import glob
+import json
+import os
+import re
+import sys
 
 TRUONG_NGUOI_BAN = {"account_id", "account_name", "account_oid", "avatar", "full_name", "seller_info", "facebook_id",
                     "shop_alias", "store_id", "contact_name", "phone", "phone_hidden"}

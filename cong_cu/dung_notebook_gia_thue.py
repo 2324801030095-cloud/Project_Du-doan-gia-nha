@@ -3,6 +3,7 @@ Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_gia_thue.
 Cần chạy SAU notebook nhà phố và căn hộ (dùng data/processed/*_da_xu_ly.csv để tính tỷ suất cho thuê).
 """
 import sys
+
 import nbformat as nbf
 
 cells = []
@@ -192,6 +193,7 @@ Cùng quy trình hai notebook định giá: tập test giữ riêng 20% số nh�
 """)
 
 code(r"""
+import json
 class BaselineThue(BaseEstimator, RegressorMixin):
     # giá thuê/m² trung vị của dự án (nếu >= 3 tin) -> của phường -> toàn bộ, nhân diện tích
     def fit(self, X, y):
@@ -251,7 +253,20 @@ KQ_NHA = danh_gia(nha, "NHÀ cho thuê", DT_NHA, False)
 """)
 
 md(r"""
-**Đọc kết quả:** giá thuê dễ dự đoán hơn giá bán, nhất là căn hộ: giá thuê ít bị "ảo" hơn giá rao bán, và căn hộ trong cùng dự án cho thuê giá khá đồng đều. Nhà phố cho thuê đa dạng hơn (nhà ở, mặt bằng kinh doanh), nên sai số lớn hơn.
+**Đọc kết quả:**
+""")
+
+code(r"""
+ban_ch = json.load(open(MODEL_DIR / "mo_hinh_gia_can_ho.json", encoding="utf-8"))["mo_hinh_day_du_mape"]
+dg_nha = json.load(open(MODEL_DIR / "danh_gia_mo_hinh.json", encoding="utf-8"))
+ban_nha = next(m["MAPE (%)"] for m in dg_nha["kiem_dinh_cheo_tdm"] if m["Mô hình"] == dg_nha["ten_mo_hinh"])
+thue_ch, thue_nha = (K["bang"].loc[K["ten"], "MAPE (%)"] for K in (KQ_CH, KQ_NHA))
+de_hon = lambda a, b: "**dễ dự đoán hơn**" if a < b else "**khó dự đoán hơn**"
+nx(f'''- Căn hộ: giá thuê {de_hon(thue_ch, ban_ch)} giá bán (kiểm định chéo {vn(thue_ch)}% so với {vn(ban_ch)}%). Nhà phố: giá thuê {de_hon(thue_nha, ban_nha)} giá bán ({vn(thue_nha)}% so với {vn(ban_nha)}% trên Thủ Dầu Một).
+- Nhà cho thuê sai {"nhiều hơn" if thue_nha > thue_ch else "ít hơn"} căn hộ cho thuê{": tin cho thuê nhà phố lẫn nhà ở với mặt bằng kinh doanh, còn căn hộ cùng dự án cho thuê giá khá đồng đều" if thue_nha > thue_ch else ""}. Giá thuê còn phụ thuộc nội thất, tình trạng nhà và thời hạn thuê mà tin thường không ghi đủ, và mô hình giá thuê không dùng mô tả tin.''')
+""")
+
+md(r"""
 
 ## Bước 4: Tỷ suất cho thuê của các căn đang rao bán
 Huấn luyện lại mô hình giá thuê đã chọn trên **toàn bộ** tin cho thuê, rồi ước lượng giá thuê cho **mỗi căn đang rao bán** (dữ liệu sạch của 2 notebook định giá).

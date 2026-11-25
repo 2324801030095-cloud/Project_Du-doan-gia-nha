@@ -1,14 +1,19 @@
 """Kiểm thử tự động cho mã dùng chung (src/mo_hinh_gia.py) và kết quả đã sinh ra.
 Chạy từ thư mục gốc đề tài:  python tests/kiem_tra_mo_hinh.py
 Mỗi phép kiểm in ĐẠT / KHÔNG ĐẠT; mã thoát khác 0 nếu có phép kiểm không đạt."""
-import sys, warnings
+import sys
+import warnings
+
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # in được tiếng Việt cả trên PowerShell / cmd mặc định
 from pathlib import Path
+
 warnings.filterwarnings("ignore")
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC / "src"))
-import numpy as np, pandas as pd
+import numpy as np
+import pandas as pd
 from sklearn.base import BaseEstimator, RegressorMixin
+
 import mo_hinh_gia as M
 
 KQ = []
@@ -101,6 +106,7 @@ def _():
 @kiem("Mô hình đã lưu nạp lại được và dự đoán ra số hợp lý")
 def _():
     import joblib
+
     from mo_hinh_gia import khong_dau
     for f, du_lieu in [("mo_hinh_gia_nha.joblib", "nha_da_xu_ly.csv"), ("mo_hinh_gia_can_ho.joblib", "can_ho_da_xu_ly.csv")]:
         goi = joblib.load(GOC / "model" / f)
@@ -138,7 +144,7 @@ def _():
 def _():
     import json
     sys.path.insert(0, str(GOC / "cong_cu"))
-    from an_danh_du_lieu import TRUONG_NGUOI_BAN, an_danh_tin, an_danh_bang
+    from an_danh_du_lieu import TRUONG_NGUOI_BAN, an_danh_bang, an_danh_tin
     for f in sorted((GOC / "data").rglob("*.jsonl")):
         dong = [l for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
         for i, l in enumerate(dong):

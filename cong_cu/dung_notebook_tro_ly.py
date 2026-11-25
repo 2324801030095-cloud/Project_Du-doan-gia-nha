@@ -3,6 +3,7 @@ Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_tro_ly.py
 Cần Node.js để so sánh với luật từ khóa cũ (tests/y_dinh_luat.js); không có Node thì bỏ qua phần so sánh.
 """
 import sys
+
 import nbformat as nbf
 
 cells = []

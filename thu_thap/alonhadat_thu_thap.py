@@ -5,14 +5,25 @@ KHÔNG lưu tên/số điện thoại người đăng. Nghỉ 1,5 giây giữa c
 Cách dùng: python thu_thap/alonhadat_thu_thap.py           -> nhà ở:  data/raw/alonhadat_tdm_raw.csv
            python thu_thap/alonhadat_thu_thap.py --can-ho  -> căn hộ chung cư: data/raw/alonhadat_can_ho_tdm_raw.csv
            python thu_thap/alonhadat_thu_thap.py --dat     -> đất thổ cư, đất nền: data/raw/alonhadat_dat_tdm_raw.csv"""
-import re, html, sys, time, datetime as dt, pathlib, urllib.request
+import datetime as dt
+import html
+import pathlib
+import re
+import sys
 import sys as _sys
+import time
+import urllib.request
+
 _sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # in được tiếng Việt trên mọi console Windows
 import pandas as pd
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "cong_cu"))
-from an_danh_du_lieu import che_sdt, an_danh_bang   # riêng tư: che số điện thoại trong tin
+from an_danh_du_lieu import (  # riêng tư: che số điện thoại trong tin
+    an_danh_bang,
+    che_sdt,
+)
+
 CAN_HO, DAT = "--can-ho" in __import__("sys").argv, "--dat" in __import__("sys").argv
 OUT = ROOT / "data" / "raw" / ("alonhadat_can_ho_tdm_raw.csv" if CAN_HO else "alonhadat_dat_tdm_raw.csv" if DAT else "alonhadat_tdm_raw.csv")
 BASE = "https://alonhadat.com.vn/nha-dat/can-ban/{loai}/binh-duong/591/thanh-pho-thu-dau-mot{trang}.html"
@@ -37,7 +48,7 @@ def get(url):
 
 
 def txt(pat, s, default=None):
-    m = re.search(pat, s, re.S)
+    m = re.search(pat, s, re.DOTALL)
     return html.unescape(re.sub(r"<[^>]+>", " ", m.group(1))).strip() if m else default
 
 
@@ -45,7 +56,7 @@ rows, seen = [], set()
 for loai in LOAI:
     for p in range(1, 60):
         s = get(BASE.format(loai=loai, trang="" if p == 1 else f"/trang--{p}"))
-        cards = re.findall(r"<article class='property-item'.*?</article>", s, re.S)
+        cards = re.findall(r"<article class='property-item'.*?</article>", s, re.DOTALL)
         new = 0
         for c in cards:
             href = txt(r"<a class='link[^']*'[^>]*href='([^']+)'", c)

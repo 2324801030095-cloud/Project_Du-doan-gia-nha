@@ -12,7 +12,7 @@ Dữ liệu là tin rao thật (Chợ Tốt Nhà, alonhadat, guland), đã ẩn 
 
 ```
 pip install -r requirements.txt          # Python 3.14; kiểm thử trang web cần thêm Node.js >= 18
-python tests/kiem_tra_mo_hinh.py         # 10/10 phép kiểm
+python tests/kiem_tra_mo_hinh.py         # 12 phép kiểm, phải đạt hết
 node tests/kiem_tra_tro_ly.js            # 27/27 phép kiểm
 ```
 Xem demo: mở `demo/trang_ban_nha.html` bằng trình duyệt (bản đồ cần Internet).
@@ -52,9 +52,9 @@ python tests/kiem_tra_mo_hinh.py && node tests/kiem_tra_tro_ly.js
 Lý do của thứ tự và các bẫy thường gặp: tài liệu kỹ thuật tổng hợp, mục 8.4.
 GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử mỗi lần đẩy code.
 
-**Thu thập định kỳ:** chạy `thu_thap/bat_lich_tu_dong.bat` một lần (tự xin quyền Administrator) để đăng ký tác vụ 08:00 Chủ nhật, chạy cả khi không đăng nhập. Khi đủ 8 kỳ ảnh chụp, `cap_nhat_dinh_ky.py` tự chạy lại notebook xu hướng (có kiểm định lùi) và dựng lại trang.
+**Thu thập định kỳ:** chạy `thu_thap/bat_lich_tu_dong.bat` một lần (tự xin quyền Administrator) để đăng ký tác vụ 08:00 Chủ nhật, chạy cả khi không đăng nhập. Khi đủ 8 kỳ ảnh chụp, `cap_nhat_dinh_ky.py` tự chạy lại notebook xu hướng (có kiểm định lùi) và dựng lại trang. Chợ Tốt và alonhadat thu tự động; **guland** (nguồn chính của tin Phú Hòa) chặn trình duyệt tự động nên phải thu tay: mở trang guland Phú Hòa trong trình duyệt, chạy `thu_thap/guland_thu_thap.js` trong Console, chép file tải về thành `data/raw/nha_phu_hoa_guland_raw.csv`. Tác vụ ghi nhắc vào nhật ký khi dữ liệu guland cũ quá 14 ngày.
 
-## Kết quả chính (dữ liệu 17/11/2026)
+## Kết quả chính (dữ liệu đến 24/11/2026)
 
 | | Nhà phố – Phú Hòa | Căn hộ | Đất nền – TDM |
 |---|---|---|---|
@@ -62,3 +62,4 @@ GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử m�
 | MAPE tập test (kết quả chính) | 22,1% (KTC 15,9–30,7; 44 căn) | 11,9% | 31,7% (KTC 23,5–41,9; 71 lô) |
 | MAPE kiểm định chéo theo nhóm | 23,0% | 13,7% | 26,4% |
 | Baseline (đơn giá khu vực), kiểm định chéo | 30,7% | 17,5% | 38,6% |
+| Phần A (mô hình môn học tốt nhất), tập test | Random Forest (300 cây): 24,9% | Random Forest (300 cây): 14,9% | Random Forest (300 cây): 30,3% |

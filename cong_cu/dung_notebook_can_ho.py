@@ -3,6 +3,7 @@ Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_can_ho.py
 Sau đó chạy notebook:       jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_gia_can_ho.ipynb
 """
 import sys
+
 import nbformat as nbf
 
 cells = []
@@ -258,7 +259,8 @@ md(r"""
 
 code(r"""
 tm = df[df["noxh"] == 0]
-print("Tổng thể – đơn giá trung vị (tr/m²):", tm.groupby(tm["so_hong"].map({1.0: "Sổ hồng", 0.0: "HĐMB / chờ sổ"}))["don_gia"].median().round(1).to_dict())
+tong_ph = tm.groupby(tm["so_hong"].map({1.0: "Sổ hồng", 0.0: "HĐMB / chờ sổ"}))["don_gia"].median()
+print("Tổng thể – đơn giá trung vị (tr/m²):", tong_ph.round(1).to_dict())
 cap = []
 for ten, g in tm.dropna(subset=["so_hong", "du_an"]).groupby("du_an"):
     if g["so_hong"].nunique() == 2:
@@ -266,14 +268,22 @@ for ten, g in tm.dropna(subset=["so_hong", "du_an"]).groupby("du_an"):
 cap = np.array(cap)
 print(f"Trong cùng dự án ({len(cap)} dự án có cả hai loại): căn sổ hồng chênh {(np.exp(np.median(cap)) - 1) * 100:+.1f}% so với căn HĐMB (trung vị); "
       f"{(cap > 0).sum()} dự án sổ hồng cao hơn, {(cap < 0).sum()} dự án thấp hơn")
+da_tv = tm.groupby("du_an")["don_gia"].median()
+dg_xh = df.groupby("noxh")["don_gia"].median()
+cung_da = tm.dropna(subset=["du_an"]).groupby("du_an").filter(lambda g: len(g) >= 5)
+lx = np.log(cung_da["dt_dat"]) - cung_da.groupby("du_an")["dt_dat"].transform(lambda s: np.log(s).mean())
+ly = np.log(cung_da["gia_ty"]) - cung_da.groupby("du_an")["gia_ty"].transform(lambda s: np.log(s).mean())
+co_gian = np.polyfit(lx, ly, 1)[0]          # % giá tăng khi diện tích tăng 1%, trong cùng dự án
+hd_cao = tong_ph["HĐMB / chờ sổ"] > tong_ph["Sổ hồng"]
+cap_nho = abs(np.exp(np.median(cap)) - 1) < 0.05 and min((cap > 0).sum(), (cap < 0).sum()) >= len(cap) / 4
+nx(f'''**Quan sát:**
+- Đơn giá căn hộ chênh mạnh **giữa các dự án**: dự án đắt (10% trên cùng) có đơn giá trung vị gấp {vn(da_tv.quantile(0.9) / da_tv.quantile(0.1))} lần dự án rẻ (10% dưới cùng). Vì vậy tên dự án là thông tin quan trọng nhất.
+- **Nhà ở xã hội** có đơn giá trung vị {vn(dg_xh.get(1, np.nan))} triệu/m² so với {vn(dg_xh.get(0, np.nan))} triệu/m² ở căn hộ thương mại.
+- **Pháp lý:** nhìn tổng thể, căn chỉ có hợp đồng mua bán có đơn giá {"**cao hơn**" if hd_cao else "thấp hơn"} căn sổ hồng ({vn(tong_ph["HĐMB / chờ sổ"])} so với {vn(tong_ph["Sổ hồng"])} triệu/m²){", vì đó chủ yếu là căn của **dự án mới** chưa ra sổ" if hd_cao else ""}. So trong cùng một dự án thì {"chênh lệch nhỏ và không nhất quán" if cap_nho else "chênh lệch đáng kể"} (số liệu ở ô trên). {"Pháp lý ảnh hưởng chủ yếu tới **rủi ro, khả năng vay và thủ tục sang tên**, ít ảnh hưởng tới giá rao. " if cap_nho else ""}Đây là ví dụ cho thấy phải so sánh trong cùng điều kiện mới kết luận được.
+- Trong cùng một dự án (các dự án ≥ 5 tin), diện tích tăng 1% thì giá tăng khoảng {vn(co_gian, 2)}% {"– giá gần như **tỷ lệ thuận với diện tích**" if abs(co_gian - 1) < 0.15 else ""}.''')
 """)
 
 md(r"""
-**Quan sát:**
-- Đơn giá căn hộ chênh nhau rất mạnh **giữa các dự án** dù cùng khu vực: dự án hạng sang gần trung tâm hành chính mới có thể gấp đôi dự án bình dân. Vì vậy tên dự án là thông tin quan trọng nhất.
-- **Nhà ở xã hội** có đơn giá thấp hơn rõ rệt căn hộ thương mại.
-- **Pháp lý:** nhìn tổng thể, căn chỉ có hợp đồng mua bán lại có đơn giá **cao hơn**, vì đó chủ yếu là căn của **dự án mới** chưa ra sổ. So trong cùng một dự án thì chênh lệch nhỏ và không nhất quán (số liệu ở ô trên). Pháp lý ảnh hưởng chủ yếu tới **rủi ro, khả năng vay và thủ tục sang tên**, ít ảnh hưởng tới giá rao. Đây là ví dụ cho thấy phải so sánh trong cùng điều kiện mới kết luận được.
-- Khác nhà phố, giá căn hộ gần như **tỷ lệ thuận với diện tích** trong cùng dự án.
 
 ## Bước 6: Cách đánh giá
 Giống notebook nhà phố: **tập test** gồm 20% số nhóm tin gần trùng, giữ riêng để kiểm tra lần cuối; **kiểm định chéo 5-fold lặp 3 lần chia theo nhóm** trên tập train để so sánh và chọn mô hình; mọi chỉ số kèm **khoảng tin cậy 95%** (bootstrap theo nhóm).
@@ -339,6 +349,7 @@ Các mô hình học **log(đơn giá)** rồi nhân lại với diện tích. Q
 """)
 
 code(r"""
+import json
 from sklearn.linear_model import RidgeCV
 from lightgbm import LGBMRegressor
 
@@ -372,10 +383,13 @@ ten_tot_nhat = so_sanh[so_sanh["Ngang mô hình tốt nhất"]]["Độ phức t�
 lo, hi = ktc_bootstrap(APE["Baseline (đơn giá dự án)"] - APE[ten_tot_nhat], train["nhom"].to_numpy())
 print(f"MAPE thấp nhất: {tot_nhat} → chọn: {ten_tot_nhat}. So với baseline đơn giá dự án: "
       f"giảm {np.mean(APE['Baseline (đơn giá dự án)'] - APE[ten_tot_nhat]):.2f} điểm % (KTC 95%: {lo:+.2f} … {hi:+.2f})")
+nha_dg = json.load(open(MODEL_DIR / "danh_gia_mo_hinh.json", encoding="utf-8"))          # kết quả notebook nhà phố
+mape_nha = next(m["MAPE (%)"] for m in nha_dg["kiem_dinh_cheo_tdm"] if m["Mô hình"] == nha_dg["ten_mo_hinh"])
+mape_ch, mape_bl = bang_cv.loc[ten_tot_nhat, "MAPE (%)"], bang_cv.loc["Baseline (đơn giá dự án)", "MAPE (%)"]
+nx(f'''**Đọc kết quả:** sai số căn hộ (kiểm định chéo {vn(mape_ch)}%) {"thấp hơn" if mape_ch < mape_nha else "không thấp hơn"} nhà phố ({vn(mape_nha)}% trên Thủ Dầu Một, notebook chính){" – căn hộ trong cùng dự án **đồng nhất** (cùng chủ đầu tư, cùng tiện ích, diện tích theo vài mẫu chuẩn), còn mỗi căn nhà phố là một trường hợp riêng" if mape_ch < mape_nha else ""}. Baseline "đơn giá dự án" sai {vn(mape_bl)}%; mô hình học máy {"giảm được" if lo > 0 else "chưa giảm có ý nghĩa"} so với baseline (khoảng tin cậy của chênh lệch {"không chứa 0" if lo > 0 else "chứa 0"}), nhờ phòng ngủ, tầng, pháp lý, nội thất và thông tin trong mô tả.''')
 """)
 
 md(r"""
-**Đọc kết quả:** sai số căn hộ thấp hơn nhà phố khá nhiều, vì căn hộ trong cùng dự án **đồng nhất** (cùng chủ đầu tư, cùng tiện ích, diện tích theo vài mẫu chuẩn), còn mỗi căn nhà phố là một trường hợp riêng. Baseline "đơn giá dự án" đã khá tốt. Phần mô hình học máy thêm vào đến từ phòng ngủ, tầng, pháp lý, nội thất và thông tin trong mô tả. Khoảng tin cậy của chênh lệch so với baseline cho biết phần cải thiện này có thật hay không.
 
 ## Bước 8: Kiểm tra lần cuối trên tập test
 """)

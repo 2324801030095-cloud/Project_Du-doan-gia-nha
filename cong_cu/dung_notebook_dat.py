@@ -2,6 +2,7 @@
 Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_dat.py notebooks/du_doan_gia_dat.ipynb
 """
 import sys
+
 import nbformat as nbf
 
 cells = []
@@ -319,8 +320,16 @@ print(f"Ghi chú: R² tính trên giá tỷ đồng rất nhạy với vài lô 
 """)
 
 md(r"""
-**Đọc kết quả:** so sánh với baseline cho biết mô hình học được gì hơn "lấy đơn giá trung bình của phường": tác động của mặt tiền / hẻm, kích thước lô, pháp lý và vị trí chi tiết trong phường. Sai số định giá đất thường **lớn hơn căn hộ** vì mỗi lô đất là duy nhất và người bán tự đặt giá.
+**Đọc kết quả:** so sánh với baseline cho biết mô hình học được gì hơn "lấy đơn giá trung bình của phường": tác động của mặt tiền / hẻm, kích thước lô, pháp lý và vị trí chi tiết trong phường.
+""")
 
+code(r"""
+mape_ch = json.load(open(MODEL_DIR / "mo_hinh_gia_can_ho.json", encoding="utf-8"))["mo_hinh_day_du_mape"]   # notebook căn hộ
+mape_dat = bang_cv.loc[ten_chon, "MAPE (%)"]
+nx(f'''Sai số định giá đất (kiểm định chéo trên Thủ Dầu Một {vn(mape_dat)}%) {"**lớn hơn** căn hộ (" + vn(mape_ch) + "%): mỗi lô đất là duy nhất và người bán tự đặt giá, còn căn hộ cùng dự án khá đồng nhất" if mape_dat > mape_ch else "không lớn hơn căn hộ (" + vn(mape_ch) + "%)"}.''')
+""")
+
+md(r"""
 ## Bước 5: Khoảng giá 80% và chẩn đoán giá rao
 Khoảng giá được hiệu chỉnh từ sai số kiểm định chéo **theo mức giá** (4 nhóm theo giá dự đoán), như notebook nhà phố. Sau đó kiểm tra độ phủ trên tập test.
 """)

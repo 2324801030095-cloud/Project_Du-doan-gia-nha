@@ -2,7 +2,11 @@
 Đọc: model/mo_hinh_gia_nha.json (mô hình Ridge rút gọn cho trình duyệt), model/danh_gia_mo_hinh.json,
      model/xu_huong_gia.json, data/processed/*_da_xu_ly.csv (+ các file data/raw/*_raw.csv để lấy tên đường/hướng có dấu).
 Ghi: demo/trang_ban_nha.html"""
-import json, os, re, sys
+import json
+import os
+import re
+import sys
+
 import numpy as np
 import pandas as pd
 
@@ -81,6 +85,7 @@ chd = pd.read_csv(J("data", "processed", "can_ho_da_xu_ly.csv"), dtype={"id": st
 raw_ch = pd.read_csv(J("data", "raw", "chotot_can_ho_raw.csv"))
 sys.path.insert(0, J("src"))
 from mo_hinh_gia import ten_phuong as _tp
+
 ten_ph = {}
 for w in raw_ch["phuong"].dropna().unique():
     ten_ph.setdefault(_tp(w), re.sub(r"^(Phường|Xã|Thị trấn)\s*", "", w))
@@ -186,6 +191,7 @@ TOK.update({"DAT_N": vn(DAT.get("so_lo", 0), 0), "DAT_TDM": vn(DAT.get("so_lo_td
 
 # Bằng chứng (3): dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (notebook nhà phố, Bước 10)
 from mo_hinh_gia import ktc_bootstrap as _ktc
+
 _ape = (ph_tat_ca["gia_uoc_luong_ty"] / ph_tat_ca["gia_ty"] - 1).abs().to_numpy() * 100
 _lo, _hi = _ktc(_ape, ph_tat_ca["nhom"].to_numpy())
 TOK.update({"PH_ALL_N": str(len(ph_tat_ca)), "PH_ALL_MAPE": vn(_ape.mean()), "PH_ALL_LO": vn(_lo), "PH_ALL_HI": vn(_hi)})
@@ -208,7 +214,7 @@ syms = []
 for n in used:
     p = os.path.join(S, "icons", n + ".svg")
     if not os.path.exists(p): continue
-    inner = re.search(r"<svg[^>]*>(.*)</svg>", open(p, encoding="utf-8").read(), re.S).group(1)
+    inner = re.search(r"<svg[^>]*>(.*)</svg>", open(p, encoding="utf-8").read(), re.DOTALL).group(1)
     syms.append(f'<symbol id="i-{n}" viewBox="0 0 24 24">' + re.sub(r"\s*\n\s*", "", inner).replace(" />", "/>") + "</symbol>")
 sprite = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' + "".join(syms) + "</svg>"
 out = tpl.replace("<!--@@ICONS@@-->", "<!-- Icon: Lucide (ISC) -->\n" + sprite).replace("/*@@DATA@@*/", "\n".join(data))
