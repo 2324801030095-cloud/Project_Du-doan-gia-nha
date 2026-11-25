@@ -33,7 +33,10 @@ def hien_thi(r):
                                   cn="Đăng " + pd.to_datetime(x["ngay_dang"]).strftime("%d/%m/%Y"), hd=None)
     return dict(duong=None, huong=None, so=None, cn=None, hd=None)
 
-ph = df[df["phuong"] == "phu hoa"].copy()
+# Notebook học trên MỌI kỳ thu thập (gồm cả tin đã gỡ); trang chỉ hiển thị tin CÒN RAO ở kỳ mới nhất của từng nguồn
+con_rao = lambda d: (d["ngay_thu_thap"].astype(str) == d.groupby("nguon")["ngay_thu_thap"].transform("max").astype(str)) if "ngay_thu_thap" in d else pd.Series(True, index=d.index)
+ph_tat_ca = df[df["phuong"] == "phu hoa"].copy()
+ph = ph_tat_ca[con_rao(ph_tat_ca)].copy()
 L = []
 for _, r in ph.iterrows():
     num = lambda k, d=1: None if pd.isna(r[k]) else round(float(r[k]), d)
@@ -131,7 +134,7 @@ def them(d, loai, gia_col, don_gia, nhan, chinh_xac):
     for _, r in d[chinh_xac].iterrows():
         PTS.append([round(float(r["lat"]), 5), round(float(r["lon"]), 5), round(float(don_gia(r)), 1), loai, round(float(r[gia_col]), 3), str(nhan(r))[:70], r["url"]])
 cx = lambda d: d["muc_toa_do"].astype(str).str[:1].isin(["1", "2"]) & d["lat"].notna()
-them(df, "nha", "gia_ty", lambda r: r["gia_ty"] * 1000 / r["dt_dat"], lambda r: r["tieu_de"], cx(df))
+them(df, "nha", "gia_ty", lambda r: r["gia_ty"] * 1000 / r["dt_dat"], lambda r: r["tieu_de"], cx(df) & con_rao(df))
 # Căn hộ: 1 chấm cho mỗi dự án / tòa (tọa độ trung vị các tin của dự án), kèm danh sách căn trong tòa.
 # Căn không rõ dự án đứng riêng 1 chấm. Tin chỉ có tọa độ tâm phường thì không vẽ (vị trí không chính xác).
 def can_ho_web(r):
@@ -183,9 +186,9 @@ TOK.update({"DAT_N": vn(DAT.get("so_lo", 0), 0), "DAT_TDM": vn(DAT.get("so_lo_td
 
 # Bằng chứng (3): dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (notebook nhà phố, Bước 10)
 from mo_hinh_gia import ktc_bootstrap as _ktc
-_ape = (ph["gia_uoc_luong_ty"] / ph["gia_ty"] - 1).abs().to_numpy() * 100
-_lo, _hi = _ktc(_ape, ph["nhom"].to_numpy())
-TOK.update({"PH_ALL_N": str(len(ph)), "PH_ALL_MAPE": vn(_ape.mean()), "PH_ALL_LO": vn(_lo), "PH_ALL_HI": vn(_hi)})
+_ape = (ph_tat_ca["gia_uoc_luong_ty"] / ph_tat_ca["gia_ty"] - 1).abs().to_numpy() * 100
+_lo, _hi = _ktc(_ape, ph_tat_ca["nhom"].to_numpy())
+TOK.update({"PH_ALL_N": str(len(ph_tat_ca)), "PH_ALL_MAPE": vn(_ape.mean()), "PH_ALL_LO": vn(_lo), "PH_ALL_HI": vn(_hi)})
 
 for k, v in TOK.items():
     tpl = tpl.replace(f"@@{k}@@", v)

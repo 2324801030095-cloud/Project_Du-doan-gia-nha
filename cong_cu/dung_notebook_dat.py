@@ -27,11 +27,11 @@ md(r"""
 """)
 
 md(r"""
-**Phạm vi kiến thức** (toàn bộ notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học):
+**Phạm vi kiến thức** (notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học). Bước 4a là **Phần A**: chỉ dùng các mô hình của môn học; Bước 4b trở đi là **Phần B** (nâng cao):
 
 | Trong môn học (bài giảng / thực hành) | Ngoài môn học (nâng cao) |
 |---|---|
-| Tiền xử lý: thiếu, trùng, ngoại lai (TH4); trích đặc trưng từ mô tả (TH6); chia train/test; hồi quy tuyến tính có phạt (Ridge, mô hình được chọn); kiểm định chéo K-fold; MAE, MAPE, R² | LightGBM, stacking với mô hình chữ; giá khu vực theo láng giềng gần nhất; chia fold theo nhóm; khoảng tin cậy bootstrap; khoảng giá 80% từ sai số ngoài-fold |
+| Tiền xử lý: thiếu, trùng, ngoại lai (TH4); trích đặc trưng từ mô tả (TH6); chia train/test; **Phần A:** hồi quy tuyến tính, cây quyết định, KNN, SVR, MLP, Random Forest, dò siêu tham số bằng GridSearchCV; hồi quy tuyến tính có phạt (Ridge); kiểm định chéo K-fold; MAE, MAPE, R² | LightGBM, stacking với mô hình chữ; giá khu vực theo láng giềng gần nhất; chia fold theo nhóm; khoảng tin cậy bootstrap; khoảng giá 80% từ sai số ngoài-fold |
 """)
 
 
@@ -42,14 +42,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from IPython.display import display
+from IPython.display import display, Markdown
+nx = lambda s: display(Markdown(s))                                             # in nhận xét có số liệu tính từ kết quả
+vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")   # 1234.5 -> 1.234,5
 
 GOC = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 sys.path.insert(0, str(GOC / "src"))
 RAW, PROC, MODEL_DIR, KET_QUA = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "model", GOC / "ket_qua"
 from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_duong, trich_dac_trung_chu, nhom_gan_trung, MoHinhGia, XepChongChu,
                          BaselineDonGiaPhuong, du_doan_cheo_lap, sai_so_tung_can, ktc_bootstrap, bang_danh_gia,
-                         hieu_chinh_khoang, phan_vi_cho, muc_gia)
+                         hieu_chinh_khoang, phan_vi_cho, muc_gia, mo_hinh_co_ban)
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.linear_model import RidgeCV, Ridge
 from sklearn.pipeline import make_pipeline
@@ -231,7 +233,36 @@ md(r"""
 **Quan sát:** đơn giá đất giảm rõ từ lõi đô thị (Thủ Dầu Một, Thuận An, Dĩ An) ra các huyện phía bắc; trong Thủ Dầu Một, đất mặt tiền có đơn giá cao hơn hẳn đất trong hẻm. Các quan hệ này giống nhà phố, nên ta dùng lại cùng loại đặc trưng.
 
 ## Bước 4: Mô hình
-Chia tập test 20% theo nhóm (riêng cho Thủ Dầu Một, nơi cần định giá); kiểm định chéo 5-fold lặp 3 lần chia theo nhóm trên tập train.
+Chia tập test 20% theo nhóm (riêng cho Thủ Dầu Một, nơi cần định giá). Tập test chỉ dùng một lần, ở cuối Bước 4b.
+""")
+
+code(r"""
+DAC_TRUNG = ["log_dt", "ngang", "dai", "mat_tien_duong", "cap_loi_vao", "hem_rong", "nen_du_an", "tho_cu_toan_bo", "so_rieng", "so_chung",
+             "t_goc", "t_no_hau", "t_kinh_doanh", "t_ban_gap", "t_trung_tam", "lat", "lon", "kc_trung_tam_km"]
+tdm_idx = df.index[df["tdm"] == 1]
+_, vt = next(GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=RANDOM_STATE).split(tdm_idx, groups=df.loc[tdm_idx, "nhom"]))
+nhom_test = set(df.loc[tdm_idx[vt], "nhom"])
+df["tap"] = np.where(df["nhom"].isin(nhom_test), "test", "train")
+tr, te = df[df["tap"] == "train"].reset_index(drop=True), df[df["tap"] == "test"].reset_index(drop=True)
+print(f"Train {len(tr)} lô (TDM {tr['tdm'].sum()}) | Test {len(te)} lô Thủ Dầu Một")
+""")
+
+md(r"""
+### Bước 4a: Phần A – các mô hình cơ bản của môn học
+Giống Phần A của notebook chính: hồi quy tuyến tính (TH6), cây quyết định (bài giảng 3, TH9/TH10), KNN (TH10), SVR (bài giảng 6), mạng nơ-ron MLP (bài giảng 4) và Random Forest (TH10). Đặc trưng chỉ là thông số của chính lô đất (danh sách `DAC_TRUNG` ở ô trên), **không** dùng giá đất khu vực (kỹ thuật nâng cao của Phần B). Mục tiêu log(giá); ô thiếu điền trung vị của tập train; chuẩn hóa cho các mô hình dựa trên khoảng cách / gradient. Siêu tham số và mô hình chọn bằng `GridSearchCV`, kiểm định chéo 5-fold trên tập train (TH11).
+""")
+
+code(r"""
+bang_a, TOT_A, TAO_A = mo_hinh_co_ban(tr, DAC_TRUNG, baseline=BaselineDonGiaPhuong, seed=RANDOM_STATE)
+print("Phần A – kiểm định chéo 5-fold trên tập train (sắp theo sai số kiểm định; MAE trên log(giá)):"); display(bang_a.round(3))
+mo_hinh_a = TAO_A[TOT_A]().fit(tr[DAC_TRUNG].astype(float), tr["y"])     # học lại trên toàn bộ tập train; chấm test ở cuối Bước 4b
+pa = lambda t: vn(bang_a.loc[t, "MAE ≈ sai số %"], 0)
+nx(f'''**Đọc kết quả Phần A:** mô hình cơ bản tốt nhất là **{TOT_A}** (≈ {pa(TOT_A)}% theo kiểm định chéo); thứ tự: {"; ".join(f"{t} ≈ {pa(t)}%" for t in bang_a.index)}. {"Baseline đơn giá phường vẫn tốt hơn mọi mô hình cơ bản: chỉ nhìn thông số lô đất thì mô hình không nắm được mặt bằng giá từng khu." if bang_a.index[0] == "Baseline" else "Mô hình cơ bản " + ("thắng rõ" if bang_a.loc["Baseline", "MAE ≈ sai số %"] - bang_a.loc[TOT_A, "MAE ≈ sai số %"] >= 1 else "chỉ nhỉnh hơn") + " baseline đơn giá phường dù không dùng giá khu vực."} {"Sai số phần học thấp hơn hẳn sai số kiểm định ở " + ", ".join(qk) + ": dấu hiệu **quá khớp** (bài giảng 3); siêu tham số được chọn ở điểm sai số kiểm định thấp nhất." if (qk := [t for t in bang_a.index if bang_a.loc[t, "MAE log – phần học"] < 0.8 * bang_a.loc[t, "MAE log – kiểm định"]]) else "Không mô hình nào có dấu hiệu quá khớp rõ."}''')
+""")
+
+md(r"""
+### Bước 4b: Phần B – nâng cao
+Kiểm định chéo 5-fold lặp 3 lần chia theo nhóm trên tập train; đặc trưng của Phần A cộng thêm **giá đất khu vực**.
 
 | Mô hình | Ý tưởng |
 |---|---|
@@ -244,21 +275,12 @@ Chia tập test 20% theo nhóm (riêng cho Thủ Dầu Một, nơi cần định
 """)
 
 code(r"""
-DAC_TRUNG = ["log_dt", "ngang", "dai", "mat_tien_duong", "cap_loi_vao", "hem_rong", "nen_du_an", "tho_cu_toan_bo", "so_rieng", "so_chung",
-             "t_goc", "t_no_hau", "t_kinh_doanh", "t_ban_gap", "t_trung_tam", "lat", "lon", "kc_trung_tam_km"]
 lgb = lambda: LGBMRegressor(n_estimators=600, learning_rate=0.03, num_leaves=15, min_child_samples=12, subsample=0.8, subsample_freq=1,
                             colsample_bytree=0.7, verbose=-1, random_state=0, n_jobs=1)
 MH = {"Baseline (đơn giá phường)": lambda: BaselineDonGiaPhuong(),
       "Ridge": lambda: MoHinhGia(RidgeCV(alphas=np.logspace(-2, 3, 30)), DAC_TRUNG, chuan_hoa=True, muc_tieu="don_gia"),
       "LightGBM": lambda: MoHinhGia(lgb(), DAC_TRUNG, muc_tieu="don_gia"),
       "LightGBM + chữ": lambda: XepChongChu(MoHinhGia(lgb(), DAC_TRUNG + ["t_chu"], muc_tieu="don_gia"))}
-
-tdm_idx = df.index[df["tdm"] == 1]
-_, vt = next(GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=RANDOM_STATE).split(tdm_idx, groups=df.loc[tdm_idx, "nhom"]))
-nhom_test = set(df.loc[tdm_idx[vt], "nhom"])
-df["tap"] = np.where(df["nhom"].isin(nhom_test), "test", "train")
-tr, te = df[df["tap"] == "train"].reset_index(drop=True), df[df["tap"] == "test"].reset_index(drop=True)
-print(f"Train {len(tr)} lô (TDM {tr['tdm'].sum()}) | Test {len(te)} lô Thủ Dầu Một")
 
 OOF = {k: du_doan_cheo_lap(f, tr, so_lan=SO_LAN) for k, f in MH.items()}
 m_tdm = tr["tdm"].to_numpy() == 1
@@ -285,8 +307,12 @@ print(f"Chọn: {ten_chon} (đơn giản nhất không kém mô hình tốt nh�
 
 m = MH[ten_chon]().fit(tr, tr["y"])
 p_te = m.predict(te)
-bang_test = bang_danh_gia(te, {ten_chon: p_te, "Baseline": MH["Baseline (đơn giá phường)"]().fit(tr, tr["y"]).predict(te)}, np.ones(len(te), bool))
+bang_test = bang_danh_gia(te, {ten_chon: p_te, f"Phần A – {TOT_A}": mo_hinh_a.predict(te[DAC_TRUNG].astype(float)),
+                               "Baseline": MH["Baseline (đơn giá phường)"]().fit(tr, tr["y"]).predict(te)}, np.ones(len(te), bool))
 print(f"Tập test ({len(te)} lô Thủ Dầu Một chưa từng thấy):"); display(bang_test.round(2))
+a_, b_ = bang_test.loc[f"Phần A – {TOT_A}"], bang_test.loc[ten_chon]
+chong_ab = a_["MAPE thấp (95%)"] <= b_["MAPE cao (95%)"] and b_["MAPE thấp (95%)"] <= a_["MAPE cao (95%)"]
+nx(f'''**Phần A so với Phần B trên tập test:** Phần A ({TOT_A}) sai {vn(a_["MAPE (%)"])}% (KTC {vn(a_["MAPE thấp (95%)"])}–{vn(a_["MAPE cao (95%)"])}%), Phần B ({ten_chon}) sai {vn(b_["MAPE (%)"])}% (KTC {vn(b_["MAPE thấp (95%)"])}–{vn(b_["MAPE cao (95%)"])}%) → {"hai khoảng chồng nhau: tập test chưa đủ lớn để khẳng định Phần B tốt hơn" if chong_ab else "hai khoảng không chồng nhau: giá đất khu vực của Phần B cải thiện rõ"}.''')
 i_max = np.argmax(np.abs(np.exp(te["y"]) - np.exp(p_te)))
 print(f"Ghi chú: R² tính trên giá tỷ đồng rất nhạy với vài lô lớn; lô lệch nhiều nhất: giá rao {te['gia_ty'][i_max]:.1f} tỷ, "
       f"{te['dt_dat'][i_max]:.0f} m², dự đoán {np.exp(p_te[i_max]):.1f} tỷ. MAPE/MdAPE (theo %) phản ánh đúng hơn.")
@@ -385,6 +411,7 @@ print("Đã lưu: model/mo_hinh_gia_dat.joblib, model/mo_hinh_gia_dat.json, mode
 md(r"""
 ## Kết luận
 - Mô hình định giá **đất ở** (thổ cư, nền dự án) học trên tin bán đất thật của Chợ Tốt và alonhadat, cùng quy trình làm sạch – chống rò rỉ – chọn mô hình như nhà phố và căn hộ. Kết quả ở Bước 4–5.
+- **Phần A** (Bước 4a) dùng đúng các mô hình của môn học trên thông số lô đất; **Phần B** (Bước 4b) thêm giá đất khu vực và gradient boosting. Hai phần được so trên cùng tập test ở cuối Bước 4b.
 - Mỗi lô đất ở Thủ Dầu Một có giá ước lượng, khoảng 80% và chẩn đoán *rẻ / hợp lý / cao* (`ket_qua/output_dat.csv`).
 - Trang demo có mục **Định giá đất** dùng mô hình rút gọn (sai số đã kiểm định ở Bước 6).
 

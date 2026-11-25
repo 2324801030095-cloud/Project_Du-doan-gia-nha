@@ -29,7 +29,7 @@ Hai notebook định giá trả lời *"căn này đáng giá bao nhiêu?"*. Ng�
 """)
 
 md(r"""
-**Phạm vi kiến thức** (toàn bộ notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học):
+**Phạm vi kiến thức** (notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học). Ở Bước 3, **Phần A** chỉ dùng các mô hình của môn học, **Phần B** dùng kỹ thuật nâng cao; hai phần được so trên cùng tập test:
 
 | Trong môn học (bài giảng / thực hành) | Ngoài môn học (nâng cao) |
 |---|---|
@@ -44,12 +44,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from IPython.display import display
+from IPython.display import display, Markdown
+nx = lambda s: display(Markdown(s))                                             # in nhận xét có số liệu tính từ kết quả
+vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")   # 1234.5 -> 1.234,5
 
 GOC = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 sys.path.insert(0, str(GOC / "src"))
 RAW, PROC, MODEL_DIR, KET_QUA = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "model", GOC / "ket_qua"
-from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_duong, ten_du_an, trich_dac_trung_chu, nhom_gan_trung,
+from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_duong, ten_du_an, trich_dac_trung_chu, nhom_gan_trung, mo_hinh_co_ban,
                          MoHinhGia, du_doan_cheo_lap, sai_so_tung_can, ktc_bootstrap, bang_danh_gia, hieu_chinh_khoang)
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.linear_model import RidgeCV
@@ -167,18 +169,23 @@ loai = np.where(nha["mat_tien_duong"] == 1, "Mặt tiền", "Trong hẻm / khác
 sns.boxplot(x=loai, y=nha["gia_ty"], ax=axes[2], showfliers=False, color="#f4cccc"); axes[2].set(title="Nhà: giá thuê theo lối vào", xlabel="", ylabel="triệu đồng / tháng")
 plt.tight_layout(); plt.show()
 print("Giá thuê trung vị – căn hộ:", round(ch["gia_ty"].median(), 1), "triệu/tháng | nhà:", round(nha["gia_ty"].median(), 1), "triệu/tháng")
+print("Nhà – giá thuê trung vị theo lối vào (triệu/tháng):", nha.groupby(loai)["gia_ty"].median().round(1).to_dict())
 """)
 
 md(r"""
-**Quan sát:** giá thuê căn hộ tăng theo số phòng ngủ và mức nội thất (căn đầy đủ nội thất cho thuê đắt hơn rõ). Nhà mặt tiền cho thuê đắt hơn nhà trong hẻm (trung vị khoảng 10 so với 8,5 triệu/tháng) vì có thể dùng để **kinh doanh**.
+**Quan sát:** giá thuê căn hộ tăng theo số phòng ngủ và mức nội thất (căn đầy đủ nội thất cho thuê đắt hơn rõ). Nhà mặt tiền cho thuê đắt hơn nhà trong hẻm (trung vị in ở dòng cuối ô trên) vì có thể dùng để **kinh doanh**.
 
 ## Bước 3: Mô hình giá thuê
 Cùng quy trình hai notebook định giá: tập test giữ riêng 20% số nhóm; kiểm định chéo 5-fold lặp 3 lần **chia theo nhóm** trên tập train; chọn mô hình **đơn giản nhất không kém mô hình tốt nhất một cách có ý nghĩa**.
 
+**Phần A – mô hình cơ bản của môn học** (giống Phần A của notebook chính): hồi quy tuyến tính (TH6), cây quyết định (bài giảng 3, TH9/TH10), KNN (TH10), SVR (bài giảng 6), mạng nơ-ron MLP (bài giảng 4), Random Forest (TH10). Chỉ dùng thông số của chính căn (không dùng giá thuê khu vực); mục tiêu log(giá thuê); siêu tham số và mô hình chọn bằng `GridSearchCV` với kiểm định chéo 5-fold trên tập train (TH11).
+
+**Phần B – nâng cao:**
+
 | Mô hình | Ý tưởng |
 |---|---|
 | Baseline | Giá thuê/m² trung vị của dự án (căn hộ) hoặc của phường (nhà) × diện tích |
-| Ridge | Hồi quy tuyến tính trên log(giá thuê/m²) |
+| Ridge | Hồi quy tuyến tính trên log(giá thuê/m²), cộng giá thuê khu vực |
 | LightGBM | Gradient boosting |
 
 Đặc trưng: diện tích, phòng ngủ, WC, nội thất, (căn hộ: tầng, nhà ở xã hội; nhà: số tầng, ngang, dài, mặt tiền, lối vào, độ rộng hẻm), tọa độ, khoảng cách trung tâm, **giá thuê khu vực** (12 căn gần nhất, cùng phường, cùng dự án / tuyến đường – chỉ tính trên tập học).
@@ -210,10 +217,15 @@ def danh_gia(d, ten_loai, dt, tang_bac):
     _, vt = next(GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=RANDOM_STATE).split(d, groups=d["nhom"]))
     d = d.assign(tap=np.where(d.index.isin(vt), "test", "train"))
     tr, te = d[d["tap"] == "train"].reset_index(drop=True), d[d["tap"] == "test"].reset_index(drop=True)
+    # Phần A: mô hình của môn học trên thông số của căn, chọn bằng kiểm định chéo trên tập train
+    bang_a, tot_a, tao_a = mo_hinh_co_ban(tr, dt, baseline=BaselineThue, seed=RANDOM_STATE)
+    print(f"== {ten_loai} – Phần A: kiểm định chéo 5-fold ({len(tr)} tin train; MAE trên log(giá thuê))"); display(bang_a.round(3))
+    mo_hinh_a = tao_a[tot_a]().fit(tr[dt].astype(float), tr["y"])
+    # Phần B
     MH = mo_hinh(dt, tang_bac)
     OOF = {k: du_doan_cheo_lap(f, tr, so_lan=SO_LAN) for k, f in MH.items()}
     bang = bang_danh_gia(tr, OOF, np.ones(len(tr), bool)).rename(columns={"MAE (tỷ)": "MAE (triệu/tháng)"}).sort_values("MAPE (%)")
-    print(f"== {ten_loai}: kiểm định chéo lặp {SO_LAN} lần ({len(tr)} tin train)"); display(bang.round(2))
+    print(f"== {ten_loai} – Phần B: kiểm định chéo lặp {SO_LAN} lần ({len(tr)} tin train)"); display(bang.round(2))
     APE = {k: sai_so_tung_can(tr, P) for k, P in OOF.items()}
     uv = [k for k in MH if not k.startswith("Baseline")]
     tot = min(uv, key=lambda k: APE[k].mean())
@@ -225,10 +237,14 @@ def danh_gia(d, ten_loai, dt, tang_bac):
     lo, hi = ktc_bootstrap(APE["Baseline (giá thuê/m² khu vực)"] - APE[chon], tr["nhom"].to_numpy())
     print(f"Chọn: {chon} (MAPE thấp nhất: {tot}). So với baseline: giảm {np.mean(APE['Baseline (giá thuê/m² khu vực)'] - APE[chon]):.2f} điểm % (KTC 95% {lo:+.2f} … {hi:+.2f})")
     m = MH[chon]().fit(tr, tr["y"])
-    bt = bang_danh_gia(te, {chon: m.predict(te), "Baseline": MH["Baseline (giá thuê/m² khu vực)"]().fit(tr, tr["y"]).predict(te)}, np.ones(len(te), bool))
+    bt = bang_danh_gia(te, {chon: m.predict(te), f"Phần A – {tot_a}": mo_hinh_a.predict(te[dt].astype(float)),
+                            "Baseline": MH["Baseline (giá thuê/m² khu vực)"]().fit(tr, tr["y"]).predict(te)}, np.ones(len(te), bool))
     print(f"Tập test ({len(te)} tin):"); display(bt.rename(columns={"MAE (tỷ)": "MAE (triệu/tháng)"}).round(2))
+    a_, b_ = bt.loc[f"Phần A – {tot_a}"], bt.loc[chon]
+    chong = a_["MAPE thấp (95%)"] <= b_["MAPE cao (95%)"] and b_["MAPE thấp (95%)"] <= a_["MAPE cao (95%)"]
+    nx(f'''**{ten_loai.capitalize()} – Phần A so với Phần B trên tập test:** Phần A ({tot_a}) sai {vn(a_["MAPE (%)"])}% (KTC {vn(a_["MAPE thấp (95%)"])}–{vn(a_["MAPE cao (95%)"])}%), Phần B ({chon}) sai {vn(b_["MAPE (%)"])}% (KTC {vn(b_["MAPE thấp (95%)"])}–{vn(b_["MAPE cao (95%)"])}%) → {"hai khoảng chồng nhau: chưa đủ bằng chứng Phần B tốt hơn" if chong else "hai khoảng không chồng nhau: giá thuê khu vực của Phần B cải thiện rõ"}.''')
     R = tr["y"].to_numpy() - OOF[chon]
-    return {"ten": chon, "MH": MH, "bang": bang, "test": bt, "khoang": hieu_chinh_khoang(R.ravel(), np.zeros(R.size, int)), "d": d}
+    return {"ten": chon, "phan_a": bang_a, "MH": MH, "bang": bang, "test": bt, "khoang": hieu_chinh_khoang(R.ravel(), np.zeros(R.size, int)), "d": d}
 
 KQ_CH = danh_gia(ch, "CĂN HỘ cho thuê", DT_CH, True)
 KQ_NHA = danh_gia(nha, "NHÀ cho thuê", DT_NHA, False)
@@ -308,12 +324,16 @@ axes[1].scatter(ban_ch["gia_ty"], ban_ch["ty_suat_pt"], s=10, alpha=0.4, label="
 axes[1].scatter(ban_nha.loc[ban_nha["tdm"] == 1, "gia_ty"], ban_nha.loc[ban_nha["tdm"] == 1, "ty_suat_pt"], s=10, alpha=0.4, color="#C44E52", label="Nhà phố TDM")
 axes[1].set(xscale="log", title="Tỷ suất cho thuê theo giá bán", xlabel="Giá rao bán (tỷ, log)", ylabel="% / năm"); axes[1].legend()
 plt.tight_layout(); plt.show()
+from scipy.stats import spearmanr
+nha_tdm = ban_nha[ban_nha["tdm"] == 1]
+rho_nha, rho_ch = spearmanr(nha_tdm["gia_ty"], nha_tdm["ty_suat_pt"])[0], spearmanr(ban_ch["gia_ty"], ban_ch["ty_suat_pt"])[0]
+ts_ch, ts_nha = ban_ch["ty_suat_pt"].median(), nha_tdm["ty_suat_pt"].median()
+nx(f'''**Quan sát:**
+- {"**Căn hộ cho tỷ suất cho thuê cao hơn nhà phố**" if ts_ch > ts_nha else "**Nhà phố cho tỷ suất cho thuê không thấp hơn căn hộ**"} (trung vị {vn(ts_ch)}%/năm so với {vn(ts_nha)}%/năm ở nhà phố Thủ Dầu Một){": căn hộ dễ cho thuê (gần khu công nghiệp, khu đô thị), còn giá nhà phố chủ yếu nằm ở **giá trị đất**, giá thuê không theo kịp" if ts_ch > ts_nha else ""}.
+- {"**Căn càng đắt thì tỷ suất càng thấp**" if max(rho_nha, rho_ch) < 0 else "Tỷ suất **không giảm rõ** theo giá bán"} (tương quan hạng Spearman giữa giá bán và tỷ suất: {vn(rho_nha, 2)} với nhà phố Thủ Dầu Một, {vn(rho_ch, 2)} với căn hộ){": giá bán tăng nhanh hơn giá thuê. Người mua nhà phố đắt tiền chủ yếu kỳ vọng **tăng giá đất**, không phải dòng tiền cho thuê" if max(rho_nha, rho_ch) < 0 else ""}.''')
 """)
 
 md(r"""
-**Quan sát:**
-- **Căn hộ cho tỷ suất cho thuê cao hơn nhà phố**: căn hộ dễ cho thuê (gần khu công nghiệp, khu đô thị), còn giá nhà phố chủ yếu nằm ở **giá trị đất**, giá thuê không theo kịp.
-- **Căn càng đắt thì tỷ suất càng thấp** (tương quan hạng giữa giá bán và tỷ suất: khoảng −0,6 với nhà phố, −0,7 với căn hộ): giá bán tăng nhanh hơn giá thuê. Người mua nhà phố đắt tiền chủ yếu kỳ vọng **tăng giá đất**, không phải dòng tiền cho thuê.
 - Tỷ suất ở đây là **gộp**. Sau khi trừ thuế cho thuê, phí quản lý, sửa chữa và thời gian nhà trống, tỷ suất thực nhận thường thấp hơn 1–2 điểm %.
 
 ## Bước 6: Lưu mô hình và kết quả
@@ -335,7 +355,7 @@ def bang_m2(d, khoa, m=3.0):
     out = {"toan_vung": round(g, 4), "phuong": {k: round(v, 4) for k, v in ph_v.items()}}
     if khoa:
         dd = pd.DataFrame({"u": u, "k": d[khoa], "ph": d["quan"] + "|" + d["phuong"].astype(str)}).dropna(subset=["k"])
-        out["du_an"] = {k: round(float((x["u"].sum() + m * ph_v.get(x["ph"].mode()[0], g)) / (len(x) + m)), 4) for k, x in dd.groupby("k")}
+        out["du_an"] = {k: round(float((x["u"].sum() + m * ph_v.get(next(iter(x["ph"].mode()), None), g)) / (len(x) + m)), 4) for k, x in dd.groupby("k")}
         out["so_tin_du_an"] = dd.groupby("k").size().astype(int).to_dict()
     return out
 web = {"can_ho": bang_m2(ch, "du_an"), "nha": bang_m2(nha, None),
@@ -363,8 +383,9 @@ print("Đã lưu:", "model/mo_hinh_gia_thue.joblib, model/gia_thue_web.json, ket
 md(r"""
 ## Kết luận
 - Mô hình giá thuê học trên **tin cho thuê thật** (căn hộ và nhà phố), đánh giá bằng cùng quy trình khắt khe như hai mô hình định giá (sai số ở Bước 3).
+- **Phần A** dùng đúng các mô hình của môn học trên thông số của căn; **Phần B** thêm giá thuê khu vực. Hai phần được so trên cùng tập test ở Bước 3.
 - Áp mô hình cho từng căn đang rao bán cho ra **tỷ suất cho thuê gộp** và **số năm hoàn vốn**. Tỷ suất của mô hình được kiểm chứng chéo với tỷ suất tính thẳng từ dữ liệu ở các dự án có cả tin bán lẫn tin thuê.
-- Kết luận đầu tư từ dữ liệu: căn hộ cho tỷ suất cho thuê cao hơn nhà phố; nhà phố đắt tiền chủ yếu là kênh giữ giá trị đất, ít sinh dòng tiền.
+- Kết luận đầu tư từ dữ liệu (tỷ suất căn hộ so với nhà phố, tỷ suất theo mức giá) được in kèm số liệu ở Bước 5.
 
 **Hạn chế:** giá thuê cũng là **giá rao**; tỷ suất là **gộp** (chưa trừ chi phí, thời gian trống); tin cho thuê nhà phố lẫn cả mặt bằng kinh doanh.
 """)

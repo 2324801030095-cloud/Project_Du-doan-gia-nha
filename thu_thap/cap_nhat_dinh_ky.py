@@ -66,6 +66,13 @@ if g.exists():
     ngay = str(pd.read_csv(g, usecols=["ngay_thu_thap"])["ngay_thu_thap"].iloc[0])
     if not (LS / f"guland_{ngay}.csv").exists():
         shutil.copyfile(g, LS / f"guland_{ngay}.csv")
+    # guland chặn trình duyệt tự động (Cloudflare "Just a moment...", 403 cả với Chrome headless) nên không thể đưa vào lịch tự động.
+    # Phần lớn tin Phú Hòa đến từ guland: nhắc thu thập tay khi ảnh chụp đã cũ.
+    tuoi = (dt.date.today() - dt.date.fromisoformat(ngay)).days
+    if tuoi >= 14:
+        loi.append(f"guland cũ {tuoi} ngày")
+        print(f"   NHẮC: dữ liệu guland (nguồn chính của Phú Hòa) đã {tuoi} ngày - chạy thu_thap/guland_thu_thap.js trong trình duyệt "
+              "rồi chép file thành data/raw/nha_phu_hoa_guland_raw.csv", flush=True)
 import pandas as pd
 import re
 bang = [(m[1], m[2], len(pd.read_csv(p, usecols=["ngay_thu_thap"]))) for p in LS.glob("*.csv")

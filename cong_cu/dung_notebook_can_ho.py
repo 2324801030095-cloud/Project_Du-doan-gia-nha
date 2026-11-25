@@ -31,15 +31,15 @@ Gộp chung một mô hình sẽ làm sai cả hai loại, nên ta dùng cùng *
 
 **Dữ liệu:** tin rao bán căn hộ thật trên Chợ Tốt Nhà (toàn Bình Dương cũ) và alonhadat (Thủ Dầu Một). Không có dữ liệu mô phỏng.
 
-> Chạy lần lượt các ô từ trên xuống (Restart & Run All, khoảng 3–5 phút).
+> Chạy lần lượt các ô từ trên xuống (Restart & Run All, vài phút).
 """)
 
 md(r"""
-**Phạm vi kiến thức** (toàn bộ notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học):
+**Phạm vi kiến thức** (notebook này là **phần mở rộng** của đề tài; notebook chính `2324801030095.ipynb` mới là bài làm theo môn học). Bước 6b là **Phần A**: chỉ dùng các mô hình của môn học; từ Bước 7 là **Phần B** (nâng cao):
 
 | Trong môn học (bài giảng / thực hành) | Ngoài môn học (nâng cao) |
 |---|---|
-| Tiền xử lý: thiếu, trùng, ngoại lai (TH4); trích đặc trưng từ mô tả (TH6); chia train/test; hồi quy tuyến tính có phạt (Ridge); kiểm định chéo K-fold; MAE, MAPE, R² | LightGBM với hàm mất mát Huber; stacking với mô hình chữ TF-IDF; đơn giá dự án/phường phân tầng (target encoding có co); chia fold theo nhóm tin gần trùng; khoảng tin cậy bootstrap; khoảng giá 80% từ sai số ngoài-fold |
+| Tiền xử lý: thiếu, trùng, ngoại lai (TH4); trích đặc trưng từ mô tả (TH6); chia train/test; **Phần A:** hồi quy tuyến tính, cây quyết định, KNN, SVR, MLP, Random Forest; dò siêu tham số bằng GridSearchCV; hồi quy tuyến tính có phạt (Ridge); kiểm định chéo K-fold; MAE, MAPE, R² | LightGBM với hàm mất mát Huber; stacking với mô hình chữ TF-IDF; đơn giá dự án/phường phân tầng (target encoding có co); chia fold theo nhóm tin gần trùng; khoảng tin cậy bootstrap; khoảng giá 80% từ sai số ngoài-fold |
 """)
 
 
@@ -62,7 +62,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from IPython.display import display
+from IPython.display import display, Markdown
+nx = lambda s: display(Markdown(s))                                             # in nhận xét có số liệu tính từ kết quả
+vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")   # 1234.5 -> 1.234,5
 
 import sys
 # Thư mục gốc của đề tài: notebook nằm trong notebooks/, mã dùng chung ở src/, dữ liệu ở data/
@@ -72,7 +74,7 @@ RAW, PROC, LICH_SU = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "da
 MODEL_DIR, KET_QUA = GOC / "model", GOC / "ket_qua"
 MODEL_DIR.mkdir(exist_ok=True); KET_QUA.mkdir(exist_ok=True); PROC.mkdir(parents=True, exist_ok=True)
 from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_du_an, trich_dac_trung_chu, nhom_gan_trung, hieu_chinh_khoang, phan_vi_cho,
-                         MoHinhGia, XepChongChu, BaselineDonGiaDuAn,
+                         MoHinhGia, XepChongChu, BaselineDonGiaDuAn, mo_hinh_co_ban,
                          du_doan_cheo_lap, sai_so_tung_can, ktc_bootstrap, bang_danh_gia)
 
 warnings.filterwarnings("ignore")
@@ -168,7 +170,7 @@ md(r"""
 
 1. **Phạm vi:** giá 0,3–15 tỷ, diện tích sử dụng 20–250 m², đơn giá 8–150 triệu/m².
 2. **Tin trùng khớp hẳn** (cùng quận, cùng giá, cùng diện tích): giữ 1 dòng, gộp thông tin.
-3. **Giá "chỉ từ"**: tin bán của chủ đầu tư thường ghi "giá chỉ từ 1,8 tỷ". Đó là giá **thấp nhất của cả dự án**, không phải giá của căn đang rao, nên loại. Giá mồi kiểu "2 tỷ xxx" và tin đăng **"bảng giá"** của cả dự án (không phải một căn cụ thể) cũng bị loại.
+3. **Giá "chỉ từ"**: tin bán của chủ đầu tư thường ghi "giá chỉ từ … tỷ". Đó là giá **thấp nhất của cả dự án**, không phải giá của căn đang rao, nên loại. Giá mồi kiểu "2 tỷ xxx" và tin đăng **"bảng giá"** của cả dự án (không phải một căn cụ thể) cũng bị loại.
 4. **Đơn giá lệch hơn 2,5 lần** so với 10 căn hộ gần nhất: gần như chắc chắn là lỗi nhập.
 5. **Tọa độ:** tin thiếu tọa độ lấy tọa độ trung vị của dự án, nếu không có thì lấy tâm phường.
 6. **Nhóm tin gần trùng** (cùng căn đăng lại) dùng cho đánh giá. Khác nhà phố, với căn hộ chỉ gom khi **nội dung tin giống nhau**. Một dự án có rất nhiều căn cùng mẫu (cùng diện tích, giá gần nhau) nhưng là các căn khác nhau. Nếu gom theo "cùng dự án + cùng diện tích", cả dự án bị giấu khỏi tập học khi kiểm tra, và mô hình bị đánh giá sai (đoán cao giá nhà ở xã hội có nhiều căn giống hệt nhau).
@@ -289,11 +291,42 @@ pd.crosstab(df["tap"], np.where(df["tdm"] == 1, "Thủ Dầu Một", "Huyện/TP
 """)
 
 md(r"""
+## Bước 6b: Phần A – các mô hình cơ bản của môn học
+Trước khi dùng kỹ thuật nâng cao, thử đúng các mô hình học có giám sát trong bài giảng / thực hành, giống Phần A của notebook chính:
+
+| Mô hình | Nguồn trong môn học |
+|---|---|
+| Hồi quy tuyến tính | Thực hành TH6 |
+| Cây quyết định (chọn độ sâu) | Bài giảng 3, TH9/TH10 |
+| KNN (chọn k) | Thực hành TH10 |
+| SVM hồi quy (SVR, kernel RBF) | Bài giảng 6, TH10 |
+| Mạng nơ-ron MLP | Bài giảng 4 |
+| Random Forest | Thực hành TH10 |
+
+**Đặc trưng:** chỉ thông số của chính căn hộ (log diện tích, phòng ngủ, WC, tầng, nhà ở xã hội, pháp lý, nội thất, tọa độ, khoảng cách trung tâm, từ khóa trong mô tả). **Không** dùng đơn giá của dự án hay của các căn lân cận: đó là kỹ thuật nâng cao (target encoding) của Phần B. Mục tiêu là log(giá). Ô thiếu điền bằng trung vị của tập train; KNN, SVR, MLP và hồi quy tuyến tính được chuẩn hóa đặc trưng trước.
+
+**Chọn siêu tham số và chọn mô hình** bằng `GridSearchCV` với kiểm định chéo 5-fold trên tập train (như TH11); tập test chưa dùng ở đây.
+""")
+
+code(r"""
+DAC_TRUNG = ["log_dt", "phong_ngu", "so_wc", "tang_so", "noxh", "loai_dac_biet", "can_ho_dich_vu", "da_ban_giao", "so_hong",
+             "noi_that_cap", "lat", "lon", "kc_trung_tam_km"] + CO_CHU
+bang_a, TOT_A, TAO_A = mo_hinh_co_ban(train, DAC_TRUNG, baseline=BaselineDonGiaDuAn, seed=RANDOM_STATE)
+print("Phần A – kiểm định chéo 5-fold trên tập train (sắp theo sai số kiểm định; MAE trên log(giá)):"); display(bang_a.round(3))
+mo_hinh_a = TAO_A[TOT_A]().fit(train[DAC_TRUNG].astype(float), train["y"])        # học lại trên toàn bộ tập train; chấm test ở Bước 8
+pa = lambda t: vn(bang_a.loc[t, "MAE ≈ sai số %"], 0)
+nx(f'''**Đọc kết quả Phần A:** mô hình cơ bản tốt nhất là **{TOT_A}** (≈ {pa(TOT_A)}% theo kiểm định chéo); thứ tự các mô hình: {"; ".join(f"{t} ≈ {pa(t)}%" for t in bang_a.index)}. {"Baseline đơn giá dự án vẫn **tốt hơn** mọi mô hình cơ bản: khi chỉ nhìn thông số của căn hộ, mô hình không biết căn thuộc dự án nào, mà dự án là yếu tố quyết định giá căn hộ (Bước 5). Đây là lý do Phần B đưa đơn giá dự án vào làm đặc trưng." if bang_a.index[0] == "Baseline" else "Mô hình cơ bản " + ("thắng rõ" if bang_a.loc["Baseline", "MAE ≈ sai số %"] - bang_a.loc[TOT_A, "MAE ≈ sai số %"] >= 1 else "chỉ nhỉnh hơn") + " baseline đơn giá dự án dù không biết căn thuộc dự án nào."} {"Sai số phần học thấp hơn hẳn sai số kiểm định ở " + ", ".join(qk) + ": dấu hiệu **quá khớp** (bài giảng 3); siêu tham số được chọn ở điểm sai số kiểm định thấp nhất." if (qk := [t for t in bang_a.index if bang_a.loc[t, "MAE log – phần học"] < 0.8 * bang_a.loc[t, "MAE log – kiểm định"]]) else "Không mô hình nào có dấu hiệu quá khớp rõ."}''')
+""")
+
+md(r"""
+---
+# PHẦN B – NÂNG CAO (kiến thức ngoài bài giảng)
+
 ## Bước 7: So sánh và chọn mô hình
 
 **Đặc trưng:** log(diện tích sử dụng), phòng ngủ, WC, tầng của căn, nhà ở xã hội, duplex/penthouse, căn hộ dịch vụ, đã bàn giao, sổ hồng, mức nội thất, tọa độ, khoảng cách tới trung tâm TDM, các từ khóa; cộng với **giá khu vực**: đơn giá trung bình của **dự án** (`lg_duong`), của phường, và của 12 căn hộ gần nhất (chỉ tính trên tập học, không dùng giá của chính căn đó).
 
-**Co theo tầng bậc:** dự án có ít tin thì đơn giá trung bình của nó kém chắc chắn, nên được "co" về một giá trị nền. Với căn hộ, giá trị nền là **đơn giá của phường, tính riêng cho từng phân khúc** (nhà ở xã hội / thương mại), chứ không phải đơn giá toàn vùng. Nếu co về toàn vùng, một dự án nhà ở xã hội 12 tr/m² chỉ có vài tin sẽ bị kéo lên gần mức căn hộ thương mại (~35 tr/m²). Mô hình còn được biết dự án có bao nhiêu tin (`n_duong`) để tự quyết định tin con số đó đến đâu.
+**Co theo tầng bậc:** dự án có ít tin thì đơn giá trung bình của nó kém chắc chắn, nên được "co" về một giá trị nền. Với căn hộ, giá trị nền là **đơn giá của phường, tính riêng cho từng phân khúc** (nhà ở xã hội / thương mại), chứ không phải đơn giá toàn vùng. Nếu co về toàn vùng, một dự án nhà ở xã hội 12 tr/m² chỉ có vài tin sẽ bị kéo lên gần mức căn hộ thương mại (cao hơn nhiều). Mô hình còn được biết dự án có bao nhiêu tin (`n_duong`) để tự quyết định tin con số đó đến đâu.
 
 | # | Mô hình | Ý tưởng |
 |---|---|---|
@@ -309,8 +342,6 @@ code(r"""
 from sklearn.linear_model import RidgeCV
 from lightgbm import LGBMRegressor
 
-DAC_TRUNG = ["log_dt", "phong_ngu", "so_wc", "tang_so", "noxh", "loai_dac_biet", "can_ho_dich_vu", "da_ban_giao", "so_hong",
-             "noi_that_cap", "lat", "lon", "kc_trung_tam_km"] + CO_CHU
 lgb = lambda **k: LGBMRegressor(n_estimators=500, learning_rate=0.03, num_leaves=15, min_child_samples=8, subsample=0.8, subsample_freq=1,
                                 colsample_bytree=0.6, verbose=-1, random_state=0, n_jobs=1, **k)
 MO_HINH = {
@@ -352,7 +383,8 @@ md(r"""
 code(r"""
 mo_hinh_tot = MO_HINH[ten_tot_nhat]().fit(train, train["y"])
 baseline = BaselineDonGiaDuAn().fit(train, train["y"])
-p_test = {ten_tot_nhat: mo_hinh_tot.predict(test), "Baseline (đơn giá dự án)": baseline.predict(test)}
+p_test = {ten_tot_nhat: mo_hinh_tot.predict(test), f"Phần A – {TOT_A}": mo_hinh_a.predict(test[DAC_TRUNG].astype(float)),
+          "Baseline (đơn giá dự án)": baseline.predict(test)}
 m_all, m_tdm = np.ones(len(test), bool), (test["tdm"] == 1).to_numpy()
 bang_test, bang_test_tdm = bang_danh_gia(test, p_test, m_all), bang_danh_gia(test, p_test, m_tdm)
 print("TẬP TEST – tất cả:"); display(bang_test.round(2))
@@ -367,6 +399,9 @@ print(f"Kiểm định chéo: MAPE {cv_['MAPE (%)']:.1f}% (KTC {cv_['MAPE thấp
       f"(KTC {te_['MAPE thấp (95%)']:.1f}–{te_['MAPE cao (95%)']:.1f}) → "
       + ("hai khoảng chồng nhau: test khớp kiểm định chéo." if te_['MAPE thấp (95%)'] <= cv_['MAPE cao (95%)'] and cv_['MAPE thấp (95%)'] <= te_['MAPE cao (95%)']
          else "hai khoảng KHÔNG chồng nhau: cần xem lại."))
+a_ = bang_test.loc[f"Phần A – {TOT_A}"]
+chong_ab = a_["MAPE thấp (95%)"] <= te_["MAPE cao (95%)"] and te_["MAPE thấp (95%)"] <= a_["MAPE cao (95%)"]
+nx(f'''**Phần A so với Phần B trên tập test** (toàn bộ {int(te_["Số căn"])} căn): Phần A ({TOT_A}) sai {vn(a_["MAPE (%)"])}% (KTC {vn(a_["MAPE thấp (95%)"])}–{vn(a_["MAPE cao (95%)"])}%), Phần B ({ten_tot_nhat}) sai {vn(te_["MAPE (%)"])}% (KTC {vn(te_["MAPE thấp (95%)"])}–{vn(te_["MAPE cao (95%)"])}%) → {"hai khoảng chồng nhau: chưa đủ bằng chứng Phần B tốt hơn trên tập test" if chong_ab else "hai khoảng không chồng nhau: phần đơn giá dự án của Phần B cải thiện rõ so với chỉ dùng thông số căn hộ"}.''')
 
 fig, ax = plt.subplots(figsize=(6, 5))
 gt, gd = test["gia_ty"].to_numpy(), np.exp(p_test[ten_tot_nhat])
@@ -474,7 +509,7 @@ class CanHoWeb(BaseEstimator, RegressorMixin):
         s = pd.DataFrame({"u": u, "da": X["du_an"].values, "ph": (X["quan"] + "|" + X["phuong"].astype(str)).values})
         self.g_ = float(np.median(u))
         ph = s.groupby("ph")["u"].agg(["sum", "count"]); self.ph_ = ((ph["sum"] + M_CO * self.g_) / (ph["count"] + M_CO)).to_dict()
-        da = s.dropna(subset=["da"]).groupby("da").agg(sum=("u", "sum"), count=("u", "size"), ph=("ph", lambda x: x.mode()[0]))
+        da = s.dropna(subset=["da"]).groupby("da").agg(sum=("u", "sum"), count=("u", "size"), ph=("ph", lambda x: next(iter(x.mode()), None)))   # mode rỗng khi phường thiếu
         self.da_ = {k: (r["sum"] + M_CO * self.ph_.get(r["ph"], self.g_)) / (r["count"] + M_CO) for k, r in da.iterrows()}
         nen = self._nen(X)
         self.r_ = make_pipeline(SimpleImputer(strategy="median"), StandardScaler(), Ridge(alpha=3.0)).fit(X[WEB].astype(float), u - nen)
@@ -556,13 +591,14 @@ md(r"""
 ## Kết luận
 - Đề tài định giá được **cả hai dạng nhà ở**: nhà gắn liền với đất (notebook `2324801030095.ipynb`) và **căn hộ chung cư** (notebook này), trên dữ liệu tin rao thật, cùng một quy trình đánh giá khắt khe (kiểm định chéo lặp chia theo nhóm, khoảng tin cậy 95%, tập test giữ riêng).
 - Với căn hộ, **dự án** là yếu tố quyết định giá. Mô hình học máy cải thiện thêm so với cách "đơn giá dự án × diện tích" nhờ số phòng, tầng, pháp lý, nội thất và mô tả tin (mức cải thiện và khoảng tin cậy ở Bước 7).
+- **Phần A** (Bước 6b) cho thấy giới hạn của các mô hình trong môn học khi chỉ dùng thông số của căn: thiếu thông tin dự án. Phần B đưa đơn giá dự án (tính trên tập học) vào làm đặc trưng; so sánh hai phần trên tập test ở Bước 8.
 - Mỗi căn hộ Thủ Dầu Một có **chẩn đoán** rẻ / hợp lý / cao so với thị trường (`ket_qua/output_can_ho.csv`).
 
 **Hạn chế**
 - Thủ Dầu Một và đặc biệt **Phú Hòa có ít tin căn hộ**; mô hình dựa nhiều vào dữ liệu Dĩ An, Thuận An. Kết quả riêng cho Phú Hòa chỉ mang tính tham khảo.
 - Dự án có ít tin thì đơn giá dự án kém chắc chắn (mô hình kéo về đơn giá phường). Tin không ghi tên dự án chỉ được định giá theo vị trí.
 - Tin bán mới của chủ đầu tư (giá sơ cấp, nhiều ưu đãi thanh toán) và tin bán lại (thứ cấp) lẫn trong dữ liệu; mô hình nhận biết một phần qua từ khóa `t_so_cap`.
-- **Nhà ở xã hội** chỉ có vài chục tin: mô hình vẫn đoán cao hơn giá rao khoảng 8% (trung vị, bảng ở Bước 8), dù đã co đơn giá theo phân khúc. Với căn nhà ở xã hội nên đọc kèm khoảng giá thay vì một con số.
+- **Nhà ở xã hội** chỉ có vài chục tin: mô hình vẫn có xu hướng đoán cao hơn giá rao (độ lệch trung vị ở bảng phân khúc, Bước 8), dù đã co đơn giá theo phân khúc. Với căn nhà ở xã hội nên đọc kèm khoảng giá thay vì một con số.
 - Vẫn là **giá rao**, chưa phải giá giao dịch.
 """)
 

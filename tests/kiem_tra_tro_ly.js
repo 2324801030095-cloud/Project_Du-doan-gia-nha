@@ -93,7 +93,9 @@ kiem("Giải thích SHAP của mô hình đầy đủ hiển thị trong chi ti�
 
 kiem("Bản đồ căn hộ: mỗi dự án đúng 1 chấm, đủ căn, căn ngoài TDM vẫn lưu được", () => {
   const ds = T.CH_TOA.filter((t) => t.co_du_an), ten = ds.map((t) => t.ten), tong = T.CH_TOA.reduce((s, t) => s + t.n, 0);
-  if (tong < 600) return `chỉ có ${tong} căn trên bản đồ`;
+  // so với số căn hộ sạch notebook đã lưu (dữ liệu đổi theo kỳ); chỉ căn có tọa độ ở tâm phường bị bỏ khỏi bản đồ
+  const n_sach = JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "..", "model", "danh_gia_mo_hinh_can_ho.json"), "utf8")).so_can.tat_ca;
+  if (tong < 0.95 * n_sach) return `chỉ có ${tong}/${n_sach} căn hộ trên bản đồ`;
   if (T.CH_TOA.some((t) => t.n !== t.can.length || !(t.lat > 10.8 && t.lat < 11.7 && t.lon > 106.3 && t.lon < 107))) return "số căn hoặc tọa độ tòa sai";
   const ngoai = T.CH_TOA.flatMap((t) => t.can).find((c) => !T.CH_LIST.some((x) => x.id === c.id));
   return ngoai && T.favItem("c" + ngoai.id) ? "" : "căn ngoài Thủ Dầu Một không lưu được";

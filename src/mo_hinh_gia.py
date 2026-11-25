@@ -403,6 +403,50 @@ def bang_danh_gia(d, du_doan, mask):
     return pd.DataFrame(rows).T[cot]
 
 
+def mo_hinh_co_ban(tr, dac_trung, baseline=None, seed=0):
+    """PHẦN A (đúng phạm vi môn học) cho các notebook mở rộng: hồi quy tuyến tính, cây quyết định, KNN, SVR, MLP, Random Forest
+    trên đặc trưng của chính căn/lô (KHÔNG dùng giá khu vực – kỹ thuật nâng cao). Mục tiêu log(giá) = cột 'y'.
+    Siêu tham số chọn bằng GridSearchCV với kiểm định chéo 5-fold (chia theo nhóm tin gần trùng) trên tập train – không nhìn tập test.
+    Trả về (bảng kiểm định chéo, tên mô hình tốt nhất, {tên: hàm tạo pipeline đã gắn siêu tham số})."""
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.linear_model import LinearRegression
+    from sklearn.model_selection import GridSearchCV
+    from sklearn.neighbors import KNeighborsRegressor
+    from sklearn.neural_network import MLPRegressor
+    from sklearn.svm import SVR
+    from sklearn.tree import DecisionTreeRegressor
+    X, y = tr[list(dac_trung)].astype(float), tr["y"].to_numpy(float)
+    fold = list(GroupKFold(5, shuffle=True, random_state=seed).split(X, groups=tr["nhom"]))
+
+    def ong(est, chuan=True):      # điền thiếu bằng trung vị (+ chuẩn hóa cho mô hình dựa trên khoảng cách / gradient)
+        return make_pipeline(SimpleImputer(strategy="median"), *([StandardScaler()] if chuan else []), est)
+    LUOI = {
+        "Hồi quy tuyến tính": (lambda: ong(LinearRegression()), {}),
+        "Cây quyết định": (lambda: ong(DecisionTreeRegressor(min_samples_leaf=5, random_state=0), False),
+                           {"decisiontreeregressor__max_depth": list(range(2, 13))}),
+        "KNN": (lambda: ong(KNeighborsRegressor()), {"kneighborsregressor__n_neighbors": [3, 5, 8, 12, 16, 20, 30]}),
+        "SVM hồi quy (SVR)": (lambda: ong(SVR()), {"svr__C": [0.3, 1, 3, 10], "svr__epsilon": [0.05, 0.1]}),
+        "Mạng nơ-ron MLP": (lambda: ong(MLPRegressor(early_stopping=True, max_iter=2000, random_state=0)),
+                            {"mlpregressor__hidden_layer_sizes": [(16,), (32, 16)], "mlpregressor__alpha": [1e-2, 1.0]}),
+        "Random Forest (300 cây)": (lambda: ong(RandomForestRegressor(300, min_samples_leaf=2, max_features=0.4, n_jobs=-1, random_state=0), False), {}),
+    }
+    dong, tao = {}, {}
+    for ten, (f, luoi) in LUOI.items():
+        gs = GridSearchCV(f(), luoi or {"simpleimputer__strategy": ["median"]}, cv=fold, scoring="neg_mean_absolute_error",
+                          return_train_score=True).fit(X, y)
+        ts = gs.best_params_ if luoi else {}
+        tao[ten] = lambda f=f, ts=ts: f().set_params(**ts)
+        dong[ten] = {"Siêu tham số chọn": ", ".join(f"{k.split('__')[1]} = {v}" for k, v in ts.items()) or "–",
+                     "MAE log – phần học": -gs.cv_results_["mean_train_score"][gs.best_index_], "MAE log – kiểm định": -gs.best_score_}
+    if baseline is not None:       # mốc so sánh trên cùng 5 fold
+        dong["Baseline"] = {"Siêu tham số chọn": "–", "MAE log – phần học": np.nan,
+                            "MAE log – kiểm định": np.mean([np.mean(np.abs(baseline().fit(tr.iloc[a], y[a]).predict(tr.iloc[b]) - y[b])) for a, b in fold])}
+    bang = pd.DataFrame(dong).T.astype({"MAE log – phần học": float, "MAE log – kiểm định": float})
+    bang["MAE ≈ sai số %"] = (np.exp(bang["MAE log – kiểm định"]) - 1) * 100
+    bang = bang.sort_values("MAE log – kiểm định")
+    return bang, bang.drop("Baseline", errors="ignore").index[0], tao
+
+
 # ----------------------------------------------------------------------------------------------
 # Căn hộ chung cư
 # ----------------------------------------------------------------------------------------------

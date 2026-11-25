@@ -41,7 +41,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from IPython.display import display
+from IPython.display import display, Markdown
+nx = lambda s: display(Markdown(s))                                             # in nhận xét có số liệu tính từ kết quả
+vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")   # 1234.5 -> 1.234,5
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import FeatureUnion
 from sklearn.linear_model import LogisticRegression
@@ -64,7 +66,7 @@ pd.DataFrame({"Huấn luyện": train["y_dinh"].value_counts(), "Kiểm tra": te
 
 md(r"""
 ## Bước 1: Chuẩn hóa văn bản
-Người dùng gõ có dấu hoặc không dấu, viết số tùy ý ("80m2", "3,5 tỷ"). Ta đưa mọi câu về cùng một dạng: chữ thường, **bỏ dấu**, mọi con số thành `0`, bỏ ký tự đặc biệt. Nhờ vậy "nhà 80m2" và "nha 120 m2" có cùng hình dạng. Trang web dùng **đúng quy tắc này** (hàm `chuanHoaYD`).
+Người dùng gõ có dấu hoặc không dấu, viết số tùy ý ("80m2", "3 tỷ rưỡi", "120 m2"). Ta đưa mọi câu về cùng một dạng: chữ thường, **bỏ dấu**, mọi con số thành `0`, bỏ ký tự đặc biệt. Nhờ vậy "nhà 80m2" và "nha 120 m2" có cùng hình dạng. Trang web dùng **đúng quy tắc này** (hàm `chuanHoaYD`).
 """)
 
 code(r"""
@@ -201,6 +203,12 @@ KQ_TE = pd.DataFrame({ten: {"Độ chính xác (%)": dung(v, that_te),
                             "F1 macro (%)": f1_score(nhan(list(that_te)), nhan(v), average="macro") * 100,
                             "Số câu không nhận ra (%)": np.mean([x is None for x in v]) * 100} for ten, v in du.items()}).T
 display(KQ_TE.round(1))
+if not CHI_LUAT:
+    kl, km, kh = KQ_TE.index
+    cx, kr = KQ_TE["Độ chính xác (%)"], KQ_TE["Số câu không nhận ra (%)"]
+    nx(f'''**Đọc kết quả:**
+- Tỷ lệ câu "không nhận ra": luật cũ {vn(kr[kl], 0)}%, mô hình {vn(kr[km], 0)}%{" – mô hình hiểu được nhiều cách hỏi hơn hẳn, nhất là câu **không dấu, viết tắt, diễn đạt lạ**" if kr[km] < kr[kl] else ""}.
+- Độ chính xác trên tập kiểm tra: luật cũ {vn(cx[kl], 0)}%, mô hình đơn lẻ {vn(cx[km], 0)}%, kết hợp đã chọn {vn(cx[kh], 0)}%. {"**Mô hình đơn lẻ chính xác hơn chiến lược kết hợp** đã chọn: luật cũ bắt nhầm theo từ khóa (ví dụ câu có chữ “mua nhà” bị hiểu là *tìm nhà* dù đang hỏi về nhà ở xã hội). Chiến lược kết hợp được chọn trên tập huấn luyện, nơi nhiều câu được viết cùng phong cách với luật nên luật có lợi thế. Bài học: cần thêm một **tập kiểm định (validation) riêng**, viết theo phong cách người dùng thật, để chọn chiến lược." if cx[km] > cx[kh] else "Chiến lược kết hợp đã chọn không kém mô hình đơn lẻ trên tập kiểm tra."} **Không đổi chiến lược theo kết quả tập kiểm tra**, vì như vậy là dùng tập kiểm tra để chọn mô hình, con số kiểm tra sẽ không còn khách quan.''')
 """)
 
 code(r"""
@@ -216,9 +224,7 @@ display(sai[["cau_hoi", "y_dinh", "du_doan", "p"]])
 """)
 
 md(r"""
-**Đọc kết quả:**
-- So với luật cũ, mô hình hiểu được nhiều cách hỏi hơn hẳn, nhất là câu **không dấu, viết tắt, diễn đạt lạ**: tỷ lệ câu "không nhận ra" giảm từ khoảng 1/4 xuống vài phần trăm.
-- Trên tập kiểm tra, **mô hình đơn lẻ còn chính xác hơn chiến lược kết hợp** đã chọn: luật cũ bắt nhầm theo từ khóa (ví dụ câu có chữ "mua nhà" bị hiểu là *tìm nhà* dù đang hỏi về nhà ở xã hội). Chiến lược kết hợp được chọn trên tập huấn luyện, nơi nhiều câu được viết cùng phong cách với luật nên luật có lợi thế. **Không đổi chiến lược theo kết quả tập kiểm tra**, vì như vậy là dùng tập kiểm tra để chọn mô hình, con số kiểm tra sẽ không còn khách quan. Bài học: cần thêm một **tập kiểm định (validation) riêng**, viết theo phong cách người dùng thật, để chọn chiến lược.
+**Đọc kết quả (tiếp):**
 - Câu còn sai (bảng trên) chủ yếu là câu ngắn, mơ hồ, hoặc nằm giữa hai ý định gần nhau. Với câu mô hình không chắc, trang web **hỏi lại** người dùng bằng 2–3 gợi ý thay vì trả lời sai.
 """)
 

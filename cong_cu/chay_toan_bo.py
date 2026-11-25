@@ -30,10 +30,17 @@ BUOC = [
 ]
 
 
+# notebook được sinh từ cong_cu/dung_notebook_*.py: sinh lại trước khi chạy để notebook luôn khớp mã nguồn
+SINH = {"2324801030095": "chinh", "du_doan_gia_can_ho": "can_ho", "du_doan_gia_thue": "gia_thue", "du_doan_gia_dat": "dat",
+        "du_doan_xu_huong_gia": "xu_huong", "tro_ly_y_dinh": "tro_ly"}
+
+
 def chay(buoc):
     for ten, lenh in buoc:
         t = time.time()
         print(f"== {ten} ...", flush=True)
+        if ten in SINH and subprocess.run([PY, "-X", "utf8", f"cong_cu/dung_notebook_{SINH[ten]}.py", f"notebooks/{ten}.ipynb"], cwd=GOC).returncode != 0:
+            sys.exit(f"DỪNG: không sinh được notebook '{ten}' từ cong_cu/dung_notebook_{SINH[ten]}.py")
         if subprocess.run(lenh, cwd=GOC).returncode != 0:
             sys.exit(f"DỪNG: bước '{ten}' lỗi. Sửa xong chạy tiếp bằng: python cong_cu/chay_toan_bo.py --tu {ten}")
         print(f"   xong ({time.time() - t:.0f} giây)", flush=True)

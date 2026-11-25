@@ -150,10 +150,16 @@ def _():
         n = an_danh_bang(pd.read_csv(f, dtype=str, keep_default_na=False))[1]
         assert n == 0, f"{f.name}: còn {n} ô có số điện thoại"
 
-@kiem("Số liệu viết trong notebook chính và README khớp kết quả đã lưu (không lệch sau khi chạy lại với dữ liệu mới)")
+@kiem("Số liệu trong notebook và README khớp kết quả đã lưu: markdown của MỌI notebook không còn số kết quả viết tay; số chính hiện đúng trong phần in ra của notebook chính và README")
 def _():
-    # Phần nhận xét là markdown viết tay; dữ liệu cập nhật định kỳ thì số liệu thật đổi. Phép kiểm này bắt chỗ quên sửa chữ.
+    # Dữ liệu cập nhật định kỳ thì số liệu thật đổi. Nhận xét có số được in từ biến (nx) nên tự đúng; phép kiểm này bắt
+    # (1) số kết quả còn viết tay trong markdown (tests/so_lieu_markdown.py), (2) notebook chưa chạy lại sau khi kết quả đổi,
+    # (3) README chưa cập nhật.
     import json
+    sys.path.insert(0, str(GOC / "tests"))
+    from so_lieu_markdown import kiem as kiem_markdown
+    sai = {f.name: len(s) for f in sorted((GOC / "notebooks").glob("*.ipynb")) if (s := kiem_markdown(f))}
+    assert not sai, f"còn số kết quả viết tay trong markdown (chạy tests/so_lieu_markdown.py để xem): {sai}"
     dg = json.loads((GOC / "model" / "danh_gia_mo_hinh.json").read_text(encoding="utf-8"))
     vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")
     chon = dg["ten_mo_hinh"]
@@ -163,13 +169,32 @@ def _():
     can = {"tên mô hình được chọn": chon, "số căn sau làm sạch": vn(dg["so_can"]["tat_ca"], 0),
            "MAPE test Phú Hòa": vn(te_ph["MAPE (%)"]), "MAPE test Thủ Dầu Một": vn(te_tdm["MAPE (%)"])}
     nb = json.loads((GOC / "notebooks" / "2324801030095.ipynb").read_text(encoding="utf-8"))
-    md = "\n".join("".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "markdown")
-    thieu = [f"{k} = {v}" for k, v in can.items() if v not in md]
-    assert not thieu, "markdown notebook chính chưa cập nhật: " + "; ".join(thieu)
+    chu = []                                    # chữ người đọc thấy: markdown + mọi output (bảng, dòng in, nhận xét nx)
+    for c in nb["cells"]:
+        chu.append("".join(c["source"]) if c["cell_type"] == "markdown" else "")
+        for o in c.get("outputs", []):
+            chu.append("".join(o.get("text", "")))
+            chu += ["".join(v) if isinstance(v, list) else str(v) for k, v in o.get("data", {}).items() if k.startswith("text/")]
+    chu = chr(10).join(chu)
+    thieu = [f"{k} = {v}" for k, v in can.items() if v not in chu]
+    assert not thieu, "notebook chính chưa chạy lại với kết quả mới: " + "; ".join(thieu)
     readme = (GOC / "README.md").read_text(encoding="utf-8")
     can_rm = {"tên mô hình": chon, "MAPE test Phú Hòa": vn(te_ph["MAPE (%)"]), "MAPE kiểm định chéo Phú Hòa": vn(cv_ph["MAPE (%)"])}
     thieu = [f"{k} = {v}" for k, v in can_rm.items() if v not in readme]
     assert not thieu, "README chưa cập nhật: " + "; ".join(thieu)
+
+@kiem("Phần A của notebook mở rộng: chọn siêu tham số bằng kiểm định chéo trên tập train, mô hình tốt nhất đúng là dòng có sai số kiểm định thấp nhất")
+def _():
+    rng = np.random.default_rng(1); n = 240
+    d = pd.DataFrame({"a": rng.normal(size=n), "b": rng.normal(size=n), "nhom": np.arange(n) // 2,
+                      "quan": "q", "phuong": rng.choice(["x", "y"], n), "dt_dat": rng.uniform(50, 150, n)})
+    d.loc[::7, "b"] = np.nan                                 # có ô thiếu: pipeline phải tự điền
+    d["y"] = 0.8 * d["a"] + rng.normal(0, 0.1, n)            # quan hệ tuyến tính: hồi quy tuyến tính phải thắng
+    bang, tot, tao = M.mo_hinh_co_ban(d, ["a", "b"], baseline=M.BaselineDonGiaPhuong)
+    assert len(tao) == 6 and "Baseline" in bang.index and tot != "Baseline"
+    assert tot == bang.drop("Baseline")["MAE log – kiểm định"].idxmin() == "Hồi quy tuyến tính", tot
+    assert bang.loc["Baseline", "MAE log – kiểm định"] > bang.loc[tot, "MAE log – kiểm định"]
+    assert np.isfinite(tao["Cây quyết định"]().fit(d[["a", "b"]], d["y"]).predict(d[["a", "b"]])).all()
 
 for ten, ok, loi in KQ:
     print(("ĐẠT       " if ok else "KHÔNG ĐẠT ") + ten + ("" if ok else f"\n           -> {loi}"))

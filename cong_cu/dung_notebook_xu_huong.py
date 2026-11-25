@@ -22,7 +22,7 @@ md(r"""
 
 | Có | Chưa có (và lý do) |
 |---|---|
-| ~1.470 căn rao bán thật ở Bình Dương cũ (notebook `2324801030095.ipynb`) và các **ảnh chụp có ghi ngày** trong `data/lich_su/` | Lịch sử giá nhiều năm của từng phường: các trang rao vặt chỉ hiển thị tin đang đăng; kho lưu trữ web (Internet Archive) từ chối truy cập tự động từ máy này |
+| Các căn rao bán thật ở Bình Dương cũ (notebook `2324801030095.ipynb`) và các **ảnh chụp có ghi ngày** trong `data/lich_su/` | Lịch sử giá nhiều năm của từng phường: các trang rao vặt chỉ hiển thị tin đang đăng; kho lưu trữ web (Internet Archive) từ chối truy cập tự động từ máy này |
 | **Giá gốc lúc đăng** và giá hiện tại của từng tin Chợ Tốt → biết người bán đã tăng hay giảm giá | Giá giao dịch công chứng: không công khai |
 | Ngày đăng của từng tin (tháng 9–11/2026) | |
 | Số liệu thị trường DKRA Consulting (TP.HCM & vùng phụ cận) đã công bố, có đối chiếu nguyên văn | Số liệu chính thức riêng cho Thủ Dầu Một / Phú Hòa |
@@ -52,7 +52,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from IPython.display import display
+from IPython.display import display, Markdown
+nx = lambda s: display(Markdown(s))                                             # in nhận xét có số liệu tính từ kết quả
+vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")   # 1234.5 -> 1.234,5
 
 import sys
 # Thư mục gốc của đề tài: notebook nằm trong notebooks/, mã dùng chung ở src/, dữ liệu ở data/
@@ -152,7 +154,7 @@ md(r"""
 ## Bước 2: Tín hiệu 1 – Người bán đang tăng hay giảm giá? (cùng một căn)
 Chợ Tốt lưu **giá lúc đăng tin lần đầu** (`gia_goc_luc_dang`) và **giá hiện tại**. Với cùng một căn, mọi khác biệt về diện tích, vị trí, chất lượng đều triệt tiêu, nên đây là thước đo **trực tiếp, sạch nhất** về biến động giá rao trong dữ liệu (cách làm tương tự chỉ số giá lặp lại – *repeat-sales*).
 
-Loại các thay đổi > ±40%: đó là sửa lỗi đơn vị (ví dụ 2.500.000 → 2.500.000.000), không phải đổi giá.
+Loại các thay đổi > ±40%: đó là sửa lỗi đơn vị (ví dụ giá ghi thiếu ba số 0), không phải đổi giá.
 """)
 
 code(r"""
@@ -185,6 +187,11 @@ for kv in ["Phú Hòa", "TDM (phường khác)", "Bình Dương cũ (ngoài TDM)
 tdm_all = ct[ct["khu_vuc"] != "Bình Dương cũ (ngoài TDM)"]
 BANG_DOI["Toàn TDM"] = tom_tat(tdm_all, doi[doi["khu_vuc"] != "Bình Dương cũ (ngoài TDM)"])
 display(BANG_DOI.T)
+r_ = BANG_DOI["Toàn Bình Dương cũ"]
+lo_g, hi_g = (map(float, r_["KTC 95% của % giảm"].rstrip("%").split("–")) if r_["Số tin đã đổi giá"] else (np.nan, np.nan))
+chieu = ("khoảng tin cậy nằm hẳn trên 50%: người bán đang **hạ kỳ vọng** chứ không nâng giá" if lo_g > 50 else
+         "khoảng tin cậy nằm hẳn dưới 50%: người bán đang **nâng giá**" if hi_g < 50 else "khoảng tin cậy chứa 50%: **chưa kết luận được** chiều đổi giá")
+nx(f'''**Đọc kết quả:** trong {int(r_["Số tin đã đổi giá"])} tin đã đổi giá (toàn Bình Dương cũ), {vn(r_["Trong số đổi giá: % GIẢM"], 0)}% là giảm giá (KTC 95% {lo_g:.0f}–{hi_g:.0f}%) → {chieu}. Mức đổi trung vị {vn(r_["Mức đổi trung vị (%)"])}%; tính bình quân trên mọi tin (kể cả tin giữ nguyên giá), mặt bằng giá rao đổi {vn(r_["Thay đổi bình quân trên MỌI tin (%)"], 2)}%.''')
 
 fig, ax = plt.subplots(figsize=(8, 4))
 sns.histplot((np.exp(doi["r"]) - 1) * 100, bins=30, ax=ax, color="#C44E52")
@@ -193,8 +200,6 @@ plt.show()
 """)
 
 md(r"""
-**Đọc kết quả:** trong các tin đã đổi giá, **phần lớn là giảm giá**, và khoảng tin cậy 95% của tỷ lệ này nằm hẳn trên 50%. Như vậy người bán đang **hạ kỳ vọng** chứ không nâng giá. Mức giảm điển hình vài phần trăm. Tính bình quân trên mọi tin (kể cả tin giữ nguyên giá), mặt bằng giá rao chỉ dịch chuyển nhẹ.
-
 Các ô "Phú Hòa" có rất ít tin nên chỉ để tham khảo; con số của toàn TDM và toàn vùng đáng tin hơn.
 
 **Cùng phép đo cho căn hộ chung cư** (Chợ Tốt, danh mục "Căn hộ/Chung cư"; định giá căn hộ ở notebook `du_doan_gia_can_ho.ipynb`):
@@ -246,7 +251,7 @@ print(f"Độ dốc: {slope:+.2f} điểm %/tháng (KTC 95%: {slo:+.2f} … {shi
 """)
 
 md(r"""
-**Đọc kết quả:** đọc độ dốc cùng khoảng tin cậy. Nếu khoảng tin cậy chứa 0 thì dữ liệu ~2 tháng **chưa đủ** để khẳng định giá rao tăng hay giảm theo thời gian. Nếu âm rõ, cần nhớ một phần đến từ thiên lệch "tin cũ là tin rao cao" ở trên.
+**Đọc kết quả:** đọc độ dốc cùng khoảng tin cậy. Nếu khoảng tin cậy chứa 0 thì giai đoạn dữ liệu hiện có (in ở dòng trên) **chưa đủ** để khẳng định giá rao tăng hay giảm theo thời gian. Nếu âm rõ, cần nhớ một phần đến từ thiên lệch "tin cũ là tin rao cao" ở trên.
 
 ## Bước 4: Tín hiệu 3 – Áp lực bán
 - Tỷ lệ tin có từ khóa **"bán gấp / ngộp / cắt lỗ / giảm giá / kẹt tiền"**;
@@ -261,12 +266,12 @@ AP_LUC = df.groupby("khu_vuc").agg(so_can=("y", "size"), ban_gap_pt=("t_ban_gap"
                                     lech_tv_pt=("chenh_lech_pt", "median"))
 AP_LUC[["ban_gap_pt", "re_hon_pt", "cao_hon_pt"]] *= 100
 AP_LUC.columns = ["Số căn", "% tin 'bán gấp/giảm giá'", "% rẻ hơn thị trường", "% cao hơn thị trường", "Giá rao lệch trung vị so với ước lượng (%)"]
-AP_LUC.round(1)
+display(AP_LUC.round(1))
+bg, re_, cao_ = AP_LUC["% tin 'bán gấp/giảm giá'"], AP_LUC["% rẻ hơn thị trường"].mean(), AP_LUC["% cao hơn thị trường"].mean()
+nx(f'''**Đọc kết quả:** {vn(bg.min(), 0)}–{vn(bg.max(), 0)}% số tin (tùy khu vực) có lời lẽ "bán gấp / giảm giá" (Phú Hòa {vn(bg.get("Phú Hòa", np.nan), 0)}%). Tỷ lệ này càng cao thì thị trường càng **thuận lợi cho người mua**. Trung bình các khu vực, {vn(re_, 0)}% căn "rẻ hơn" và {vn(cao_, 0)}% căn "cao hơn thị trường" → {"xấp xỉ nhau: mặt bằng giá rao **chưa lệch hẳn về một phía** so với giá trị ước lượng" if abs(re_ - cao_) < 5 else ("nhiều căn rao **thấp** hơn ước lượng" if re_ > cao_ else "nhiều căn rao **cao** hơn ước lượng")}.''')
 """)
 
 md(r"""
-**Đọc kết quả:** khoảng 12–20% số tin (tùy khu vực) có lời lẽ "bán gấp / giảm giá". Tỷ lệ ở Phú Hòa thấp hơn một phần vì tin guland chỉ có tiêu đề, không có mô tả. Đây là dấu hiệu thị trường **thuận lợi cho người mua**, phù hợp với tín hiệu giảm giá ở Bước 2. Tỷ lệ căn "rẻ hơn" và "cao hơn thị trường" xấp xỉ nhau, nên mặt bằng giá rao **chưa lệch hẳn về một phía** so với giá trị ước lượng.
-
 ## Bước 5: Bối cảnh thị trường đã công bố
 Các số liệu dưới đây đã được đối chiếu với **nguyên văn** bài báo. Chúng là số liệu của **TP.HCM và vùng phụ cận** (gồm Bình Dương cũ), không riêng Thủ Dầu Một, và các mốc so sánh khác nhau (so cùng kỳ / quý trước / tháng trước). Vì vậy **không ghép thành một chuỗi số**, chỉ dùng để xác định chiều của thị trường.
 """)
