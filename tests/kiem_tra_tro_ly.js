@@ -270,6 +270,77 @@ kiemAsync("Chế độ AI: Claude từ chối thì bỏ cả lượt, trang dùn
   return kq.tuChoi && T.AI.msgs.length === 0 ? "" : JSON.stringify(kq);
 });
 
+// ---------- 6. chế độ AI với Gemini – fetch giả lập, không gọi API thật ----------
+const traVe = (status, data) => ({ ok: status >= 200 && status < 300, status, json: async () => data });
+function geminiGia(kichBan) {   // kichBan: mảng [status, data] theo thứ tự yêu cầu
+  const yeuCau = [];
+  const goi = async (url, init) => { yeuCau.push({ url, headers: init.headers, body: init.body ? JSON.parse(init.body) : null }); const [st, d] = kichBan.shift(); return traVe(st, d); };
+  return { goi, yeuCau };
+}
+kiem("Gemini: nhận đúng loại khóa; lược đồ công cụ hợp lệ với Gemini (không additionalProperties, công cụ không tham số bỏ parameters)", () => {
+  if (T.nhaCuaKhoa("sk-ant-api03-x") !== "claude" || T.nhaCuaKhoa("AQ.Ab8x") !== "gemini" || T.nhaCuaKhoa("AIzaSyx") !== "gemini") return "nhận sai loại khóa";
+  const g = T.geminiTools(), s = JSON.stringify(g);
+  if (g.length !== 11 || /additionalProperties|eager_input_streaming|input_schema/.test(s)) return "lược đồ còn trường Gemini không nhận";
+  if (g.find((t) => t.name === "ty_suat_thue_du_an").parameters || !g.find((t) => t.name === "dinh_gia_nha_pho").parameters.required.includes("dien_tich_m2")) return "parameters sai";
+  return "";
+});
+kiem("Gemini: mô hình mặc định là Flash ổn định mới nhất (bỏ preview, lite)", () => {
+  const a = T.geminiMacDinh(["gemini-3-flash-preview", "gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.1-pro-preview"]);
+  const b = T.geminiMacDinh(["gemini-3.1-pro-preview", "gemini-flash-latest"]);
+  return a === "gemini-3.8-flash" && b === "gemini-flash-latest" ? "" : `${a} / ${b}`;
+});
+kiemAsync("Gemini: bật bằng khóa – gọi models.list kiểm khóa, lọc mô hình trò chuyện, lưu; khóa sai thì giữ nguyên trạng thái cũ", async () => {
+  const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+  const cu = [global.localStorage, global.sessionStorage]; global.localStorage = kho(); global.sessionStorage = kho();
+  try {
+    const ds = { models: [["gemini-3.8-flash", ["generateContent"]], ["gemini-3.1-flash-image", ["generateContent"]], ["gemini-3.8-flash-tts", ["generateContent"]],
+      ["text-embedding-005", ["embedContent"]], ["gemini-3.5-flash-lite", ["generateContent", "countTokens"]]].map(([n, m]) => ({ name: "models/" + n, supportedGenerationMethods: m })) };
+    const g = geminiGia([[200, ds]]); T.AI.goi = g.goi; T.AI.key = ""; T.AI.nha = "claude";
+    await T.aiBat("AQ.khoa-gia", "", true);
+    if (T.AI.nha !== "gemini" || T.AI.model !== "gemini-3.8-flash" || T.AI.dsGemini.join() !== "gemini-3.8-flash,gemini-3.5-flash-lite") return `bật: ${T.AI.nha} ${T.AI.model} ${T.AI.dsGemini}`;
+    if (!/\/v1beta\/models\?pageSize=1000$/.test(g.yeuCau[0].url) || g.yeuCau[0].headers["x-goog-api-key"] !== "AQ.khoa-gia") return "gọi models.list sai";
+    T.AI.key = ""; T.AI.model = "x"; if (T.aiDocCaiDat() !== "localStorage" || T.AI.nha !== "gemini" || T.AI.model !== "gemini-3.8-flash") return "không lưu được để mở lại trang";
+    const g2 = geminiGia([[400, { error: { code: 400, message: "API key not valid. Please pass a valid API key.", status: "INVALID_ARGUMENT" } }]]); T.AI.goi = g2.goi;
+    let loi = null; try { await T.aiBat("AQ.khoa-sai", "", true); } catch (e) { loi = e; }
+    return loi instanceof T.LoiGemini && T.AI.key === "AQ.khoa-gia" && T.AI.model === "gemini-3.8-flash" ? "" : `khóa sai: ${loi} · ${T.AI.key}`;
+  } finally { [global.localStorage, global.sessionStorage] = cu; T.AI.key = ""; T.AI.nha = "claude"; T.AI.model = "claude-opus-5-5"; T.AI.goi = null; }
+});
+kiemAsync("Gemini: vòng lặp công cụ – gửi đúng yêu cầu, chạy hàm thật, trả functionResponse kèm id, giữ nguyên thoughtSignature", async () => {
+  const goi = { functionCall: { id: "fc_1", name: "dinh_gia_nha_pho", args: { dien_tich_m2: 80, so_tang: 2, loi_vao: "hem_xe_hoi" } }, thoughtSignature: "chu_ky_1" };
+  const g = geminiGia([
+    [200, { candidates: [{ content: { role: "model", parts: [{ text: "Tóm tắt suy nghĩ", thought: true }, goi] }, finishReason: "STOP" }] }],
+    [200, { candidates: [{ content: { role: "model", parts: [{ text: "Căn này khoảng **X tỷ**.", thoughtSignature: "chu_ky_2" }] }, finishReason: "STOP" }] }],
+  ]);
+  Object.assign(T.AI, { goi: g.goi, key: "AQ.khoa-gia", nha: "gemini", model: "gemini-3.8-flash", msgs: [] });
+  const { u, ui } = uiGia();
+  try {
+    const kq = await T.aiTraLoiGemini("nhà 80m2 1 trệt 1 lầu hẻm xe hơi bao nhiêu", ui);
+    const y = g.yeuCau[0], m = T.AI.msgs, fr = m[2].parts[0].functionResponse;
+    const kt = [
+      [kq.xong, "không kết thúc"], [/\/v1beta\/models\/gemini-3\.8-flash:generateContent$/.test(y.url) && y.headers["x-goog-api-key"] === "AQ.khoa-gia", "URL/khóa sai"],
+      [y.body.systemInstruction.parts[0].text === T.AI_HE_THONG && y.body.tools[0].functionDeclarations.length === 11 && y.body.toolConfig.functionCallingConfig.mode === "AUTO", "thân yêu cầu sai"],
+      [u.chu === "Căn này khoảng **X tỷ**." && u.the.length === 1, "hiện cả phần suy nghĩ hoặc thiếu thẻ: " + u.chu],
+      [m[1].role === "model" && m[1].parts[1].thoughtSignature === "chu_ky_1" && m[3].parts[0].thoughtSignature === "chu_ky_2", "mất thoughtSignature"],
+      [m[2].role === "user" && fr.id === "fc_1" && fr.name === "dinh_gia_nha_pho", "functionResponse thiếu id/name"],
+      [giaTy(fr.response.result) === giaTy(T.hoi("nhà 80m2 1 trệt 1 lầu hẻm xe hơi giá bao nhiêu").text), "số gửi Gemini khác số mô hình"],
+      [JSON.stringify(g.yeuCau[1].body.contents[1]) === JSON.stringify(m[1]), "lượt 2 không gửi lại nguyên phần của mô hình"],
+    ];
+    const sai = kt.find(([ok]) => !ok); return sai ? sai[1] : "";
+  } finally { T.AI.goi = null; }
+});
+kiemAsync("Gemini: bị chặn vì an toàn thì bỏ lượt; lỗi 429 báo lỗi và giữ nguyên lịch sử", async () => {
+  Object.assign(T.AI, { key: "AQ.khoa-gia", nha: "gemini", model: "gemini-3.8-flash", msgs: [] });
+  try {
+    T.AI.goi = geminiGia([[200, { promptFeedback: { blockReason: "SAFETY" }, candidates: [] }]]).goi;
+    const kq = await T.aiTraLoiGemini("câu bị chặn", uiGia().ui);
+    if (!kq.tuChoi || T.AI.msgs.length !== 0) return "không xử lý chặn an toàn";
+    T.AI.msgs = [{ role: "user", parts: [{ text: "cũ" }] }, { role: "model", parts: [{ text: "ok" }] }];
+    T.AI.goi = geminiGia([[429, { error: { code: 429, message: "Resource exhausted", status: "RESOURCE_EXHAUSTED" } }]]).goi;
+    let loi = null; try { await T.aiTraLoiGemini("câu mới", uiGia().ui); } catch (e) { loi = e; }
+    return loi instanceof T.LoiGemini && loi.status === 429 && T.AI.msgs.length === 2 ? "" : `${loi} · ${T.AI.msgs.length}`;
+  } finally { T.AI.goi = null; T.AI.nha = "claude"; T.AI.model = "claude-opus-5-5"; T.AI.key = ""; T.AI.msgs = []; }
+});
+
 (async () => {
   for (const [ten, f] of kiemSau) { try { const loi = await f(); kq.push([ten, !loi, loi || ""]); } catch (e) { kq.push([ten, false, "LỖI " + e.message]); } }
   for (const [ten, ok, loi] of kq) console.log((ok ? "ĐẠT       " : "KHÔNG ĐẠT ") + ten + (ok ? "" : `
