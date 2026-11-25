@@ -2836,7 +2836,7 @@ function aiThongBaoLoi(err) {
   const api = AI_NHA[AI.nha].api;
   if (err instanceof LoiGemini) {
     const s = err.status, m = err.message || "", mm = m + " " + (err.ma || "");
-    const goc = s ? ` (Google báo ${s}: “${m.slice(0, 200)}”)` : "";        // luôn kèm thông báo gốc để biết đúng nguyên nhân
+    const goc = s ? ` (Google báo ${s}: “${m.slice(0, 500)}”)` : "";        // luôn kèm thông báo gốc để biết đúng nguyên nhân
     // nguyên nhân 403 theo tài liệu xử lý lỗi của Gemini API (khóa bị lộ, dự án cần xác minh / thanh toán, khóa chưa giới hạn)
     const vi = s === 400 && /api key|API_KEY_INVALID/i.test(mm) || s === 401 ? "Khóa Gemini không hợp lệ – kiểm tra lại ở nút Chế độ AI."
       : /leak/i.test(mm) ? "Google đã đánh dấu khóa này là bị lộ nên khóa không dùng được nữa – tạo khóa mới trong AI Studio."
