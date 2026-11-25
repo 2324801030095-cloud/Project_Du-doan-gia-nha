@@ -295,7 +295,7 @@ kiemAsync("Gemini: bật bằng khóa – gọi models.list kiểm khóa, lọc 
   try {
     const ds = { models: [["gemini-3.8-flash", ["generateContent"]], ["gemini-3.1-flash-image", ["generateContent"]], ["gemini-3.8-flash-tts", ["generateContent"]],
       ["text-embedding-005", ["embedContent"]], ["gemini-3.5-flash-lite", ["generateContent", "countTokens"]]].map(([n, m]) => ({ name: "models/" + n, supportedGenerationMethods: m })) };
-    const g = geminiGia([[200, ds]]); T.AI.goi = g.goi; T.AI.key = ""; T.AI.nha = "claude";
+    const g = geminiGia([[200, ds], [200, { candidates: [{ content: { role: "model", parts: [{ text: "OK" }] } }] }]]); T.AI.goi = g.goi; T.AI.key = ""; T.AI.nha = "claude";
     await T.aiBat("AQ.khoa-gia", "", true);
     if (T.AI.nha !== "gemini" || T.AI.model !== "gemini-3.8-flash" || T.AI.dsGemini.join() !== "gemini-3.8-flash,gemini-3.5-flash-lite") return `bật: ${T.AI.nha} ${T.AI.model} ${T.AI.dsGemini}`;
     if (!/\/v1beta\/models\?pageSize=1000$/.test(g.yeuCau[0].url) || g.yeuCau[0].headers["x-goog-api-key"] !== "AQ.khoa-gia") return "gọi models.list sai";
@@ -304,6 +304,17 @@ kiemAsync("Gemini: bật bằng khóa – gọi models.list kiểm khóa, lọc 
     let loi = null; try { await T.aiBat("AQ.khoa-sai", "", true); } catch (e) { loi = e; }
     return loi instanceof T.LoiGemini && T.AI.key === "AQ.khoa-gia" && T.AI.model === "gemini-3.8-flash" ? "" : `khóa sai: ${loi} · ${T.AI.key}`;
   } finally { [global.localStorage, global.sessionStorage] = cu; T.AI.key = ""; T.AI.nha = "claude"; T.AI.model = "claude-opus-5-5"; T.AI.goi = null; }
+});
+kiemAsync("Gemini: khóa liệt kê được mô hình nhưng bị từ chối gọi (403) – báo ngay khi bật, kèm nguyên nhân và thông báo gốc của Google", async () => {
+  const ds = { models: [{ name: "models/gemini-3.8-flash", supportedGenerationMethods: ["generateContent"] }] };
+  T.AI.goi = geminiGia([[200, ds], [403, { error: { code: 403, message: "Your API key was reported as leaked. Please use another API key.", status: "PERMISSION_DENIED" } }]]).goi;
+  Object.assign(T.AI, { key: "", nha: "claude", model: "claude-opus-5-5" });
+  let loi = null; try { await T.aiBat("AQ.khoa-lo", "", true); } catch (e) { loi = e; }
+  try {
+    const tb = loi ? T.aiThongBaoLoi(loi) : "";
+    const tb2 = T.aiThongBaoLoi(new T.LoiGemini(403, "Project requires verification.", "FREE_TIER_VERIFICATION_REQUIRED"));
+    return loi?.status === 403 && T.AI.key === "" && T.AI.nha === "claude" && /bị lộ/.test(tb) && /reported as leaked/.test(tb) && /xác minh/.test(tb2) ? "" : `${tb} | ${tb2} | ${T.AI.key}`;
+  } finally { T.AI.goi = null; }
 });
 kiemAsync("Gemini: vòng lặp công cụ – gửi đúng yêu cầu, chạy hàm thật, trả functionResponse kèm id, giữ nguyên thoughtSignature", async () => {
   const goi = { functionCall: { id: "fc_1", name: "dinh_gia_nha_pho", args: { dien_tich_m2: 80, so_tang: 2, loi_vao: "hem_xe_hoi" } }, thoughtSignature: "chu_ky_1" };

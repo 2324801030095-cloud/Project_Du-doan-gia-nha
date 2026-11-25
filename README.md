@@ -13,7 +13,7 @@ Dữ liệu là tin rao thật (Chợ Tốt Nhà, alonhadat, guland), đã ẩn 
 ```
 pip install -r requirements.txt          # Python 3.14; kiểm thử trang web cần thêm Node.js >= 18
 python tests/kiem_tra_mo_hinh.py         # 12 phép kiểm, phải đạt hết
-node tests/kiem_tra_tro_ly.js            # 41 phép kiểm, phải đạt hết
+node tests/kiem_tra_tro_ly.js            # 42 phép kiểm, phải đạt hết
 ```
 Xem demo: mở `demo/trang_ban_nha.html` bằng trình duyệt (bản đồ cần Internet).
 
