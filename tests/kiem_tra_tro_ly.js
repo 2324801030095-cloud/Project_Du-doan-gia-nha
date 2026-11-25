@@ -142,6 +142,125 @@ kiem("Hỏi tiếp sau tìm nhà: 'rẻ hơn thị trường thôi' giữ khoả
   T.hoi("tìm nhà 2-3 tỷ"); const r = T.hoi("rẻ hơn thị trường thôi", true); return /2,0–3,0 tỷ/.test(r.text) && /rẻ hơn thị trường/.test(r.text) ? "" : r.text.slice(0, 160);
 });
 
-for (const [ten, ok, loi] of kq) console.log((ok ? "ĐẠT       " : "KHÔNG ĐẠT ") + ten + (ok ? "" : `\n           -> ${loi}`));
-console.log(`\n${kq.filter((x) => x[1]).length}/${kq.length} phép kiểm đạt`);
-process.exit(kq.every((x) => x[1]) ? 0 : 1);
+
+// ---------- 5. chế độ AI (Claude gọi công cụ của trang) – dùng client giả lập, không gọi API thật, không tốn phí ----------
+const kiemSau = [];   // phép kiểm bất đồng bộ
+const kiemAsync = (ten, f) => kiemSau.push([ten, f]);
+const giaTy = (s) => { const m = /(\d+,\d+) tỷ/.exec(s); return m ? parseFloat(m[1].replace(",", ".")) : NaN; };
+const chuCua = (html) => html.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+kiem("Chế độ AI: công cụ định giá trả ĐÚNG số của mô hình (giống trợ lý ngoại tuyến)", () => {
+  const cap = [
+    [T.AI_CONG_CU.dinh_gia_nha_pho({ dien_tich_m2: 80, so_tang: 2, loi_vao: "hem_xe_hoi" }), "nhà 80m2 1 trệt 1 lầu hẻm xe hơi giá bao nhiêu"],
+    [T.AI_CONG_CU.dinh_gia_can_ho({ du_an: "Happy One Central", dien_tich_m2: 68, phong_ngu: 2 }), "căn hộ Happy One Central 2PN 68m2 giá bao nhiêu"],
+    [T.AI_CONG_CU.dinh_gia_dat({ dien_tich_m2: 100, ngang_m: 5, loi_vao: "hem_xe_hoi" }), "lô đất 5x20 hẻm xe hơi phú hòa giá bao nhiêu"],
+  ];
+  for (const [r, cau] of cap) {
+    const a = giaTy(chuCua(r.html)), b = giaTy(T.hoi(cau).text);
+    if (!(a > 0) || a !== b) return `${cau}: công cụ ${a} tỷ, trợ lý ngoại tuyến ${b} tỷ`;
+  }
+  return "";
+});
+kiem("Chế độ AI: lược đồ công cụ hợp lệ; tham số sai bị chặn trước khi chạy", () => {
+  const tools = T.aiTools();
+  if (tools.length !== Object.keys(T.AI_CONG_CU).length) return "số công cụ khác số hàm thực thi";
+  for (const t of tools) {
+    if (!T.AI_CONG_CU[t.name]) return `thiếu hàm cho ${t.name}`;
+    if (t.input_schema.additionalProperties !== false || !t.eager_input_streaming) return `${t.name}: thiếu additionalProperties/eager_input_streaming`;
+  }
+  const sc = tools.find((t) => t.name === "dinh_gia_nha_pho").input_schema;
+  const sai = [{}, { dien_tich_m2: "80" }, { dien_tich_m2: 80, loi_vao: "san_bay" }, { dien_tich_m2: 80, x: 1 }, { dien_tich_m2: 80, phong_ngu: 2.5 }, { dien_tich_m2: -5 }];
+  for (const a of sai) if (!T.kiemThamSo(sc, a)) return "không chặn " + JSON.stringify(a);
+  return T.kiemThamSo(sc, { dien_tich_m2: 80, so_tang: 2, loi_vao: "mat_tien", phuong: "Phú Hòa" }) || "";
+});
+kiem("Chế độ AI: khóa API không nằm trong file trang; câu trả lời của Claude được escape", () => {
+  const html = require("fs").readFileSync(require("path").join(__dirname, "..", "demo", "trang_ban_nha.html"), "utf8");
+  if (/sk-ant-[A-Za-z0-9_-]{10}/.test(html)) return "file trang chứa chuỗi giống khóa API";
+  const h = T.aiMd("<img src=x onerror=alert(1)> **3,2 tỷ**\n- ý 1");
+  return /<img/.test(h) || !/<b>3,2 tỷ<\/b>/.test(h) || !/<li>ý 1<\/li>/.test(h) ? h : "";
+});
+
+kiem("Mọi phần tử mã trang gọi bằng $('id') đều có trong HTML (DOM giả của kiểm thử không bắt được lỗi này)", () => {
+  const h = require("fs").readFileSync(require("path").join(__dirname, "..", "demo", "trang_ban_nha.html"), "utf8");
+  const ids = new Set([...h.matchAll(/id="([^"$]+)"/g)].map((m) => m[1]));
+  const thieu = [...new Set([...h.matchAll(/\$\("([a-z0-9_-]+)"\)/g)].map((m) => m[1]))].filter((x) => !ids.has(x));
+  return thieu.length ? "thiếu id: " + thieu.join(", ") : "";
+});
+// Client Claude giả lập: trả lần lượt các tin nhắn soạn sẵn, ghi lại yêu cầu
+function claudeGia(kichBan, loi) {
+  class APIError extends Error { constructor(status, m) { super(m); this.status = status; } }
+  class AuthenticationError extends APIError {}
+  const yeuCau = [];
+  const stream = (yc) => {
+    yeuCau.push(JSON.parse(JSON.stringify(yc)));
+    let onText = null;
+    return { on(ev, f) { if (ev === "text") onText = f; return this; },
+      async finalMessage() {
+        if (loi) throw new AuthenticationError(401, "invalid x-api-key");
+        const m = kichBan.shift(); if (!m) throw new Error("hết kịch bản");
+        for (const b of m.content) if (b.type === "text" && onText) for (const d of b.text.match(/.{1,7}/gs)) onText(d);   // từng đoạn như streaming
+        return m;
+      } };
+  };
+  class Client { constructor(o) { this.o = o; Client.tuyChon = o; this.messages = { stream }; this.beta = { messages: { stream } }; } }
+  return { mod: { default: Client, APIError, AuthenticationError }, yeuCau, Client };
+}
+function uiGia() { const u = { chu: "", the: [] }; u.chu_ = (d) => { u.chu += d; }; return { u, ui: { chu: (d) => u.chu_(d), the: (h) => u.the.push(h) } }; }
+
+kiemAsync("Chế độ AI: vòng lặp công cụ – Claude gọi định giá, trang chạy hàm thật, Claude trả lời; hội thoại nhớ ngữ cảnh", async () => {
+  const kb = [
+    { stop_reason: "tool_use", content: [{ type: "thinking", thinking: "", signature: "s1" }, { type: "text", text: "Để mình tính." },
+      { type: "tool_use", id: "tu_1", name: "dinh_gia_nha_pho", input: { dien_tich_m2: 80, so_tang: 2, loi_vao: "hem_xe_hoi" } }] },
+    { stop_reason: "end_turn", content: [{ type: "text", text: "Căn này khoảng **X tỷ**." }] },
+  ];
+  const g = claudeGia(kb); T.AI.sdk = g.mod; T.AI.key = "khoa-thu"; T.AI.model = "claude-opus-5-5"; T.AI.msgs = [];
+  const { u, ui } = uiGia();
+  const kq = await T.aiTraLoi("nhà 80m2 1 trệt 1 lầu hẻm xe hơi bao nhiêu", ui);
+  const yc = g.yeuCau[0], m = T.AI.msgs;
+  const kt = [
+    [kq.xong, "không kết thúc"], [g.Client.tuyChon.apiKey === "khoa-thu" && g.Client.tuyChon.dangerouslyAllowBrowser === true, "client không nhận khóa người dùng"],
+    [yc.model === "claude-opus-5-5" && yc.tools.length === 11 && yc.system === T.AI_HE_THONG, "yêu cầu sai mô hình/công cụ/system"],
+    [yc.fallbacks === "default" && yc.betas.includes("server-side-fallback-2026-07-01"), "thiếu fallbacks khi Claude từ chối"],
+    [yc.cache_control?.type === "ephemeral" && yc.output_config?.effort === "medium", "thiếu cache_control/effort"],
+    [u.chu === "Để mình tính.Căn này khoảng **X tỷ**.", "chữ streaming sai: " + u.chu], [u.the.length === 1 && /tỷ/.test(u.the[0]), "không hiện thẻ kết quả công cụ"],
+    [m.length === 4 && m[1].content[0].type === "thinking" && m[2].content[0].type === "tool_result" && m[2].content[0].tool_use_id === "tu_1", "lịch sử sai cấu trúc"],
+    [giaTy(m[2].content[0].content) === giaTy(T.hoi("nhà 80m2 1 trệt 1 lầu hẻm xe hơi giá bao nhiêu").text), "kết quả gửi Claude khác số của mô hình"],
+    [g.yeuCau[1].messages.length === 3, "lượt 2 không gửi kèm kết quả công cụ"],
+  ];
+  const sai = kt.find(([ok]) => !ok); if (sai) return sai[1];
+  // câu hỏi tiếp: lịch sử cũ được gửi lại nguyên vẹn
+  kb.push({ stop_reason: "end_turn", content: [{ type: "text", text: "Mặt tiền đắt hơn." }] });
+  await T.aiTraLoi("nếu là mặt tiền thì sao?", uiGia().ui);
+  const yc3 = g.yeuCau[2];
+  return yc3.messages.length === 5 && yc3.messages[0].content === "nhà 80m2 1 trệt 1 lầu hẻm xe hơi bao nhiêu" ? "" : "lượt sau không mang theo hội thoại cũ";
+});
+kiemAsync("Chế độ AI: tham số sai thì trả lỗi cho Claude, không chạy công cụ; Haiku không gửi fallbacks", async () => {
+  const kb = [
+    { stop_reason: "tool_use", content: [{ type: "tool_use", id: "tu_2", name: "dinh_gia_nha_pho", input: { dien_tich_m2: "tám mươi" } }] },
+    { stop_reason: "end_turn", content: [{ type: "text", text: "Bạn cho mình diện tích nhé." }] },
+  ];
+  const g = claudeGia(kb); T.AI.sdk = g.mod; T.AI.model = "claude-haiku-5-5"; T.AI.msgs = [];
+  const { u, ui } = uiGia();
+  await T.aiTraLoi("nhà bao nhiêu", ui);
+  const tr = T.AI.msgs[2].content[0];
+  T.AI.model = "claude-opus-5-5";
+  return tr.is_error && /không hợp lệ/.test(tr.content) && u.the.length === 0 && g.yeuCau[0].fallbacks === undefined ? "" : JSON.stringify(tr).slice(0, 160);
+});
+kiemAsync("Chế độ AI: lỗi API (khóa sai) báo lỗi và KHÔNG làm hỏng lịch sử hội thoại", async () => {
+  const g = claudeGia([], true); T.AI.sdk = g.mod; T.AI.msgs = [{ role: "user", content: "cũ" }, { role: "assistant", content: [{ type: "text", text: "ok" }] }];
+  let bat = null; try { await T.aiTraLoi("câu mới", uiGia().ui); } catch (e) { bat = e; }
+  return bat instanceof g.mod.AuthenticationError && T.AI.msgs.length === 2 ? "" : `lỗi ${bat} · lịch sử ${T.AI.msgs.length} tin`;
+});
+kiemAsync("Chế độ AI: Claude từ chối thì bỏ cả lượt, trang dùng trợ lý ngoại tuyến", async () => {
+  const g = claudeGia([{ stop_reason: "refusal", content: [] }]); T.AI.sdk = g.mod; T.AI.msgs = [];
+  const kq = await T.aiTraLoi("câu bị từ chối", uiGia().ui);
+  return kq.tuChoi && T.AI.msgs.length === 0 ? "" : JSON.stringify(kq);
+});
+
+(async () => {
+  for (const [ten, f] of kiemSau) { try { const loi = await f(); kq.push([ten, !loi, loi || ""]); } catch (e) { kq.push([ten, false, "LỖI " + e.message]); } }
+  for (const [ten, ok, loi] of kq) console.log((ok ? "ĐẠT       " : "KHÔNG ĐẠT ") + ten + (ok ? "" : `
+           -> ${loi}`));
+  console.log(`
+${kq.filter((x) => x[1]).length}/${kq.length} phép kiểm đạt`);
+  process.exit(kq.every((x) => x[1]) ? 0 : 1);
+})();

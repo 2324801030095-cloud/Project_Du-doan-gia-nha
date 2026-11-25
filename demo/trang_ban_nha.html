@@ -597,6 +597,17 @@ button.row, a.row { cursor: pointer; } button.row:hover, a.row:hover { border-co
 .bub tr.me td { font-weight: 700; color: var(--red-600); }
 .bot-typing { display: inline-flex; gap: 4px; padding: 4px 2px; } .bot-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: botDot 1s infinite; }
 .bot-typing i:nth-child(2) { animation-delay: .15s; } .bot-typing i:nth-child(3) { animation-delay: .3s; }
+.ai-bar { padding: 6px 18px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.ai-bar #ai-tt.on { color: var(--navy-600); }
+.ai-panel { padding: 12px 18px; border-bottom: 1px solid var(--line); background: #fff; display: grid; gap: 8px; font-size: 13.5px; }
+.ai-panel[hidden] { display: none; }
+.ai-panel p { margin: 0; } .ai-panel .ghi { font-size: 12.5px; color: var(--muted); }
+.ai-panel label { display: grid; gap: 4px; font-weight: 600; }
+.ai-panel input[type=password], .ai-panel select { font: inherit; font-weight: 400; padding: 8px 10px; border: 1px solid var(--line-2); border-radius: 8px; background: #fff; color: var(--ink); min-width: 0; }
+.ai-panel .ai-nho { display: flex; gap: 8px; align-items: center; font-weight: 400; }
+.ai-nut { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; } .ai-nut [hidden] { display: none; } #ai-loi { color: var(--red-600); }
+.bub .ai-chu p { margin: 0 0 6px; } .bub .ai-chu ul { margin: 4px 0 6px; padding-left: 20px; }
+.bub .ai-the { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line-2); }
 @keyframes botDot { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
 .bot-chips { display: flex; gap: 8px; padding: 10px 18px 0; overflow-x: auto; scrollbar-width: thin; }
 .bot-chip { flex: none; border: 1px solid var(--line-2); background: #fff; border-radius: 999px; padding: 7px 12px; font: inherit; font-size: 13px; color: var(--navy-700); cursor: pointer; white-space: nowrap; }
@@ -938,7 +949,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
             <div><span>Tỷ suất · hoàn vốn</span><strong id="val_ys">–</strong></div>
           </div>
           <div class="trend" id="trend">
-            <div class="trend-h"><span><svg class="ic ic-sm"><use href="#i-chart-spline"/></svg>Xu hướng giá khu vực</span><span class="sim" title="Nhận định từ tín hiệu thật 11/2026, chưa có lịch sử nhiều năm">Dữ liệu thật</span></div>
+            <div class="trend-h"><span><svg class="ic ic-sm"><use href="#i-chart-spline"/></svg>Xu hướng giá khu vực</span><span class="sim" title="Nhận định từ tín hiệu thật đến 24/11/2026, chưa có lịch sử nhiều năm">Dữ liệu thật</span></div>
             <div class="trend-seg" id="trend-seg"></div>
             <div class="trend-rows" id="trend-rows"></div>
             <div class="trend-ky"><label for="trend-ky">Chọn kỳ hạn</label>
@@ -964,7 +975,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
       <section class="panel full" id="trend-panel">
         <div class="panel-h"><svg class="ic"><use href="#i-chart-spline"/></svg><h3>Xu hướng giá 1–24 tháng · dữ liệu thật</h3><p id="trend-sub"></p></div>
         <div class="panel-b">
-          <div class="sim-note"><svg class="ic ic-sm"><use href="#i-circle-alert"/></svg><span><b>Chưa có lịch sử giá nhiều năm của riêng Phú Hòa.</b> Nhận định dựa trên tín hiệu thật trong dữ liệu tháng 11/2026 (người bán tăng/giảm giá cùng một căn, tỷ lệ tin "bán gấp") và số liệu DKRA đã công bố cho TP.HCM &amp; vùng phụ cận. Biên độ là nhận định có điều kiện, chưa phải mô hình đã kiểm định lùi. Chi tiết và cách tính: notebook <code>du_doan_xu_huong_gia.ipynb</code>.</span></div>
+          <div class="sim-note"><svg class="ic ic-sm"><use href="#i-circle-alert"/></svg><span><b>Chưa có lịch sử giá nhiều năm của riêng Phú Hòa.</b> Nhận định dựa trên tín hiệu thật trong dữ liệu đến 24/11/2026 (người bán tăng/giảm giá cùng một căn, tỷ lệ tin "bán gấp") và số liệu DKRA đã công bố cho TP.HCM &amp; vùng phụ cận. Biên độ là nhận định có điều kiện, chưa phải mô hình đã kiểm định lùi. Chi tiết và cách tính: notebook <code>du_doan_xu_huong_gia.ipynb</code>.</span></div>
           <div class="trend-grid">
             <div><div class="chart-box"><svg id="trend-chart" viewBox="0 0 640 340" width="100%" role="img" aria-label="Giá của cùng một căn nhà chuẩn ở từng phường Thủ Dầu Một"></svg></div>
               <div class="legend"><span><b style="background:#c0392b"></b>Phú Hòa</span><span><b style="background:#1f4f80"></b>Phường khác của TDM</span></div>
@@ -1022,8 +1033,18 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
       <div class="bot-head">
         <span class="bot-av"><svg class="ic"><use href="#i-sparkles"/></svg></span>
         <div><h1>Trợ lý Phú Hòa Home</h1><p>Trả lời từ dữ liệu tin rao thật và mô hình AI của đề tài</p></div>
+        <button class="btn btn-outline btn-sm" type="button" id="ai-btn" aria-controls="ai-panel"><svg class="ic ic-sm"><use href="#i-sparkles"/></svg>Chế độ AI</button>
         <button class="btn btn-outline btn-sm" type="button" id="bot-reset"><svg class="ic ic-sm"><use href="#i-rotate-ccw"/></svg>Hỏi lại từ đầu</button>
       </div>
+      <div class="ai-bar"><span id="ai-tt"></span></div>
+      <form class="ai-panel" id="ai-panel" hidden autocomplete="off">
+        <p><b>Chế độ AI (Claude):</b> trợ lý dùng mô hình ngôn ngữ Claude để hiểu câu hỏi tự nhiên và trò chuyện nhiều lượt; con số vẫn tính bằng mô hình của đề tài. Cần khóa <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener noreferrer">Claude API</a> của bạn (tính phí theo lượng dùng).</p>
+        <label>Khóa API <input id="ai-key" type="password" placeholder="sk-ant-..." spellcheck="false" autocomplete="off"></label>
+        <label>Mô hình <select id="ai-mh"></select></label>
+        <label class="ai-nho"><input id="ai-nho" type="checkbox"> Ghi nhớ khóa trên trình duyệt này (không chọn: chỉ giữ tới khi đóng tab)</label>
+        <p class="ghi">Khi bật, câu hỏi và kết quả công cụ được gửi tới Claude API của Anthropic. Khóa chỉ lưu trên trình duyệt này, không nằm trong file trang. Đừng bật trên máy dùng chung.</p>
+        <div class="ai-nut"><button class="btn btn-primary btn-sm" type="submit">Bật / lưu</button><button class="btn btn-outline btn-sm" type="button" id="ai-tat" hidden>Tắt và xóa khóa</button><span id="ai-loi" role="alert"></span></div>
+      </form>
       <div class="bot-log" id="bot-log" aria-live="polite"></div>
       <div class="bot-chips" id="bot-chips"></div>
       <form class="bot-input" id="bot-form" autocomplete="off">
@@ -1264,7 +1285,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
       </ul></div>
       <div><h4>Dữ liệu</h4><ul>
         <li><svg class="ic ic-sm"><use href="#i-database"/></svg>1.810 căn · guland, Chợ Tốt, alonhadat</li>
-        <li><svg class="ic ic-sm"><use href="#i-clock"/></svg>Thu thập tháng 11/2026</li>
+        <li><svg class="ic ic-sm"><use href="#i-clock"/></svg>Cập nhật 24/11/2026</li>
         <li><svg class="ic ic-sm"><use href="#i-images"/></svg><a href="#/nguon-anh">Nguồn ảnh & giấy phép</a></li>
       </ul></div>
       <div><h4>Thông tin đề tài</h4><ul>
@@ -2200,7 +2221,7 @@ function botDinhGiaNha(e) {
       ${ghiPhuong ? `<span class="ghi">${esc(ghiPhuong)}</span>` : ""}
       ${rows ? `<p style="margin-top:10px"><b>Căn tương tự đang rao ở Phú Hòa</b> (bấm để xem):</p><div class="rows">${rows}</div>` : ""}
       <div class="acts">${nut("mo-dinh-gia", "Mở công cụ định giá với thông số này", "calculator")}</div>
-      <span class="ghi">Ước tính từ giá rao bán tháng 11/2026, sai số trung bình khoảng ${fmt(MODEL.cv_mape, 0)}%. Chỉ để tham khảo, không thay thế thẩm định.</span>`,
+      <span class="ghi">Ước tính từ giá rao bán (dữ liệu đến ${NGAY_DL}), sai số trung bình khoảng ${fmt(MODEL.cv_mape, 0)}%. Chỉ để tham khảo, không thay thế thẩm định.</span>`,
     goi_y: [fin(e.vt) && e.vt >= 5 ? "Nếu nằm trong hẻm xe hơi thì sao?" : "Nếu là nhà mặt tiền thì sao?", fin(st) && st >= 3 ? "Nếu là nhà cấp 4?" : "Nếu là 1 trệt 2 lầu?", `Tìm nhà khoảng ${fmt(gia, 1)} tỷ`],
   };
 }
@@ -2358,7 +2379,7 @@ const FAQ = {
     <p>Sai số được đo nghiêm ngặt: mỗi căn được dự đoán bởi mô hình chưa từng học căn đó (kể cả các tin đăng lại của nó). Mỗi kết quả kèm <b>khoảng giá 80%</b>.</p>
     <span class="ghi">Công cụ trên trang dùng bản rút gọn để chạy ngay trên trình duyệt (nhà phố ~${fmt(MODEL.cv_mape, 0)}%, căn hộ ~${fmt(CH_MODEL.cv_mape, 0)}%). Mô hình đầy đủ nằm trong các notebook của đề tài.</span>`,
   faq_khoang: () => `<p><b>Khoảng 80%</b> nghĩa là: với các căn mô hình chưa từng thấy, khoảng 80% có giá rao thật nằm trong khoảng này (đã kiểm tra trên tập test). Khoảng rộng vì giá rao vốn chênh nhiều: cùng một căn, mỗi người bán rao một giá.</p><p>Giá rao <b>thấp hơn</b> khoảng → đáng xem kỹ; <b>cao hơn</b> → còn dư địa thương lượng hoặc căn có ưu điểm mô hình chưa thấy.</p>`,
-  faq_du_lieu: () => `<p>Toàn bộ là <b>tin rao bán thật</b> thu thập từ guland.vn, Chợ Tốt Nhà và alonhadat (tháng 11/2026), <b>không có dữ liệu giả lập</b>:</p>
+  faq_du_lieu: () => `<p>Toàn bộ là <b>tin rao bán thật</b> thu thập từ guland.vn, Chợ Tốt Nhà và alonhadat (cập nhật ${NGAY_DL}), <b>không có dữ liệu giả lập</b>:</p>
     <ul><li>${LISTINGS.length} căn nhà phố đang rao ở Phú Hòa (trong ${fmt(TONG_NHA, 0)} căn của cả vùng dùng để huấn luyện)</li><li>${fmt(CH_MODEL.so_can, 0)} căn hộ chung cư, ${CH_MODEL.du_an.length} dự án có từ 2 tin</li><li>Số liệu thị trường DKRA đã công bố (có nguồn) cho phần xu hướng</li></ul>
     <span class="ghi">Dữ liệu được làm sạch: bỏ tin cho thuê, tin trùng, giá mồi, nhà lắp ghép… Giá trong dữ liệu là giá rao, chưa phải giá giao dịch.</span>`,
   faq_thuong_luong: () => `<p>Giá trong dữ liệu là <b>giá rao</b>, thường cao hơn giá chốt vì người bán chừa phần thương lượng.</p>
@@ -2490,6 +2511,209 @@ function botTraLoi(text) {
   return r;
 }
 
+/* ---------- Chế độ AI: Claude (Claude API của Anthropic) trả lời, gọi các hàm của trợ lý như CÔNG CỤ ----------
+   Bật khi người dùng nhập khóa API của chính họ (khóa chỉ lưu trên trình duyệt này, không nằm trong file trang).
+   Claude hiểu câu hỏi và giữ mạch hội thoại; MỌI con số lấy từ các công cụ dưới đây – chính các hàm định giá, tìm kiếm,
+   giá thuê, xu hướng của trang, chạy ngay trên trình duyệt – nên số liệu vẫn là của mô hình đề tài, Claude không tự đặt số.
+   Không có khóa, mất mạng hay API lỗi thì trang dùng trợ lý ngoại tuyến ở trên. */
+const AI_SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.8.0/+esm";   // SDK chính thức, nạp khi bật chế độ AI
+const AI_MO_HINH = { "claude-opus-5-5": "Claude Opus 5.5", "claude-sonnet-5-5": "Claude Sonnet 5.5", "claude-haiku-5-5": "Claude Haiku 5.5" };
+const AI = { key: "", model: "claude-opus-5-5", msgs: [], sdk: null, dangChay: false, tuyChon: {} };   // tuyChon: thêm tùy chọn client (kiểm thử)
+const AI_SO_VONG = 8;                                    // tối đa 8 lượt gọi công cụ cho một câu hỏi
+const LOI_VAO = ["hem_nho", "hem_xe_may", "hem_xe_hoi", "hem_xe_tai", "hem_lon", "mat_tien"];   // chỉ số = cấp lối vào e.vt
+const AI_HE_THONG = `Bạn là trợ lý của Phú Hòa Home – trang demo của đề tài học máy dự đoán giá nhà phường Phú Hòa, Thủ Dầu Một (Bình Dương cũ).
+Phạm vi: nhà đất ở Thủ Dầu Một và lân cận – định giá nhà phố, căn hộ, đất nền; tìm tin đang rao; giá thuê và tỷ suất cho thuê; xu hướng giá; so sánh phường, mặt tiền và hẻm, dự án căn hộ; kiến thức pháp lý, nhà ở xã hội, lưu ý khi mua.
+
+Quy tắc:
+- Mọi con số về giá, khoảng giá, đơn giá, tỷ suất, xu hướng và danh sách tin phải lấy từ công cụ. Không tự ước lượng, không dùng số từ trí nhớ. Không có công cụ phù hợp thì nói rõ trang không có số liệu đó.
+- Thiếu thông tin bắt buộc (ví dụ diện tích khi định giá) thì hỏi lại ngắn gọn. Thông tin không bắt buộc thì cứ gọi công cụ: công cụ dùng mức trung vị và kết quả ghi rõ mục nào chưa có.
+- Người dùng hay hỏi tiếp dựa trên câu trước ("nếu là mặt tiền thì sao?", "còn 120m²?"): dùng lại các thông số đã biết trong hội thoại, chỉ đổi phần được nhắc.
+- Kết quả mỗi công cụ hiện thành một thẻ ngay trong câu trả lời (có bảng và nút bấm). Chỉ cần tóm tắt con số chính và giải thích ngắn, không chép lại cả bảng.
+- Khi nói về giá luôn kèm khoảng giá hoặc sai số. Đây là giá rao bán trên các trang tin (dữ liệu ngày ${String(TREND.ngay_du_lieu).split("-").reverse().join("/")}), không phải giá giao dịch.
+- Không khẳng định chắc chắn về pháp lý hay đầu tư; khuyên kiểm tra thực tế khi cần.
+- Câu ngoài phạm vi: từ chối lịch sự và nói mình làm được gì.
+- Trả lời bằng tiếng Việt, tự nhiên, ngắn gọn (thường 2–5 câu), in đậm (**...**) con số quan trọng.`;
+
+let AI_TOOLS = null;
+function aiTools() {
+  if (AI_TOOLS) return AI_TOOLS;
+  const so = (mo_ta, min = 0, max = 1e4) => ({ type: "number", minimum: min, maximum: max, description: mo_ta });
+  const nguyen = (mo_ta, min = 0, max = 20) => ({ type: "integer", minimum: min, maximum: max, description: mo_ta });
+  const phuong = { type: "string", enum: PH_TDM.map((p) => p.ten), description: "Phường ở Thủ Dầu Một; bỏ trống = Phú Hòa" };
+  const loiVao = { type: "string", enum: LOI_VAO, description: "Lối vào: hẻm nhỏ (<2,5 m), hẻm xe máy, hẻm xe hơi, hẻm xe tải, hẻm lớn, mặt tiền đường" };
+  const duAn = { type: "string", description: "Tên dự án căn hộ, ví dụ 'Happy One Central', 'C SkyView'" };
+  const cc = (name, description, properties, required = []) => ({
+    name, description, eager_input_streaming: true,
+    input_schema: { type: "object", properties, required, additionalProperties: false },
+  });
+  AI_TOOLS = [
+    cc("dinh_gia_nha_pho", "Định giá nhà phố (nhà gắn liền với đất) ở Thủ Dầu Một bằng mô hình của đề tài. Trả về giá ước tính, khoảng tham khảo, đơn giá và căn tương tự đang rao.", {
+      dien_tich_m2: so("Diện tích đất (m²); '5x20' là 100", 10, 2000), ngang_m: so("Chiều ngang mặt tiền (m)", 1, 50),
+      so_tang: so("Kết cấu: 1 = cấp 4; 1.5 = có gác lửng; 2 = 1 trệt 1 lầu; 3 = 1 trệt 2 lầu; 4 = 1 trệt 3 lầu trở lên", 1, 4),
+      loi_vao: loiVao, do_rong_hem_m: so("Độ rộng hẻm/đường trước nhà (m)", 1, 60), phong_ngu: nguyen("Số phòng ngủ"), wc: nguyen("Số WC"),
+      truc_duong: { type: "string", enum: ["ntmk", "lhp"], description: "Nằm trên trục Nguyễn Thị Minh Khai (ntmk) hoặc Lê Hồng Phong (lhp)" },
+      noi_that: { type: "boolean", description: "Có nội thất" }, phuong }, ["dien_tich_m2"]),
+    cc("dinh_gia_can_ho", "Định giá căn hộ chung cư (Thủ Dầu Một và lân cận). Không có diện tích thì trả về mặt bằng đơn giá của dự án/phường.", {
+      dien_tich_m2: so("Diện tích sử dụng (m²)", 15, 500), du_an: duAn, phong_ngu: nguyen("Số phòng ngủ", 0, 6), wc: nguyen("Số WC", 0, 6),
+      tang: nguyen("Tầng của căn", 0, 60), so_hong: { type: "boolean", description: "true = có sổ hồng; false = chỉ hợp đồng mua bán / chờ sổ" },
+      noi_that: { type: "boolean", description: "Đầy đủ nội thất" }, nha_o_xa_hoi: { type: "boolean", description: "Là nhà ở xã hội" }, phuong }),
+    cc("dinh_gia_dat", "Định giá lô đất ở (thổ cư, đất nền) ở Thủ Dầu Một. Trả về giá ước tính, khoảng 80% và đơn giá.", {
+      dien_tich_m2: so("Diện tích lô đất (m²)", 20, 5000), ngang_m: so("Chiều ngang (m)", 1, 100), loi_vao: loiVao,
+      do_rong_hem_m: so("Độ rộng hẻm/đường (m)", 1, 60), so_hong: { type: "boolean", description: "Có sổ riêng" },
+      nen_du_an_khu_dan_cu: { type: "boolean", description: "Là nền trong dự án / khu dân cư" }, phuong }, ["dien_tich_m2"]),
+    cc("tim_bat_dong_san", "Tìm tin đang rao bán: nhà phố ở Phú Hòa hoặc căn hộ ở Thủ Dầu Một, lọc theo ngân sách và thông số; có thể chỉ lấy căn rẻ hơn thị trường.", {
+      loai: { type: "string", enum: ["nha_pho", "can_ho"], description: "Loại cần tìm" }, gia_tu_ty: so("Giá thấp nhất (tỷ đồng)", 0, 500), gia_den_ty: so("Giá cao nhất (tỷ đồng)", 0, 500),
+      dien_tich_m2: so("Diện tích mong muốn (m²), lọc ±25%", 10, 2000), so_tang: so("Kết cấu nhà phố như ở công cụ định giá", 1, 4),
+      vi_tri: { type: "string", enum: ["mat_tien", "trong_hem"], description: "Nhà phố mặt tiền hay trong hẻm" },
+      phong_ngu_toi_thieu: nguyen("Số phòng ngủ tối thiểu", 0, 10), du_an: duAn,
+      chi_re_hon_thi_truong: { type: "boolean", description: "Chỉ lấy căn mô hình đánh giá rẻ hơn thị trường" } }, ["loai"]),
+    cc("gia_thue", "Ước tính tiền thuê/tháng và tỷ suất cho thuê (số năm hoàn vốn) của nhà phố hoặc căn hộ, từ giá mua hoặc từ thông số căn.", {
+      loai: { type: "string", enum: ["nha_pho", "can_ho"], description: "Loại bất động sản" }, gia_mua_ty: so("Giá mua (tỷ đồng)", 0.1, 500),
+      dien_tich_m2: so("Diện tích (m²)", 10, 2000), so_tang: so("Kết cấu nhà phố như ở công cụ định giá", 1, 4), loi_vao: loiVao,
+      phong_ngu: nguyen("Số phòng ngủ"), du_an: duAn, phuong }, ["loai"]),
+    cc("ty_suat_thue_du_an", "Danh sách dự án căn hộ ở Thủ Dầu Một có tỷ suất cho thuê cao nhất.", {}),
+    cc("xu_huong_gia", "Nhận định xu hướng giá rao nhà phố Thủ Dầu Một/Phú Hòa theo kỳ hạn, kèm căn cứ (đổi giá của người bán, số liệu DKRA).", {
+      ky_han_thang: nguyen("Kỳ hạn hỏi (tháng); bỏ trống = bảng 1, 3, 6, 12 tháng", 1, 120) }),
+    cc("so_sanh_phuong", "Giá của cùng một căn nhà chuẩn ở từng phường Thủ Dầu Một, hoặc thứ hạng của một phường.", {
+      phuong, thu_tu: { type: "string", enum: ["cao_den_thap", "thap_den_cao"], description: "Thứ tự sắp xếp" } }),
+    cc("du_an_can_ho", "Danh sách dự án căn hộ và đơn giá mặt bằng theo khu vực.", {
+      khu_vuc: { type: "string", enum: ["thu_dau_mot", "di_an", "thuan_an", "ben_cat"], description: "Khu vực" },
+      thu_tu: { type: "string", enum: ["cao_den_thap", "thap_den_cao"], description: "Thứ tự đơn giá" } }),
+    cc("so_sanh_mat_tien_hem", "So sánh giá cùng một căn nhà chuẩn ở Phú Hòa khi đổi vị trí lối vào (mặt tiền, các loại hẻm).", {}),
+    cc("kien_thuc", "Thông tin của đề tài và kiến thức mua nhà: pháp lý (sổ hồng/HĐMB), nhà ở xã hội, cách mô hình định giá và độ chính xác, ý nghĩa khoảng giá 80%, nguồn dữ liệu, thương lượng giá, lưu ý khi mua.", {
+      chu_de: { type: "string", enum: Object.keys(FAQ), description: "Chủ đề" } }, ["chu_de"]),
+  ];
+  return AI_TOOLS;
+}
+
+// Tham số công cụ -> thông tin e (cùng dạng botTrich trích từ câu chữ) để gọi lại đúng các hàm trả lời của trợ lý
+function aiPhuong(ten) {
+  if (!ten) return undefined;
+  const k = kd(ten).replace(/^phuong\s+/, "").trim(), p = PH_TDM.find((x) => x.k === k || kd(x.ten) === k);
+  if (!p) throw new Error(`Không có phường "${ten}" trong dữ liệu. Các phường: ${PH_TDM.map((x) => x.ten).join(", ")}`);
+  return p;
+}
+function aiDuAn(ten) {
+  if (!ten) return undefined;
+  const k = " " + kd(ten).replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim() + " ";
+  const d = DA_KEYS.find((x) => k.includes(" " + x.k + " ")) || DA_KEYS.find((x) => x.k.includes(k.trim()));
+  if (!d) throw new Error(`Không tìm thấy dự án "${ten}". Dùng công cụ du_an_can_ho để xem tên các dự án có dữ liệu.`);
+  return d.d;
+}
+function aiE(a) {
+  const e = {}, dat = (k, v) => { if (v !== undefined && v !== null) e[k] = v; };
+  dat("dt", a.dien_tich_m2); dat("ngang", a.ngang_m); dat("st", a.so_tang); dat("hr", a.do_rong_hem_m); dat("pn", a.phong_ngu ?? a.phong_ngu_toi_thieu);
+  dat("wc", a.wc); dat("tang", a.tang); dat("truc", a.truc_duong); dat("gia", a.gia_mua_ty); dat("gmin", a.gia_tu_ty); dat("gmax", a.gia_den_ty);
+  if (a.loi_vao) e.vt = LOI_VAO.indexOf(a.loi_vao);
+  if (e.vt === undefined && fin(e.hr)) e.vt = e.hr < 2.5 ? 0 : e.hr < 3.5 ? 1 : e.hr < 5 ? 2 : e.hr < 7 ? 3 : e.hr < 10 ? 4 : 5;   // như botTrich
+  if (a.noi_that) e.nt = true;
+  if (typeof a.so_hong === "boolean") e.so = a.so_hong ? 1 : 0;
+  if (a.nha_o_xa_hoi) e.noxh = true;
+  const ph = aiPhuong(a.phuong); if (ph) e.phuong = ph;
+  const da = aiDuAn(a.du_an); if (da) { e.du_an = da; e.can_ho = true; }
+  return e;
+}
+// Vài hàm trả lời đọc thêm ý từ câu gốc (BOT.last: kỳ hạn, rẻ/đắt, khu vực); ở chế độ AI ý đó đến từ tham số công cụ
+const AI_CONG_CU = {
+  dinh_gia_nha_pho: (a) => botDinhGiaNha(aiE(a)),
+  dinh_gia_can_ho: (a) => botGiaCanHo({ ...aiE(a), can_ho: true }),
+  dinh_gia_dat: (a) => { BOT.last = a.nen_du_an_khu_dan_cu ? "khu dan cu" : ""; return botDat(aiE(a)); },
+  tim_bat_dong_san: (a) => {
+    const e = aiE(a); e.can_ho = a.loai === "can_ho"; e.re = !!a.chi_re_hon_thi_truong;
+    if (a.vi_tri === "mat_tien") e.vt = 5; else if (a.vi_tri === "trong_hem") e.hem = true;
+    return botTim(e);
+  },
+  gia_thue: (a) => { BOT.last = ""; const e = aiE(a); if (a.loai === "can_ho") e.can_ho = true; return botThue(e); },
+  ty_suat_thue_du_an: () => botThueDuAn(),
+  xu_huong_gia: (a) => { BOT.last = fin(a.ky_han_thang) ? `${a.ky_han_thang} thang` : ""; return botXuHuong(); },
+  so_sanh_phuong: (a) => { BOT.last = a.thu_tu === "thap_den_cao" ? "re" : "cao"; return botPhuong(aiE(a)); },
+  du_an_can_ho: (a) => { BOT.last = `${(a.khu_vuc || "thu_dau_mot").replace(/_/g, " ")} ${a.thu_tu === "thap_den_cao" ? "re" : "cao"}`; return botDuAn({}); },
+  so_sanh_mat_tien_hem: () => botLoiVao(),
+  kien_thuc: (a) => ({ html: FAQ[a.chu_de]() }),
+};
+
+// Kiểm tham số theo lược đồ của công cụ: với eager_input_streaming máy chủ không còn kiểm, nên trang tự kiểm trước khi chạy
+function kiemThamSo(sc, a) {
+  if (!a || typeof a !== "object" || Array.isArray(a)) return "tham số phải là một đối tượng";
+  for (const k of sc.required || []) if (a[k] === undefined || a[k] === null) return `thiếu "${k}"`;
+  for (const [k, v] of Object.entries(a)) {
+    const p = sc.properties[k];
+    if (!p) return `không có tham số "${k}"`;
+    if (v === null) continue;
+    if (p.type === "number" || p.type === "integer") {
+      if (typeof v !== "number" || !Number.isFinite(v) || (p.type === "integer" && !Number.isInteger(v))) return `"${k}" phải là số${p.type === "integer" ? " nguyên" : ""}`;
+      if ((p.minimum !== undefined && v < p.minimum) || (p.maximum !== undefined && v > p.maximum)) return `"${k}" ngoài khoảng ${p.minimum}–${p.maximum}`;
+    } else if (p.type === "boolean") { if (typeof v !== "boolean") return `"${k}" phải là true/false`; }
+    else if (p.type === "string") {
+      if (typeof v !== "string") return `"${k}" phải là chuỗi`;
+      if (p.enum && !p.enum.includes(v)) return `"${k}" phải là một trong: ${p.enum.join(", ")}`;
+    }
+  }
+  return null;
+}
+// Thẻ HTML của trợ lý -> chữ thường cho Claude đọc (bảng thành dòng "a | b | c")
+function htmlRaChu(html) {
+  return String(html).replace(/<\/(p|li|tr|div|h\d)>|<br\s*\/?>/gi, "\n").replace(/<\/td>/gi, " | ").replace(/<\/(span|button|a)>/gi, " · ").replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/[ \t]+/g, " ").replace(/(\s*·)+\s*(?=\n|$)/g, "").replace(/(\s*·\s*){2,}/g, " · ").replace(/^\s*·\s*/gm, "")
+    .replace(/ ?\| ?\n/g, "\n").replace(/\n\s*\n+/g, "\n").trim();
+}
+function aiChayCongCu(b, ui) {
+  const def = aiTools().find((t) => t.name === b.name), loi = (s) => ({ type: "tool_result", tool_use_id: b.id, is_error: true, content: s });
+  if (!def || !AI_CONG_CU[b.name]) return loi(`Không có công cụ ${b.name}`);
+  const sai = kiemThamSo(def.input_schema, b.input);
+  if (sai) return loi(`Tham số không hợp lệ: ${sai}. Gọi lại với tham số đúng lược đồ.`);
+  try {
+    const r = AI_CONG_CU[b.name](b.input);
+    ui.the(r.html, r.goi_y);
+    return { type: "tool_result", tool_use_id: b.id, content: htmlRaChu(r.html) + "\n(Thẻ kết quả này đã hiện cho người dùng.)" };
+  } catch (err) { return loi(err.message); }
+}
+async function aiSdk() { return (AI.sdk ??= await import(AI_SDK_URL)); }
+
+// Một câu hỏi: gửi hội thoại cho Claude, chạy công cụ Claude yêu cầu, lặp tới khi Claude trả lời xong.
+// ui.chu(đoạn chữ) nhận chữ đang tạo (streaming); ui.the(html, gợi ý) nhận thẻ kết quả của công cụ.
+async function aiTraLoi(q, ui) {
+  const sdk = await aiSdk();
+  const client = new sdk.default({ apiKey: AI.key, dangerouslyAllowBrowser: true, ...AI.tuyChon });   // khóa của chính người dùng, nhập trên trang
+  const batDau = AI.msgs.length;           // lượt lỗi thì bỏ cả lượt, lịch sử chỉ nối thêm các lượt trọn vẹn
+  AI.msgs.push({ role: "user", content: q });
+  let loiDoc = 0;
+  try {
+    for (let vong = 0; vong < AI_SO_VONG; vong++) {
+      const yc = { model: AI.model, max_tokens: 64000, system: AI_HE_THONG, tools: aiTools(), messages: AI.msgs,
+                   cache_control: { type: "ephemeral" }, output_config: { effort: "medium" } };
+      // Claude từ chối vì an toàn thì máy chủ tự chạy lại bằng mô hình dự phòng (Haiku 5.5 chưa hỗ trợ)
+      const stream = /haiku/.test(AI.model) ? client.messages.stream(yc)
+        : client.beta.messages.stream({ ...yc, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" });
+      stream.on("text", (d) => ui.chu(d));
+      let msg;
+      try { msg = await stream.finalMessage(); loiDoc = 0; }
+      catch (err) { if (err instanceof sdk.APIError || ++loiDoc > 2) throw err; continue; }   // tham số công cụ không đọc được / rớt kết nối: hỏi lại
+      if (msg.stop_reason === "refusal") { AI.msgs.length = batDau; return { tuChoi: true }; }
+      const dung = msg.content.filter((x) => x.type === "tool_use");
+      if (msg.stop_reason === "max_tokens" && dung.length) throw new Error("Tham số công cụ bị cắt (max_tokens)");
+      AI.msgs.push({ role: "assistant", content: msg.content });          // giữ nguyên mọi khối, kể cả thinking
+      if (msg.stop_reason === "pause_turn") continue;
+      if (!dung.length) return { xong: true };
+      AI.msgs.push({ role: "user", content: dung.map((b) => aiChayCongCu(b, ui)) });   // mọi kết quả công cụ trong MỘT tin
+    }
+    return { xong: true, hetVong: true };
+  } catch (err) { AI.msgs.length = batDau; throw err; }
+}
+// Chữ của Claude -> HTML an toàn: escape trước, rồi **đậm**, gạch đầu dòng, xuống dòng
+function aiMd(s) {
+  const kq = []; let ul = false;
+  for (const dong of esc(s).split("\n")) {
+    const d = dong.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"), m = d.match(/^\s*[-*•]\s+(.*)/);
+    if (m) { if (!ul) { kq.push("<ul>"); ul = true; } kq.push(`<li>${m[1]}</li>`); continue; }
+    if (ul) { kq.push("</ul>"); ul = false; }
+    if (d.trim()) kq.push(`<p>${d}</p>`);
+  }
+  if (ul) kq.push("</ul>");
+  return kq.join("");
+}
+
 /* ----- giao diện ----- */
 const BOT_NHOM = [
   ["calculator", "Định giá", ["Nhà 1 trệt 1 lầu 80m² hẻm xe hơi giá bao nhiêu?", "Nhà 5x20 mặt tiền Nguyễn Thị Minh Khai giá bao nhiêu?", "Căn hộ Happy One Central 2PN 68m² giá bao nhiêu?"]],
@@ -2506,9 +2730,90 @@ function botTin(html, ai, cls = "") {
   return d;
 }
 function botChips(ds) { $("bot-chips").innerHTML = (ds || []).map((q) => `<button class="bot-chip" type="button" data-q="${esc(q)}">${esc(q)}</button>`).join(""); }
+// ----- chế độ AI: cài đặt khóa, trạng thái, trả lời dạng luồng -----
+const AI_LUU = "phh_claude";            // khóa lưu cài đặt; khóa API chỉ ở localStorage khi người dùng chọn "ghi nhớ"
+function aiDocCaiDat() {
+  for (const kho of ["localStorage", "sessionStorage"]) {
+    try { const v = JSON.parse(globalThis[kho]?.getItem(AI_LUU) || "null"); if (v && v.key) { AI.key = v.key; AI.model = AI_MO_HINH[v.model] ? v.model : AI.model; return kho; } } catch { /* trình duyệt chặn lưu trữ */ }
+  }
+  return null;
+}
+function aiLuuCaiDat(nho) {
+  const v = JSON.stringify({ key: AI.key, model: AI.model });
+  for (const kho of ["localStorage", "sessionStorage"]) { try { globalThis[kho]?.removeItem(AI_LUU); } catch { /* bỏ qua */ } }
+  try { if (AI.key) globalThis[nho ? "localStorage" : "sessionStorage"]?.setItem(AI_LUU, v); } catch { /* chỉ giữ trong phiên */ }
+}
+function aiTrangThai() {
+  const bat = !!AI.key;
+  $("ai-tt").innerHTML = bat ? `${icon("sparkles", "ic ic-sm")} Chế độ AI: <b>${esc(AI_MO_HINH[AI.model])}</b>` : "Trợ lý ngoại tuyến (chưa bật chế độ AI)";
+  $("ai-tt").classList.toggle("on", bat);
+  $("ai-tat").hidden = !bat;
+  $("bot-rieng-tu").innerHTML = bat
+    ? `${icon("shield-check", "ic ic-sm")}<span>Chế độ AI đang bật: câu hỏi và kết quả công cụ được gửi tới Claude API (Anthropic) bằng khóa của bạn. Khóa chỉ lưu trên trình duyệt này. Số liệu vẫn lấy từ dữ liệu và mô hình của đề tài; chỉ để tham khảo.</span>`
+    : `${icon("shield-check", "ic ic-sm")}<span>Trợ lý chạy ngay trên trình duyệt, không gửi câu hỏi đi đâu. Bật chế độ AI (khóa Claude API của bạn) để trò chuyện tự nhiên hơn. Số liệu lấy từ dữ liệu và mô hình của đề tài; chỉ để tham khảo.</span>`;
+}
+function aiBong() {
+  const tin = botTin(`<span class="bot-typing" aria-label="Đang trả lời"><i></i><i></i><i></i></span>`, true), bub = tin.querySelector(".bub");
+  let doan = null, chu = "", dau = true, goiY = null;
+  const xoaCho = () => { if (dau) { bub.innerHTML = ""; dau = false; } };
+  const cuon = () => { $("bot-log").scrollTop = $("bot-log").scrollHeight; };
+  return {
+    chu(d) { xoaCho(); if (!doan) { doan = document.createElement("div"); doan.className = "ai-chu"; bub.appendChild(doan); chu = ""; } chu += d; doan.innerHTML = aiMd(chu); cuon(); },
+    the(html, gy) { xoaCho(); const c = document.createElement("div"); c.className = "ai-the"; c.innerHTML = html; bub.appendChild(c); doan = null; if (gy) goiY = gy; cuon(); },
+    ghi(html) { xoaCho(); const c = document.createElement("div"); c.innerHTML = html; bub.appendChild(c); cuon(); },
+    get goiY() { return goiY; }, get trong() { return dau; },
+  };
+}
+async function aiHoi(q) {
+  const ui = aiBong();
+  AI.dangChay = true; $("bot-q").disabled = true;
+  try {
+    const kq = await aiTraLoi(q, ui);
+    if (kq.tuChoi) ui.ghi(`<span class="ghi">Claude không trả lời câu này. Trả lời của trợ lý ngoại tuyến:</span>${botTraLoi(q).html}`);
+    else if (kq.hetVong) ui.ghi(`<span class="ghi">Câu hỏi cần quá nhiều bước; bạn thử hỏi cụ thể hơn nhé.</span>`);
+    else if (ui.trong) ui.ghi(`<p>(Không có nội dung trả lời.)</p>`);
+    botChips(ui.goiY || ["Nếu là nhà mặt tiền thì sao?", "Tìm nhà dưới 3 tỷ rẻ hơn thị trường", "Giá nhà 6 tháng tới thế nào?"]);
+  } catch (err) {
+    console.error(err);
+    const E = AI.sdk || {};
+    // lỗi cụ thể trước, chung sau; lỗi nào cũng kèm câu trả lời của trợ lý ngoại tuyến để người dùng không phải hỏi lại
+    const tb = !AI.sdk ? "Không tải được thư viện Claude (cần Internet)."
+      : E.AuthenticationError && err instanceof E.AuthenticationError ? "Khóa API không hợp lệ hoặc đã bị thu hồi – kiểm tra lại ở nút Chế độ AI."
+      : E.PermissionDeniedError && err instanceof E.PermissionDeniedError ? "Khóa API không có quyền dùng mô hình này – thử chọn mô hình khác."
+      : E.NotFoundError && err instanceof E.NotFoundError ? "Tài khoản của khóa API chưa dùng được mô hình này – thử chọn mô hình khác."
+      : E.RateLimitError && err instanceof E.RateLimitError ? "Khóa API đang vượt giới hạn số yêu cầu – thử lại sau ít phút."
+      : E.APIConnectionError && err instanceof E.APIConnectionError ? "Không kết nối được tới Claude API (mất mạng?)."
+      : E.APIError && err instanceof E.APIError ? `Claude API báo lỗi${err.status ? " " + err.status : ""}.`
+      : "Có lỗi khi gọi Claude.";
+    let r; try { r = botTraLoi(q); } catch { r = botLoi(); }
+    ui.ghi(`<span class="ghi">${esc(tb)} Trả lời của trợ lý ngoại tuyến:</span>${r.html}`); botChips(r.goi_y);
+  } finally { AI.dangChay = false; $("bot-q").disabled = false; $("bot-q").focus({ preventScroll: true }); }
+}
+function aiInit() {
+  const kho = aiDocCaiDat();
+  $("ai-mh").innerHTML = Object.entries(AI_MO_HINH).map(([k, v]) => `<option value="${k}">${esc(v)}${k === "claude-opus-5-5" ? " (mặc định)" : ""}</option>`).join("");
+  $("ai-mh").value = AI.model; $("ai-nho").checked = kho === "localStorage";
+  $("ai-btn").addEventListener("click", () => { $("ai-panel").hidden = !$("ai-panel").hidden; if (!$("ai-panel").hidden) $("ai-key").focus(); });
+  $("ai-panel").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const k = $("ai-key").value.trim();
+    if (!k && !AI.key) { $("ai-loi").textContent = "Nhập khóa Claude API (bắt đầu bằng sk-ant-)."; return; }
+    if (k) AI.key = k;
+    if ($("ai-mh").value !== AI.model || k) AI.msgs = [];           // đổi mô hình hay khóa: bắt đầu hội thoại mới
+    AI.model = $("ai-mh").value; aiLuuCaiDat($("ai-nho").checked);
+    $("ai-key").value = ""; $("ai-loi").textContent = ""; $("ai-panel").hidden = true; aiTrangThai();
+    botTin(`<p>Đã bật <b>chế độ AI</b> với ${esc(AI_MO_HINH[AI.model])}. Bạn cứ hỏi tự nhiên; số liệu vẫn lấy từ mô hình của đề tài.</p>`, true);
+  });
+  $("ai-tat").addEventListener("click", () => {
+    AI.key = ""; AI.msgs = []; aiLuuCaiDat(false); $("ai-panel").hidden = true; aiTrangThai();
+    botTin(`<p>Đã tắt chế độ AI và xóa khóa khỏi trình duyệt. Trợ lý quay về chế độ ngoại tuyến.</p>`, true);
+  });
+  aiTrangThai();
+}
 function botHoi(q) {
-  q = String(q || "").trim(); if (!q) return;
+  q = String(q || "").trim(); if (!q || AI.dangChay) return;
   botTin(esc(q), false); $("bot-q").value = ""; botChips([]);
+  if (AI.key) { aiHoi(q); return; }                       // chế độ AI: Claude trả lời, gọi công cụ của trang
   const cho = botTin(`<span class="bot-typing" aria-label="Đang trả lời"><i></i><i></i><i></i></span>`, true, "typing");
   setTimeout(() => {
     cho.remove();
@@ -2517,14 +2822,15 @@ function botHoi(q) {
   }, 380);
 }
 function botMoi() {
-  $("bot-log").innerHTML = ""; BOT.ctx = null;
+  $("bot-log").innerHTML = ""; BOT.ctx = null; AI.msgs = [];
   const r = botGioiThieu(); botTin(r.html, true); botChips(BOT_NHOM.map((g) => g[2][0]));
 }
 function botInit() {
   $("bot-side").innerHTML = BOT_NHOM.map(([ic, ten, qs]) => `<div class="bot-grp"><h4>${icon(ic)}${esc(ten)}</h4>${qs.map((q) => `<button type="button" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>`).join("")
-    + `<p class="note" style="margin:0"><svg class="ic ic-sm"><use href="#i-shield-check"/></svg><span>Trợ lý chạy ngay trên trình duyệt, không gửi câu hỏi đi đâu. Số liệu lấy từ dữ liệu và mô hình của đề tài; chỉ để tham khảo.</span></p>`;
+    + `<p class="note" id="bot-rieng-tu" style="margin:0"></p>`;
   $("bot-form").addEventListener("submit", (ev) => { ev.preventDefault(); botHoi($("bot-q").value); });
   $("bot-reset").addEventListener("click", botMoi);
+  aiInit();
   document.addEventListener("click", (ev) => {
     const q = ev.target.closest("[data-q]"); if (q) { ev.preventDefault(); if (location.hash !== "#/tro-ly") location.hash = "#/tro-ly"; botHoi(q.dataset.q); return; }
     const a = ev.target.closest("[data-bot]"); if (!a) return;
