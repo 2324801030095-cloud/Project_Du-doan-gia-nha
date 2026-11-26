@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "description": "Sinh tài liệu bàn giao (Word) từ số liệu của một lần chạy",
+  "dependencies": { "docx": "9.5.1" }
+}

@@ -27,3 +27,6 @@ demo/khoa_ai.local.js
 web/.next/
 web/node_modules/
 
+
+scripts/tai_lieu/node_modules/
+scripts/tai_lieu/so_lieu_ban_giao.json

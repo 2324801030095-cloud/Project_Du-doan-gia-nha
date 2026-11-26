@@ -8,7 +8,7 @@ Dữ liệu là tin rao thật (Chợ Tốt Nhà, alonhadat, guland), đã ẩn 
 
 **Phạm vi:** đề tài định giá NHÀ. Tin chủ yếu bán đất ("bán đất tặng nhà", tin "bán đất" không có thông tin căn nhà) bị loại khi làm sạch, có ghi lý do. Định giá lô đất trống đã bỏ khỏi bài chính và web; notebook và kết quả cũ để ở `notebooks/luu_tru/` để truy xuất.
 
-**Tài liệu kỹ thuật tổng hợp (Word): [docs/Tai_lieu_ky_thuat_tong_hop.docx](docs/Tai_lieu_ky_thuat_tong_hop.docx)** – cấu trúc, cài đặt, công nghệ, thuật toán, logic dữ liệu, đầu vào/đầu ra, huấn luyện và kết quả, web demo, trợ lý, kiểm thử, hạn chế, checklist, câu hỏi bảo vệ.
+**Tài liệu bàn giao (Word, số liệu của lần chạy bàn giao): [docs/Tai_lieu_ban_giao.docx](docs/Tai_lieu_ban_giao.docx)** – dataset, mô hình, kết quả, kiến trúc, kiểm thử, chia việc nhóm, câu hỏi bảo vệ. Tài liệu cũ (chi tiết kỹ thuật, một số số liệu của lần chạy trước): [docs/Tai_lieu_ky_thuat_tong_hop.docx](docs/Tai_lieu_ky_thuat_tong_hop.docx) – cấu trúc, cài đặt, công nghệ, thuật toán, logic dữ liệu, đầu vào/đầu ra, huấn luyện và kết quả, web demo, trợ lý, kiểm thử, hạn chế, checklist, câu hỏi bảo vệ.
 
 ## Bắt đầu nhanh
 
