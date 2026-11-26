@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { yeuThich } from "@/lib/db/schema";
 import { layPhien } from "@/lib/session";
 
-const Tin = z.object({ loai: z.enum(["nha_pho", "can_ho", "dat"]), maTin: z.string().min(1).max(40) });
+const Tin = z.object({ loai: z.enum(["nha_pho", "can_ho"]), maTin: z.string().min(1).max(40) });
 
 // Bật / tắt lưu tin. POST = lưu, DELETE = bỏ lưu. Cần đăng nhập.
 async function xuLy(req: Request, them: boolean) {

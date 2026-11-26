@@ -27,7 +27,7 @@ const email = `thu.${Date.now()}@phuhoa.local`, matKhau = "MatKhau-thu-123";
 let ckUser = "", ckAdmin = "", maTin = "";
 
 await kiem("Mọi trang công khai trả 200 và có nội dung tiếng Việt", async () => {
-  for (const p of ["/", "/nha-pho", "/can-ho", "/dat", "/ban-do", "/xu-huong", "/mo-hinh", "/tro-ly", "/dinh-gia", "/dinh-gia?loai=can-ho", "/dang-nhap", "/dang-ky"]) {
+  for (const p of ["/", "/nha-pho", "/can-ho", "/ban-do", "/xu-huong", "/mo-hinh", "/tro-ly", "/dinh-gia", "/dinh-gia?loai=can-ho", "/dang-nhap", "/dang-ky"]) {
     const r = await goi(p);
     ok(r.status === 200, `${p}: ${r.status}`);
     ok((await r.text()).includes("Phú Hòa"), `${p}: thiếu nội dung`);
@@ -37,6 +37,7 @@ await kiem("Mọi trang công khai trả 200 và có nội dung tiếng Việt",
   ok(maTin, "không thấy tin nào");
   ok((await goi(`/nha-pho/${maTin}`)).status === 200, "trang chi tiết lỗi");
   ok((await goi("/nha-pho/khong-ton-tai")).status === 404, "tin không tồn tại phải 404");
+  ok((await goi("/dat")).status === 404, "trang đất nền đã bỏ khỏi đề tài nhưng vẫn mở được");
 });
 
 await kiem("Chưa đăng nhập: /tai-khoan và /admin chuyển tới đăng nhập; API lưu tin trả 401", async () => {

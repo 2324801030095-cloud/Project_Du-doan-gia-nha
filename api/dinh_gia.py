@@ -2,7 +2,6 @@
 
 - Nhà phố: Random Forest (mô hình cuối, Phần A) + khoảng 80% theo nhóm + giải thích đóng góp theo đường đi trên cây.
 - Căn hộ: mô hình đầy đủ của notebook căn hộ (.joblib) + khoảng 80% theo phân khúc.
-- Đất: mô hình rút gọn (Ridge trên đơn giá phường) trong models/mo_hinh_gia_dat.json.
 - Giá thuê: giá × tỷ suất cho thuê trung vị (phường / dự án) trong models/gia_thue_web.json.
 Cách dựng hàng đặc trưng giống hệt hàm du_doan_gia / du_doan_gia_can_ho trong notebook."""
 import json
@@ -152,22 +151,6 @@ def dinh_gia_can_ho(dt_su_dung, du_an=None, phong_ngu=None, so_wc=None, tang=Non
     return {"gia_ty": round(gia, 3), "khoang_80_ty": _khoang(p, q), "don_gia_trieu_m2": round(gia * 1000 / dt_su_dung, 1),
             "du_an_nhan_ra": ma in xy_du_an.index, "mo_hinh": goi["ten"],
             "thue_trieu_thang": round(gia * 1000 * ys / 100 / 12, 1), "ty_suat_pt": round(ys, 2)}
-
-
-def dinh_gia_dat(dt, phuong="thu dau mot|phu hoa", ngang=None, cap_loi_vao=None, hem_rong=None, nen_du_an=False, tho_cu_toan_bo=None, so_rieng=None):
-    """Mô hình rút gọn cho đất (giống trang demo): log đơn giá = đơn giá nền của phường + điều chỉnh Ridge."""
-    M = du_lieu_web()["DAT_MODEL"]
-    ph = next((x for x in M["phuong"] if x["ma"] == phuong), None)
-    nen = ph["log_don_gia"] if ph else M["quan"].get(phuong.split("|")[0], M["toan_vung"])
-    x = [np.log(dt), min(ngang, M["clip"]["ngang"]) if ngang is not None else None, cap_loi_vao,
-         min(hem_rong, M["clip"]["hem_rong"]) if hem_rong is not None else None, 1.0 if nen_du_an else 0.0, tho_cu_toan_bo, so_rieng]
-    adj = M["intercept"] + sum(((v if v is not None else M["medians"][i]) - M["scaler"]["mean"][i]) / M["scaler"]["scale"][i] * M["coef"][i]
-                               for i, v in enumerate(x))
-    don_gia = float(np.exp(nen + adj)) * 1000            # triệu/m²
-    gia, q = don_gia * dt / 1000, M["phan_vi_sai_so"]
-    return {"gia_ty": round(gia, 3), "khoang_80_ty": (round(gia * float(np.exp(q["q10"])), 3), round(gia * float(np.exp(q["q90"])), 3)),
-            "don_gia_trieu_m2": round(don_gia, 1), "don_gia_nen_phuong": round(float(np.exp(nen)) * 1000, 1),
-            "phuong_co_du_lieu": ph is not None, "mo_hinh": "Ridge rút gọn (đơn giá phường + thông số lô)"}
 
 
 def _chuan_hoa_cau(s):

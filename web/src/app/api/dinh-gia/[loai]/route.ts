@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { lichSuDinhGia } from "@/lib/db/schema";
 import { layPhien } from "@/lib/session";
 
-const LOAI = new Set(["nha-pho", "can-ho", "dat"]);
+const LOAI = new Set(["nha-pho", "can-ho"]);
 
 // Chuyển yêu cầu định giá tới API mô hình; nếu đã đăng nhập thì lưu vào lịch sử định giá của người dùng.
 export async function POST(req: Request, ctx: RouteContext<"/api/dinh-gia/[loai]">) {

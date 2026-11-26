@@ -60,7 +60,7 @@ export function KhungChat({ coAI }: { coAI: boolean }) {
     try {
       const r = await fetch("/api/chat", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ messages: moi.slice(1).map(({ role, content }) => ({ role, content })) }),
+        body: JSON.stringify({ messages: moi.slice(1).slice(-20).map(({ role, content }) => ({ role, content })) }),
       });
       const j = await r.json();
       const phu = j.che_do === "ai" ? `AI · ${j.mo_hinh}${j.cong_cu?.length ? ` · công cụ: ${j.cong_cu.join(", ")}` : ""}` : j.che_do === "ngoai_tuyen" ? "Trợ lý ngoại tuyến (mô hình ý định)" : undefined;

@@ -13,7 +13,7 @@ const HE_THONG = `Bạn là trợ lý của đề tài "Dự đoán giá nhà Ph
 - Mọi con số về giá phải lấy từ công cụ (mô hình học máy của đề tài), không tự bịa. Nói rõ đây là GIÁ RAO ước lượng, không phải giá giao dịch.
 - Khi định giá, gọi công cụ ngay với thông số đã có (mô hình tự xử lý ô thiếu), rồi nêu giá ước lượng và khoảng 80%. Chỉ hỏi lại khi không có diện tích nào.
 - Với nhà phố, "80m2" không ghi rõ thì hiểu là DIỆN TÍCH ĐẤT (cách ghi của tin rao); "1 trệt 1 lầu" = 2 tầng; hẻm xe tải ≈ cap_loi_vao 3, hẻm xe hơi 2, hẻm nhỏ 1, mặt tiền 4–5.
-- Mô hình nhà phố là Random Forest (tốt nhất trong 6 mô hình của môn học); căn hộ và đất có mô hình riêng.
+- Mô hình nhà phố là Random Forest (tốt nhất trong 6 mô hình của môn học); căn hộ có mô hình riêng. Đề tài KHÔNG định giá lô đất trống: nếu được hỏi, nói rõ và gợi ý định giá căn nhà.
 - Có thể gợi ý trang: /dinh-gia (định giá), /nha-pho (danh sách tin), /ban-do, /xu-huong, /mo-hinh.
 - Dùng markdown đơn giản (in đậm, gạch đầu dòng). Không trả lời chủ đề ngoài bất động sản / đề tài.`;
 
@@ -57,18 +57,6 @@ const CONG_CU = [
   {
     type: "function",
     function: {
-      name: "dinh_gia_dat",
-      description: "Định giá lô đất ở Thủ Dầu Một. phuong dạng 'thu dau mot|phu hoa'.",
-      parameters: {
-        type: "object",
-        properties: { dt: { type: "number" }, phuong: { type: "string" }, ngang: { type: "number" }, cap_loi_vao: { type: "number" }, hem_rong: { type: "number" } },
-        required: ["dt"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
       name: "tim_nha_pho",
       description: "Tìm tin nhà phố Phú Hòa đang rao theo khoảng giá (tỷ), diện tích, chẩn đoán so với thị trường.",
       parameters: {
@@ -92,7 +80,6 @@ async function chayCongCu(ten: string, thamSo: Record<string, unknown>): Promise
       return { ...k, giai_thich: k.giai_thich?.nhom.slice(0, 4) };
     }
     case "dinh_gia_can_ho": return post("/dinh-gia/can-ho");
-    case "dinh_gia_dat": return post("/dinh-gia/dat");
     case "tim_nha_pho": {
       const t = await goiApi<Trang<NhaPho>>("/nha-pho" + qs({ ...(thamSo as Record<string, string>), so_dong: 5 }));
       return { tong: t.tong, tin: t.ket_qua.map((x) => ({ ma: x.id, tieu_de: x.t, gia_rao_ty: x.g, dt: x.dt, gia_uoc_luong_ty: x.ai_full, chan_doan: x.chan_doan, link: `/nha-pho/${x.id}` })) };
@@ -135,11 +122,11 @@ const TRA_LOI_OFFLINE: Record<string, string> = {
   dinh_gia: "Bạn có thể định giá ngay ở trang **[Định giá](/dinh-gia)**: nhập diện tích, số tầng, lối vào… mô hình Random Forest trả giá ước lượng và khoảng 80%.",
   loi_vao: "Lối vào ảnh hưởng nhiều tới giá (mặt tiền > hẻm xe hơi > hẻm nhỏ). Thử đổi mục *Lối vào* ở trang **[Định giá](/dinh-gia)** để xem giá thay đổi.",
   tim: "Xem các tin đang rao ở **[Nhà phố Phú Hòa](/nha-pho)**, lọc theo giá, diện tích và chẩn đoán *rẻ hơn thị trường*.",
-  phuong: "Đơn giá theo khu vực xem trên **[Bản đồ](/ban-do)**; định giá đất theo phường ở **[Định giá → Đất](/dinh-gia?loai=dat)**.",
+  phuong: "Đơn giá theo khu vực xem trên **[Bản đồ](/ban-do)**.",
   xu_huong: "Xu hướng giá theo kỳ hạn ở trang **[Xu hướng](/xu-huong)** (kịch bản có điều kiện, chưa đủ dữ liệu để kiểm định lùi).",
   du_an: "Định giá căn hộ theo dự án ở **[Định giá → Căn hộ](/dinh-gia?loai=can-ho)**, danh sách ở **[Căn hộ](/can-ho)**.",
   faq_noxh: "Nhà ở xã hội được tính riêng trong mô hình căn hộ: chọn *Nhà ở xã hội* ở **[Định giá → Căn hộ](/dinh-gia?loai=can-ho)**.",
-  dat: "Định giá đất ở **[Định giá → Đất](/dinh-gia?loai=dat)**, danh sách ở **[Đất nền](/dat)**.",
+  dat: "Đề tài định giá **nhà ở** (nhà + đất, căn hộ), không định giá lô đất trống. Bạn có thể **[định giá một căn nhà](/dinh-gia)**.",
   thue: "Mỗi kết quả định giá có kèm **giá thuê ước tính** và tỷ suất cho thuê (từ tin cho thuê thật).",
   faq_mo_hinh: "Mô hình nhà phố là **Random Forest**, tốt nhất trong 6 mô hình của môn học. Chi tiết ở **[Mô hình](/mo-hinh)**.",
   faq_du_lieu: "Dữ liệu là **tin rao thật** từ Chợ Tốt, alonhadat, guland (đã ẩn danh), cập nhật định kỳ. Xem **[Mô hình](/mo-hinh)**.",
@@ -150,7 +137,17 @@ const TRA_LOI_OFFLINE: Record<string, string> = {
   ngoai_pham_vi: "Mình chỉ hỗ trợ về giá nhà đất Thủ Dầu Một và đề tài này thôi nhé.",
 };
 
+// Giới hạn tần suất đơn giản theo IP (bộ nhớ của tiến trình): mỗi IP tối đa 20 câu hỏi / phút
+const LAN_GOI = new Map<string, number[]>();
+function quaTanSuat(req: Request) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
+  const nay = Date.now(), ds = (LAN_GOI.get(ip) ?? []).filter((t) => nay - t < 60_000);
+  ds.push(nay); LAN_GOI.set(ip, ds);
+  return ds.length > 20;
+}
+
 export async function POST(req: Request) {
+  if (quaTanSuat(req)) return NextResponse.json({ loi: "Bạn hỏi quá nhanh, thử lại sau ít giây." }, { status: 429 });
   const p = Yeu.safeParse(await req.json().catch(() => null));
   if (!p.success) return NextResponse.json({ loi: "Tin nhắn không hợp lệ" }, { status: 400 });
   const lichSu = p.data.messages.slice(-12);

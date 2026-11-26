@@ -355,6 +355,7 @@ Phân tích sai số ở bản nháp cho thấy phần lớn sai số rất lớ
 | Nhà ở xã hội | Giá do Nhà nước quy định, thị trường riêng |
 | Tiêu đề là bán **căn hộ chung cư** (không nhắc "nhà", "mặt tiền") | Căn hộ đăng nhầm mục nhà; định giá ở notebook căn hộ |
 | Giá mồi: "2 tỷ xxx", "giá 1,5 - 2 tỷ" | Số giá trên tin thấp hơn giá thật |
+| Tiêu đề "bán đất **tặng** nhà / dãy trọ / ki-ốt", hoặc "bán đất" mà không có thông tin căn nhà | Người bán chủ yếu bán đất (nhà chỉ tặng kèm, thường để xây mới): giá là giá đất, không phải giá căn nhà mà đề tài định giá. Tin "bán đất" nhưng mô tả có nhà (trệt, lầu, phòng ngủ) vẫn giữ |
 | Diện tích thổ cư < 50% diện tích đất | Phần lớn là đất nông nghiệp, đơn giá thấp hơn hẳn |
 | Đơn giá lệch hơn **3 lần** so với trung vị 15 căn gần nhất | Gần như chắc chắn là lỗi nhập (sai đơn vị, nhầm diện tích) |
 
@@ -377,6 +378,11 @@ tieu_de_kd = df["tieu_de"].fillna("").map(khong_dau)
 danh_dau(tieu_de_kd.str.contains(r"can ho|chung cu|\bcan (?:happy|c sky|the )") & ~tieu_de_kd.str.contains(r"\bnha\b|mat tien|mini|day tro"),
          "Căn hộ chung cư đăng nhầm mục nhà")
 danh_dau(v.str.contains(r"\d\s*(?:ty|t)\s*x{2,}|gia[^\n\d]{0,12}\d+(?:[.,]\d+)?\s*(?:ty)?\s*-\s*\d+(?:[.,]\d+)?\s*ty\b"), "Giá mồi / không rõ ràng")
+# Đề tài định giá NHÀ (nhà + đất). Tin mà người bán chủ yếu bán đất thì giá là giá đất, không phải giá căn nhà:
+# "bán đất tặng nhà / tặng dãy trọ / tặng ki-ốt" (nhà chỉ tặng kèm, thường để xây mới) hoặc tin "bán đất" không có thông tin căn nhà.
+danh_dau(tieu_de_kd.str.contains(r"dat tang|tang (?:nha|day tro|ki ?-?ot|kiot|kho)\b"), "Tin chủ yếu bán đất (nhà chỉ tặng kèm)")
+danh_dau(tieu_de_kd.str.contains(r"\bban (?:gap )?(?:lo |nen )?dat\b") & df[["so_tang", "dt_san", "phong_ngu"]].isna().all(axis=1)
+         & ~v.str.contains(r"\btret\b|\blau\b|phong ngu|\bpn\b"), "Tin bán đất, không có thông tin căn nhà")
 danh_dau(df["t_dt_tho_cu"] / df["dt_dat"] < 0.5, "Thổ cư < 50% diện tích")
 df["lech_log"] = lech_don_gia_khu_vuc(df, k=15)      # |log đơn giá − log trung vị đơn giá 15 căn gần nhất| (cách tính: Phần B)
 danh_dau(df["lech_log"] > np.log(3), "Đơn giá lệch > 3 lần khu vực")
@@ -408,6 +414,46 @@ md(r"""
 
 **Nhóm tin gần trùng (cột `nhom`).** Hàm `nhom_gan_trung` gom các tin nhiều khả năng là **cùng một căn** đăng lại: cùng quận, diện tích lệch ≤ 3%, giá lệch ≤ 12%, và có thêm một bằng chứng (mô tả giống nhau, hoặc cùng phường và cùng kích thước ngang × dài, hoặc cùng phường và cùng tuyến đường). Dữ liệu vẫn giữ nguyên các tin này, nhưng khi đánh giá, **cả nhóm luôn nằm về một phía** (cùng train hoặc cùng test). Quy tắc cố ý gom rộng: gom thừa chỉ làm kết quả đánh giá khắt khe hơn, còn bỏ sót thì kết quả đẹp giả.
 
+""")
+
+md(r"""
+### 4.5 Chất lượng dữ liệu và vai trò của từng cột
+Bảng dưới trả lời: mỗi dòng là gì, mỗi cột dùng vào việc gì, và dữ liệu thiếu bao nhiêu. **Mỗi dòng = một tin rao bán nhà ở (nhà + đất)**; giá là **giá rao** trong tin (tỷ đồng), không phải giá giao dịch. Cột "Cách xử lý ô thiếu" cho biết mô hình làm gì khi tin không ghi thông số đó.
+""")
+
+code(r"""
+VAI_TRO = {
+    "gia_ty": ("Mục tiêu (y = log giá)", "tỷ đồng", "Không được thiếu (tin thiếu giá đã bỏ ở Bước 2)"),
+    "dt_dat": ("Đặc trưng (qua log_dt)", "m²", "Không được thiếu"),
+    "ngang": ("Đặc trưng", "m", "Điền trung vị của tập train"), "dai": ("Đặc trưng", "m", "Điền trung vị của tập train"),
+    "so_tang": ("Đặc trưng", "tầng", "Điền trung vị của tập train"), "dt_san": ("Đặc trưng (+ tỷ lệ sàn/đất)", "m²", "Điền trung vị của tập train"),
+    "phong_ngu": ("Đặc trưng", "phòng", "Điền trung vị của tập train"), "so_wc": ("Đặc trưng", "phòng", "Điền trung vị của tập train"),
+    "mat_tien_duong": ("Đặc trưng", "0/1", "Điền trung vị của tập train"), "cap_loi_vao": ("Đặc trưng", "1 hẻm nhỏ … 5 mặt tiền lớn", "Điền trung vị của tập train"),
+    "hem_rong": ("Đặc trưng", "m", "Điền trung vị của tập train"), "so_chung": ("Đặc trưng", "0/1", "Điền trung vị của tập train"),
+    "noi_that": ("Đặc trưng", "0/1", "Điền trung vị của tập train"),
+    "lat": ("Đặc trưng (vị trí)", "độ", "Suy từ tuyến đường / tâm phường (cột muc_toa_do)"), "lon": ("Đặc trưng (vị trí)", "độ", "Suy từ tuyến đường / tâm phường"),
+    "kc_trung_tam_km": ("Đặc trưng (vị trí)", "km", "Tính từ lat, lon"),
+    "t_*": ("Đặc trưng (21 cờ từ khóa trong mô tả)", "0/1", "Không thiếu (không nhắc = 0)"),
+    "phuong, quan, duong": ("Chỉ để chia nhóm, suy tọa độ, baseline", "chữ", "–"),
+    "nhom, tap": ("Kỹ thuật: nhóm tin gần trùng, train/test", "–", "–"),
+    "gia_uoc_luong_ty, khoang80_*, chan_doan": ("Sinh SAU khi dự đoán (Bước 11), không dùng để học", "tỷ đồng", "–"),
+}
+ph_ = df[df["phu_hoa"] == 1]
+thieu = lambda c: f"{ph_[c].isna().mean() * 100:.1f}%" if c in ph_ else "–"
+tu_dien = pd.DataFrame([{"Cột": c, "Vai trò": v[0], "Đơn vị": v[1], "Thiếu ở Phú Hòa": thieu(c), "Cách xử lý ô thiếu": v[2]} for c, v in VAI_TRO.items()]).set_index("Cột")
+display(tu_dien)
+CHAT_LUONG = {"so_tin_phu_hoa": len(ph_), "nguon": ph_["nguon"].value_counts().to_dict(), "muc_toa_do": ph_["muc_toa_do"].value_counts().to_dict(),
+              "thieu_pt": {c: round(float(ph_[c].isna().mean() * 100), 1) for c in ["so_wc", "hem_rong", "dt_san", "phong_ngu", "ngang", "so_tang", "cap_loi_vao"]}}
+print(f"{len(ph_)} tin Phú Hòa | theo nguồn: {CHAT_LUONG['nguon']} | độ chính xác tọa độ: {CHAT_LUONG['muc_toa_do']}")
+""")
+
+code(r"""
+cl_ = CHAT_LUONG
+thieu_nhieu = sorted(cl_["thieu_pt"].items(), key=lambda kv: -kv[1])[:4]
+nx(f'''**Quan sát:** {cl_["so_tin_phu_hoa"]} tin Phú Hòa, trong đó {", ".join(f"{k} {v}" for k, v in cl_["nguon"].items())} tin. Vị trí chỉ chính xác tới căn ở {cl_["muc_toa_do"].get("1. tọa độ riêng", 0)} tin; {cl_["muc_toa_do"].get("2. theo tuyến đường", 0)} tin định vị theo tuyến đường và {cl_["muc_toa_do"].get("3. tâm phường", 0)} tin chỉ biết tâm phường. Các thông số thiếu nhiều nhất: {", ".join(f"{k} {vn(v)}%" for k, v in thieu_nhieu)}. Ô thiếu được điền bằng trung vị **của tập train** (không nhìn tập test), và cờ từ khóa trong mô tả bù một phần thông tin bị thiếu.''')
+""")
+
+md(r"""
 ## Bước 5: Khám phá dữ liệu
 """)
 
@@ -522,6 +568,7 @@ from sklearn.model_selection import GroupShuffleSplit
 so_ph = [int(df.loc[idx_tdm[v], "phu_hoa"].sum()) for v in (next(GroupShuffleSplit(1, test_size=0.2, random_state=h).split(idx_tdm, groups=df.loc[idx_tdm, "nhom"]))[1] for h in range(5))]
 print(f"So sánh: chia ngẫu nhiên theo nhóm với 5 hạt giống cho {so_ph} căn Phú Hòa trong test; chia phân tầng cho {int(test['phu_hoa'].sum())} căn.")
 assert not set(train["nhom"]) & set(test["nhom"])            # không nhóm nào nằm ở cả hai tập
+print(f"Kiểm tra rò rỉ: {len(set(train['nhom']) & set(test['nhom']))} nhóm tin gần trùng nằm ở cả train và test (phải bằng 0).")
 pd.crosstab(df["tap"], np.where(df["phu_hoa"] == 1, "Phú Hòa", np.where(df["tdm"] == 1, "TDM khác", "Ngoài TDM")))
 """)
 
@@ -768,7 +815,7 @@ cuoi_hon_ro = [v for v, c, lo, hi in vung if lo > 0]
 nx(f"**Đọc kết quả:** so với mô hình cuối ({ten_tot_nhat}), đối chứng sai "
    + "; ".join(f"{'ít' if c < 0 else 'nhiều'} hơn {vn(abs(c), 2)} điểm % trên {v} (KTC 95%: {vn(lo, 2)} … {vn(hi, 2)})" for v, c, lo, hi in vung) + "." + chr(10)
    + (f"- Đối chứng tốt hơn **rõ** ở {' và '.join(dc_hon_ro)}: đây là phần độ chính xác đánh đổi để giữ mô hình trong phạm vi môn học (dễ giải thích, không cần đặc trưng giá khu vực), cần nêu khi trình bày." if dc_hon_ro else
-       f"- {'Mô hình cuối tốt hơn rõ ở ' + ' và '.join(cuoi_hon_ro) + '; ' if cuoi_hon_ro else ''}Không có vùng nào đối chứng tốt hơn rõ: **chưa có bằng chứng** kỹ thuật ngoài bài giảng tốt hơn mô hình của môn học, nên dùng {ten_tot_nhat} làm mô hình cuối không làm mất độ chính xác đo được."))
+       f"- {'Mô hình cuối tốt hơn rõ ở ' + ' và '.join(cuoi_hon_ro) + '. ' if cuoi_hon_ro else ''}Không có vùng nào đối chứng tốt hơn rõ: **chưa có bằng chứng** kỹ thuật ngoài bài giảng tốt hơn mô hình của môn học, nên dùng {ten_tot_nhat} làm mô hình cuối không làm mất độ chính xác đo được."))
 """)
 
 md(r"""
@@ -1198,7 +1245,7 @@ nx(f'''**Đọc kết quả ba phép kiểm:**
 
 md(r"""
 ## Bước 12: Lưu mô hình và hàm dự đoán
-- Huấn luyện lại mô hình đã chọn trên **toàn bộ** dữ liệu sạch → `models/mo_hinh_gia_nha.joblib` (kèm phân vị sai số để tính khoảng tin cậy).
+- Huấn luyện lại mô hình đã chọn trên **toàn bộ** dữ liệu sạch → `models/mo_hinh_gia_nha.joblib` (kèm phân vị sai số để tính khoảng giá). **Lưu ý:** con số trên tập test (Bước 9) là của mô hình cùng cấu hình nhưng **chỉ học tập train**; file triển khai học thêm cả tập test nên không còn tập nào "chưa thấy" để chấm nó. Đây là cách làm thông thường: đánh giá trên dữ liệu giữ riêng, rồi học lại trên toàn bộ dữ liệu trước khi đưa vào sử dụng.
 - `models/mo_hinh_gia_nha.json`: **mô hình rút gọn** (Ridge, 11 thông số người dùng nhập được) cho trang demo `demo/index.html` tính ngay trên trình duyệt. Mô hình này huấn luyện lại trên dữ liệu Phú Hòa mới, các thông số được **chặn trên ở phân vị 97%** để mô hình tuyến tính không ngoại suy quá đà. Sai số kiểm định chéo của nó được ghi kèm để trang demo hiển thị trung thực.
 - `dataset/processed/nha_da_xu_ly.csv`: dữ liệu sạch + giá ước lượng (notebook xu hướng dùng lại).
 """)
@@ -1243,7 +1290,7 @@ json.dump({"ten_mo_hinh": ten_tot_nhat, "mo_hinh_mape_thap_nhat": tot_nhat, "so_
            "kiem_dinh_cheo_phu_hoa": ghi(bang_cv_ph), "kiem_dinh_cheo_tdm": ghi(bang_cv_tdm),
            "kiem_chung_phu_hoa": ghi(kiem_chung), "chon_mo_hinh": ghi(so_sanh.astype(float)),
            "test_phu_hoa": ghi(bang_test_ph), "test_tdm": ghi(bang_test_tdm),
-           "phan_vi_sai_so_log": Q, "khoang_theo_muc": KHOANG, "do_phu_theo_muc": so_sanh_kh.round(2).reset_index(names="Mức giá").to_dict("records"), "mo_hinh_web": {"MAPE (%)": round(cv_demo["MAPE (%)"], 2), "Số căn": len(Xd)},
+           "phan_vi_sai_so_log": Q, "khoang_theo_muc": KHOANG, "do_phu_test_80": {ten: {"trong": k, "tong": n} for ten, (k, n, _) in PHU_TEST.items()}, "chat_luong_du_lieu": CHAT_LUONG, "do_phu_theo_muc": so_sanh_kh.round(2).reset_index(names="Mức giá").to_dict("records"), "mo_hinh_web": {"MAPE (%)": round(cv_demo["MAPE (%)"], 2), "Số căn": len(Xd)},
            "so_can": {"tat_ca": len(df), "tdm": int(df["tdm"].sum()), "phu_hoa": int(df["phu_hoa"].sum()), "so_nhom": int(df["nhom"].nunique())}},
           open(MODEL_DIR / "danh_gia_mo_hinh.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 

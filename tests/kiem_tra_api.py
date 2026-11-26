@@ -67,11 +67,11 @@ def _():
     assert xh < tm, (xh, tm)
 
 
-@kiem("Đất: khớp mô hình rút gọn của trang tĩnh (cùng công thức, cùng tham số) và phường lạ dùng giá nền của quận")
+@kiem("Phạm vi đề tài: định giá đất nền độc lập đã bỏ khỏi API (đề tài định giá nhà); bản đồ không còn lớp đất")
 def _():
-    r = c.post("/dinh-gia/dat", json={"dt": 100}).json()
-    assert r["phuong_co_du_lieu"] and abs(r["don_gia_trieu_m2"] * 100 / 1000 - r["gia_ty"]) < 0.01
-    assert not c.post("/dinh-gia/dat", json={"dt": 100, "phuong": "thu dau mot|khong co"}).json()["phuong_co_du_lieu"]
+    assert c.post("/dinh-gia/dat", json={"dt": 100}).status_code == 404 and c.get("/dat").status_code == 404
+    assert all(d[3] != "dat" for d in c.get("/ban-do").json()["diem"])
+    assert "dat" not in c.get("/danh-gia").json() and "phuong_dat" not in c.get("/danh-muc").json()
 
 
 @kiem("Danh sách tin: lọc theo chẩn đoán, khoảng giá và phân trang nhất quán; tin lẻ và nhiều tin theo mã")
@@ -96,7 +96,10 @@ def _():
 @kiem("Các endpoint dữ liệu trả đủ phần: tổng quan, đánh giá 3 notebook, bản đồ, xu hướng, danh mục")
 def _():
     assert c.get("/tong-quan").json()["so_lieu"]["BEST"]
-    assert set(c.get("/danh-gia").json()) == {"nha_pho", "can_ho", "dat"}
+    assert set(c.get("/danh-gia").json()) == {"nha_pho", "can_ho"}
+    tq = c.get("/tong-quan").json()
+    phu = tq["do_phu_test_80"]["test Phú Hòa"]
+    assert 0 < phu["trong"] <= phu["tong"] and tq["chat_luong_du_lieu"]["so_tin_phu_hoa"] > 0
     assert len(c.get("/ban-do").json()["diem"]) > 100
     assert c.get("/xu-huong").json()["du_bao"] and c.get("/danh-muc").json()["du_an"]
 

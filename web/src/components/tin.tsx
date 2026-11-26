@@ -19,13 +19,13 @@ export function KhoangGia({ lo, hi, uoc, rao }: { lo: number; hi: number; uoc: n
         <div className="absolute -top-1 size-4 -translate-x-1/2 rounded-full border-2 border-white bg-gold-500 shadow" style={{ left: x(uoc) }} title="Giá ước lượng" />
         {rao !== undefined && <div className="absolute -top-0.5 size-3 -translate-x-1/2 rounded-full border-2 border-white bg-navy-800 shadow" style={{ left: x(rao) }} title="Giá rao" />}
       </div>
-      <div className="mt-1 flex justify-between text-[11px] text-slate-500"><span>{ty(lo)}</span><span>Khoảng 80%</span><span>{ty(hi)}</span></div>
+      <div className="mt-1 flex justify-between text-[11px] text-slate-500"><span>{ty(lo)}</span><span>Khoảng tham khảo 80%</span><span>{ty(hi)}</span></div>
     </div>
   );
 }
 
 export type TheTin = {
-  loai: "nha_pho" | "can_ho" | "dat";
+  loai: "nha_pho" | "can_ho";
   id: string; tieuDe: string; phu: string; gia: number; uoc: number; lo: number; hi: number; cd: string; url: string; href?: string;
   daLuu?: boolean; dangNhap: boolean; anh?: string; soAnh?: number;
 };
@@ -51,8 +51,8 @@ export function TheTinRao({ x }: { x: TheTin }) {
       </h3>
       <p className="mt-1 text-sm text-slate-500">{x.phu}</p>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <div><p className="nhan">Giá rao</p><p className="text-lg font-bold text-navy-900">{ty(x.gia)}</p></div>
-        <div><p className="nhan">Mô hình ước lượng</p><p className="text-lg font-bold text-gold-600">{ty(x.uoc)}</p></div>
+        <div><p className="nhan">Giá rao trong tin</p><p className="text-lg font-bold text-navy-900">{ty(x.gia)}</p></div>
+        <div><p className="nhan">Giá mô hình ước tính</p><p className="text-lg font-bold text-gold-600">{ty(x.uoc)}</p></div>
       </div>
       <p className="mt-1 text-xs text-slate-500">Giá rao {lech >= 0 ? "cao" : "thấp"} hơn ước lượng {so(Math.abs(lech), 0)}%</p>
       <KhoangGia lo={x.lo} hi={x.hi} uoc={x.uoc} rao={x.gia} />

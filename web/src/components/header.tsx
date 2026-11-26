@@ -8,7 +8,6 @@ export const MUC_MENU = [
   { href: "/dinh-gia", ten: "Định giá" },
   { href: "/nha-pho", ten: "Nhà phố" },
   { href: "/can-ho", ten: "Căn hộ" },
-  { href: "/dat", ten: "Đất nền" },
   { href: "/ban-do", ten: "Bản đồ" },
   { href: "/xu-huong", ten: "Xu hướng" },
   { href: "/mo-hinh", ten: "Mô hình" },

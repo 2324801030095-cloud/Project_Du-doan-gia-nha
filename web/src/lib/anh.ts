@@ -6,7 +6,7 @@ const NGOAI: Record<string, string[]> = {
   "3": ["h3-a", "h3-b", "h3-c", "h4-a", "h4-b"], "4": ["h4-a", "h4-b", "h4-c"], x: ["h2-a", "h3-b", "h2-c", "h4-a"],
 };
 const TRONG = ["in-living-a", "in-living-b", "in-living-c", "in-bed", "in-kitchen-a", "in-kitchen-b"];
-const KHU = { can_ho: ["area-towers", "aerial"], dat: ["area-cmt8", "area-lhp", "aerial"] };
+const KHU = { can_ho: ["area-towers", "aerial"] };
 
 const bam = (id: string) => {
   let h = 2166136261;
@@ -25,7 +25,7 @@ export function anhNhaPho(id: string, soTang: number | null, loiVao: number | nu
   return ra.map(duong);
 }
 
-export function anhKhuVuc(loai: "can_ho" | "dat", id: string): string {
+export function anhKhuVuc(loai: "can_ho", id: string): string {
   const ds = KHU[loai];
   return duong(ds[bam(id) % ds.length]);
 }

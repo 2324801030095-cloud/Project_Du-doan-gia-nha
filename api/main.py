@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 import dinh_gia as DG
 
 app = FastAPI(title="API định giá nhà Phú Hòa", version="1.0",
-              description="Mô hình học máy của đề tài: nhà phố (Random Forest), căn hộ, đất, giá thuê, trợ lý ý định.")
+              description="Mô hình học máy của đề tài: nhà phố Phú Hòa (Random Forest, bài chính); căn hộ, giá thuê, trợ lý ý định (mở rộng).")
 
 
 def _web():
@@ -26,18 +26,18 @@ def health():
 def tong_quan():
     """Các con số tóm tắt cho trang chủ và trang mô hình."""
     w = _web()
-    return {"so_lieu": w["SO_LIEU"], "bang_mo_hinh": [dict(zip(["mo_hinh", "mae_ty", "mape", "r2"], r)) for r in w["MODEL_TABLE"]],
+    dg = json.loads((DG.MODELS / "danh_gia_mo_hinh.json").read_text(encoding="utf-8"))
+    return {"so_lieu": w["SO_LIEU"], "do_phu_test_80": dg.get("do_phu_test_80"), "chat_luong_du_lieu": dg.get("chat_luong_du_lieu"), "bang_mo_hinh": [dict(zip(["mo_hinh", "mae_ty", "mape", "r2"], r)) for r in w["MODEL_TABLE"]],
             "giai_thich": w["GT_META"], "web_model": {k: w["MODEL"][k] for k in ("model", "cv_mape", "mo_hinh_day_du", "mo_hinh_day_du_mape_cv_phu_hoa")},
             "can_ho": {k: w["CH_MODEL"].get(k) for k in ("mo_hinh_day_du", "mo_hinh_day_du_mape", "cv_mape", "so_can")},
-            "dat": {k: w["DAT_MODEL"].get(k) for k in ("mo_hinh_day_du", "mo_hinh_day_du_mape_tdm", "cv_mape_tdm", "so_lo", "so_lo_tdm")},
             "thue": {k: w["THUE"].get(k) for k in ("mape", "so_tin", "ty_suat_tv")}}
 
 
 @app.get("/danh-gia")
 def danh_gia():
-    """Bảng đánh giá đầy đủ của 3 notebook định giá (kiểm định chéo, tập test, chọn mô hình)."""
+    """Bảng đánh giá của notebook nhà phố (bài chính) và căn hộ (mở rộng): kiểm định chéo, tập test, chọn mô hình."""
     return {k: json.loads((DG.MODELS / f"danh_gia_mo_hinh{s}.json").read_text(encoding="utf-8"))
-            for k, s in (("nha_pho", ""), ("can_ho", "_can_ho"), ("dat", "_dat"))}
+            for k, s in (("nha_pho", ""), ("can_ho", "_can_ho"))}
 
 
 # ---------------- danh sách tin ----------------
@@ -97,19 +97,11 @@ def can_ho(gia_min: float | None = None, gia_max: float | None = None, dt_min: f
     return _loc(ds, "g", "dt", gia_min, gia_max, dt_min, dt_max, chan_doan, "cd", q, ("da", "ph"), sap_xep, trang, so_dong)
 
 
-@app.get("/dat")
-def dat(gia_min: float | None = None, gia_max: float | None = None, dt_min: float | None = None, dt_max: float | None = None,
-        chan_doan: CHAN_DOAN | None = None, q: str | None = None, sap_xep: SAP_XEP = "re_nhat",
-        trang: int = Query(1, ge=1), so_dong: int = Query(12, ge=1, le=200)):
-    ds = [{**x, "_lech": x["diff"]} for x in _web()["DAT_LIST"]]
-    return _loc(ds, "g", "dt", gia_min, gia_max, dt_min, dt_max, chan_doan, "cd", q, ("ph", "duong"), sap_xep, trang, so_dong)
-
-
 @app.get("/ban-do")
 def ban_do():
-    """Điểm trên bản đồ: [lat, lon, đơn giá triệu/m², loại, giá, tiêu đề, link] + tòa căn hộ."""
+    """Điểm trên bản đồ: [lat, lon, đơn giá triệu/m², loại, giá, tiêu đề, link] (nhà phố, cho thuê) + tòa căn hộ."""
     w = _web()
-    return {"diem": w["MAP_PTS"], "toa_can_ho": [{k: v for k, v in t.items() if k != "can"} for t in w["CH_TOA"]]}
+    return {"diem": [d for d in w["MAP_PTS"] if d[3] != "dat"], "toa_can_ho": [{k: v for k, v in t.items() if k != "can"} for t in w["CH_TOA"]]}
 
 
 @app.get("/xu-huong")
@@ -119,9 +111,9 @@ def xu_huong():
 
 @app.get("/danh-muc")
 def danh_muc():
-    """Danh mục cho các ô chọn của form: phường (đất), dự án và phường (căn hộ), tuyến đường Phú Hòa."""
+    """Danh mục cho các ô chọn của form: dự án và phường (căn hộ), tuyến đường Phú Hòa."""
     w = _web()
-    return {"phuong_dat": w["DAT_MODEL"]["phuong"], "du_an": [{k: d[k] for k in ("ma", "ten", "so_tin", "quan", "phuong")} for d in w["CH_MODEL"]["du_an"]],
+    return {"du_an": [{k: d[k] for k in ("ma", "ten", "so_tin", "quan", "phuong")} for d in w["CH_MODEL"]["du_an"]],
             "phuong_can_ho": w["CH_PHUONG"],
             "duong_phu_hoa": ["Nguyễn Thị Minh Khai", "Lê Hồng Phong", "Phú Lợi", "Nguyễn Thái Bình", "30/4", "Đại lộ Bình Dương", "Trần Văn Ơn", "Huỳnh Thị Hiếu"]}
 
@@ -156,17 +148,6 @@ class CanHo(BaseModel):
     mo_ta: str = Field("", max_length=4000)
 
 
-class Dat(BaseModel):
-    dt: float = Field(gt=20, le=20000)
-    phuong: str = Field("thu dau mot|phu hoa", max_length=80)
-    ngang: float | None = Field(None, gt=0, le=200)
-    cap_loi_vao: float | None = Field(None, ge=1, le=5)
-    hem_rong: float | None = Field(None, gt=0, le=60)
-    nen_du_an: bool = False
-    tho_cu_toan_bo: int | None = Field(None, ge=0, le=1)
-    so_rieng: int | None = Field(None, ge=0, le=1)
-
-
 @app.post("/dinh-gia/nha-pho")
 def dinh_gia_nha_pho(x: NhaPho):
     """Random Forest (mô hình cuối của đề tài) + khoảng 80% + giải thích theo nhóm yếu tố + giá thuê ước tính."""
@@ -176,11 +157,6 @@ def dinh_gia_nha_pho(x: NhaPho):
 @app.post("/dinh-gia/can-ho")
 def dinh_gia_can_ho(x: CanHo):
     return DG.dinh_gia_can_ho(**x.model_dump())
-
-
-@app.post("/dinh-gia/dat")
-def dinh_gia_dat(x: Dat):
-    return DG.dinh_gia_dat(**x.model_dump())
 
 
 class Cau(BaseModel):

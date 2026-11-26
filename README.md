@@ -2,9 +2,11 @@
 
 Đề tài môn Học máy · MSSV 2324801030095 · Nguyễn Quang Long · Lớp D23KTPM01
 
-Học máy có giám sát ước lượng **mặt bằng giá rao** của nhà phố, căn hộ, đất nền và giá thuê ở Thủ Dầu Một (trọng tâm phường
-Phú Hòa), kèm khoảng giá 80%, chẩn đoán giá rao rẻ / hợp lý / cao, phân tích xu hướng, và **ứng dụng web đầy đủ** (đăng nhập, định giá bằng mô hình thật trên máy chủ, lưu tin, lịch sử, quản trị, trợ lý AI).
-Dữ liệu là tin rao thật (Chợ Tốt Nhà, alonhadat, guland), đã ẩn danh. **Giá rao không phải giá giao dịch.**
+Học máy có giám sát ước lượng **giá rao bán** của **nhà ở (nhà + đất) tại phường Phú Hòa**, Thủ Dầu Một – bài chính.
+Phần mở rộng: căn hộ, giá thuê, xu hướng, trợ lý. Kèm khoảng giá 80%, chẩn đoán giá rao rẻ / hợp lý / cao, phân tích xu hướng, và **ứng dụng web đầy đủ** (đăng nhập, định giá bằng mô hình thật trên máy chủ, lưu tin, lịch sử, quản trị, trợ lý AI).
+Dữ liệu là tin rao thật (Chợ Tốt Nhà, alonhadat, guland), đã ẩn danh. **Giá rao không phải giá giao dịch**: giá giao dịch là mức hai bên chốt sau thương lượng, còn tổng chi phí người mua có thể gồm thêm thuế, phí. Mọi con số của đề tài là **giá rao bán ước tính**.
+
+**Phạm vi:** đề tài định giá NHÀ. Tin chủ yếu bán đất ("bán đất tặng nhà", tin "bán đất" không có thông tin căn nhà) bị loại khi làm sạch, có ghi lý do. Định giá lô đất trống đã bỏ khỏi bài chính và web; notebook và kết quả cũ để ở `notebooks/luu_tru/` để truy xuất.
 
 **Tài liệu kỹ thuật tổng hợp (Word): [docs/Tai_lieu_ky_thuat_tong_hop.docx](docs/Tai_lieu_ky_thuat_tong_hop.docx)** – cấu trúc, cài đặt, công nghệ, thuật toán, logic dữ liệu, đầu vào/đầu ra, huấn luyện và kết quả, web demo, trợ lý, kiểm thử, hạn chế, checklist, câu hỏi bảo vệ.
 
@@ -34,11 +36,11 @@ Bản tĩnh chạy offline (không cần máy chủ): mở `demo/index.html`.
 | `web/` | Next.js 16 (App Router, React 19, TypeScript), Tailwind CSS 4, Leaflet, Recharts | Giao diện + backend-for-frontend: trang, route handler, kiểm tra phiên ở máy chủ |
 | Đăng nhập | Better Auth (email + mật khẩu băm scrypt, phiên trong CSDL, cookie httpOnly, giới hạn tần suất, plugin admin) | Đăng ký, đăng nhập, đăng xuất, vai trò user/admin, khóa tài khoản |
 | CSDL | PostgreSQL 17 + Drizzle ORM (migration trong `web/drizzle/`) | Người dùng, phiên, tin yêu thích, lịch sử định giá |
-| `api/` | FastAPI (Python) | Nạp mô hình `.joblib` của notebook: định giá nhà phố (Random Forest + khoảng 80% + giải thích), căn hộ, đất, ý định trợ lý; danh sách tin, bản đồ, xu hướng |
+| `api/` | FastAPI (Python) | Nạp mô hình `.joblib` của notebook: định giá nhà phố (Random Forest + khoảng 80% + giải thích), căn hộ, ý định trợ lý; danh sách tin, bản đồ, xu hướng |
 | Trợ lý | Groq (openai/gpt-oss-120b, gọi công cụ = API mô hình) phía máy chủ; không có khóa thì dùng mô hình ý định | Hỏi đáp tiếng Việt, số liệu luôn do mô hình đề tài tính |
 | Triển khai | Docker Compose (db, api, migrate, web) | Chạy được trên máy hoặc VPS bất kỳ có Docker |
 
-Trang: trang chủ, định giá (nhà phố / căn hộ / đất), nhà phố Phú Hòa + chi tiết từng tin (giải thích yếu tố, bản đồ, giá thuê), căn hộ, đất nền, bản đồ giá, xu hướng, mô hình (bảng đánh giá đọc từ notebook), trợ lý, đăng ký / đăng nhập, tài khoản (tin đã lưu + so sánh, lịch sử định giá), quản trị (thống kê, cấp/bỏ admin, khóa tài khoản).
+Trang: trang chủ, định giá (nhà phố / căn hộ), nhà phố Phú Hòa + chi tiết từng tin (giải thích yếu tố, bản đồ, giá thuê), căn hộ, bản đồ giá, xu hướng, mô hình (bảng đánh giá đọc từ notebook), trợ lý, đăng ký / đăng nhập, tài khoản (tin đã lưu + so sánh, lịch sử định giá), quản trị (thống kê, cấp/bỏ admin, khóa tài khoản).
 Bảo mật: kiểm tra quyền ở máy chủ (`web/src/lib/session.ts`), kiểm tra đầu vào bằng Zod/Pydantic, chống chuyển hướng mở, khóa và mật khẩu chỉ ở `.env` (không lên git), API mô hình và CSDL chỉ mở cho máy này.
 
 ## Cấu trúc
@@ -53,7 +55,8 @@ dataset/                    DỮ LIỆU (tin rao thật, đã ẩn danh)
   labeled/                  dữ liệu gán nhãn tay: câu hỏi cho trợ lý, cặp tin gần trùng
 notebooks/                  6 notebook đã chạy, còn output
   2324801030095.ipynb       BÀI CHÍNH – nhà phố Phú Hòa (Phần A theo bài giảng, Phần B đánh giá sâu)
-  du_doan_gia_can_ho / du_doan_gia_dat / du_doan_gia_thue / du_doan_xu_huong_gia / tro_ly_y_dinh   (mở rộng)
+  du_doan_gia_can_ho / du_doan_gia_thue / du_doan_xu_huong_gia / tro_ly_y_dinh   (mở rộng)
+  luu_tru/                  du_doan_gia_dat (đất nền – đã bỏ khỏi bài chính, giữ để truy xuất, không chạy lại)
 src/                        mã dùng chung
   mo_hinh_gia.py            đặc trưng, mô hình, kiểm định chéo theo nhóm, khoảng giá, đánh giá
   thu_thap.py               thu thập tự động (Chợ Tốt, alonhadat) + ẩn danh dữ liệu
@@ -75,14 +78,13 @@ docs/                       Tai_lieu_ky_thuat_tong_hop.docx
 
 ## Chạy lại toàn bộ (đúng thứ tự, ~8 phút)
 
-Một lệnh: `python scripts/chay_toan_bo.py` (thêm `--thu-thap` để tải dữ liệu mới trước, `--tu <bước>` để chạy tiếp từ bước lỗi). Mỗi notebook được sinh lại từ `scripts/sinh_notebook/` rồi chạy, theo thứ tự:
+Một lệnh: `python scripts/chay_toan_bo.py` (chỉ bài chính nhà phố: `--nha-pho`; thêm `--thu-thap` để tải dữ liệu mới trước, `--tu <bước>` để chạy tiếp từ bước lỗi). Mỗi notebook được sinh lại từ `scripts/sinh_notebook/` rồi chạy, theo thứ tự:
 
 ```
 python src/thu_thap.py chotot | alonhadat [--can-ho | --dat]                       # tùy chọn: dữ liệu mới
 jupyter nbconvert --to notebook --execute --inplace notebooks/2324801030095.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_gia_can_ho.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_gia_thue.ipynb     # sau nhà phố + căn hộ
-jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_gia_dat.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_xu_huong_gia.ipynb
 python demo/build/build_site.py
 jupyter nbconvert --to notebook --execute --inplace notebooks/tro_ly_y_dinh.ipynb        # cần Node.js
@@ -99,12 +101,14 @@ GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử m�
 
 ## Kết quả chính (dữ liệu đến 26/11/2026)
 
-| | Nhà phố – Phú Hòa | Căn hộ | Đất nền – TDM |
-|---|---|---|---|
-| Mô hình | Random Forest (300 cây) | LightGBM Huber + chữ | Ridge |
-| MAPE tập test (kết quả chính) | 26,4% (KTC 19,5–38,7; 44 căn) | 13,7% | 26,8% (KTC 19,7–36,7; 68 lô) |
-| MAPE kiểm định chéo theo nhóm | 23,5% | 12,6% | 26,1% |
-| Baseline (đơn giá khu vực), kiểm định chéo | 30,7% | 16,1% | 36,6% |
-| Phần A (mô hình môn học tốt nhất), tập test | chính là mô hình cuối | Random Forest (300 cây): 14,0% | Random Forest (300 cây): 21,7% |
+| | Nhà phố – Phú Hòa (bài chính) | Căn hộ (mở rộng) |
+|---|---|---|
+| Mô hình | Random Forest (300 cây) | LightGBM Huber + chữ |
+| Tập test giữ riêng | 44 căn | 110 căn |
+| MAPE mô hình trên test | 27,8% (KTC 95% 21,6–38,3) | 13,7% |
+| MAE mô hình trên test | 1,67 tỷ đồng | 0,27 tỷ đồng |
+| Mốc so sánh trên cùng tập test | Baseline (đơn giá phường): MAPE 34,7%, MAE 2,02 tỷ | Baseline (đơn giá dự án): MAPE 15,2%, MAE 0,33 tỷ |
+| Kiểm định chéo trên tập train (mô hình / mốc) | 23,8% / 29,4% | 12,6% / 16,1% |
+| Khoảng giá 80%: độ phủ đo trên test | 30/44 căn (68%) | – |
 
 **Nhà phố – mô hình cuối:** mô hình tốt nhất trong các mô hình của môn học (Phần A, chọn bằng kiểm định chéo), dùng đúng đặc trưng của Phần A. Phần B chỉ so nó với một mô hình đối chứng ngoài bài giảng (LightGBM + giá khu vực) và đo độ tin cậy (kiểm định chéo lặp, bootstrap, khoảng giá 80%).

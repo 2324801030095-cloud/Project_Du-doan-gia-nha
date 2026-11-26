@@ -10,7 +10,7 @@ import { so, ty } from "@/lib/format";
 import { canDangNhap } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Tài khoản" };
-const TEN_LOAI: Record<string, string> = { "nha-pho": "Nhà phố", "can-ho": "Căn hộ", dat: "Đất", nha_pho: "Nhà phố", can_ho: "Căn hộ" };
+const TEN_LOAI: Record<string, string> = { "nha-pho": "Nhà phố", "can-ho": "Căn hộ", nha_pho: "Nhà phố", can_ho: "Căn hộ" };
 
 export default async function Page() {
   const { user } = await canDangNhap("/tai-khoan");

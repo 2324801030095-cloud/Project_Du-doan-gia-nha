@@ -11,7 +11,7 @@ import { maDaLuu } from "@/lib/yeu-thich";
 const TINH_NANG = [
   { href: "/dinh-gia", icon: Calculator, ten: "Định giá tức thì", mo: "Random Forest trên máy chủ, kèm khoảng 80% và giải thích yếu tố." },
   { href: "/nha-pho", icon: ShieldCheck, ten: "Chẩn đoán tin rao", mo: "Mỗi tin đang rao được xếp rẻ / hợp lý / cao so với thị trường." },
-  { href: "/ban-do", icon: Map, ten: "Bản đồ giá", mo: "Nhà phố, đất, căn hộ, cho thuê trên bản đồ Thủ Dầu Một." },
+  { href: "/ban-do", icon: Map, ten: "Bản đồ giá", mo: "Nhà phố, căn hộ, cho thuê trên bản đồ Thủ Dầu Một." },
   { href: "/xu-huong", icon: TrendingUp, ten: "Xu hướng", mo: "Tín hiệu đổi giá cùng một căn và kịch bản theo kỳ hạn." },
   { href: "/mo-hinh", icon: BarChart3, ten: "Minh bạch mô hình", mo: "Sai số trên tập test, khoảng tin cậy, so sánh đối chứng." },
   { href: "/tro-ly", icon: Bot, ten: "Trợ lý AI", mo: "Hỏi bằng tiếng Việt tự nhiên; số liệu lấy từ mô hình của đề tài." },

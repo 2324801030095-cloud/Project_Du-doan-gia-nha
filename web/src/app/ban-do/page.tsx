@@ -9,7 +9,6 @@ export const metadata: Metadata = { title: "Bản đồ giá" };
 type DuLieu = { diem: [number, number, number, string, number, string, string][]; toa_can_ho: { ten: string; ph: string; lat: number; lon: number; n: number; dg: number; g_tv: number }[] };
 const LOAI: Record<string, { ten: string; mau: string; donVi: string }> = {
   nha: { ten: "Nhà phố", mau: "#22385e", donVi: "tỷ" },
-  dat: { ten: "Đất", mau: "#c99a3b", donVi: "tỷ" },
   thue: { ten: "Cho thuê", mau: "#059669", donVi: "triệu/tháng" },
   can_ho: { ten: "Tòa căn hộ", mau: "#be123c", donVi: "tỷ" },
 };

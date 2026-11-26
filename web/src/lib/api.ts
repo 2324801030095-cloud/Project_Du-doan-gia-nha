@@ -41,7 +41,6 @@ export type NhaPho = {
   thue: number | null; ys: number | null; gt: Record<string, number> | null; _lech: number;
 };
 export type CanHo = { id: string; da: string | null; ph: string; dt: number; pn: number | null; g: number; ai: number; lo: number; hi: number; diff: number; cd: ChanDoan; url: string; thue: number | null; ys: number | null };
-export type Dat = { id: string; ph: string; duong: string | null; dt: number; mt: number | null; g: number; ai: number; lo: number; hi: number; diff: number; cd: ChanDoan; url: string };
 export type Trang<T> = { tong: number; trang: number; so_dong: number; ket_qua: T[] };
 export type GiaiThich = { nen_ty: number; nhom: { nhom: string; log: number; phan_tram: number }[] };
 export type KetQuaNha = {
@@ -49,18 +48,17 @@ export type KetQuaNha = {
   ngay_du_lieu: string; giai_thich: GiaiThich | null; thue_trieu_thang: number; ty_suat_pt: number;
 };
 export type KetQuaCanHo = { gia_ty: number; khoang_80_ty: [number, number]; don_gia_trieu_m2: number; du_an_nhan_ra: boolean; mo_hinh: string; thue_trieu_thang: number; ty_suat_pt: number };
-export type KetQuaDat = { gia_ty: number; khoang_80_ty: [number, number]; don_gia_trieu_m2: number; don_gia_nen_phuong: number; phuong_co_du_lieu: boolean; mo_hinh: string };
 export type TongQuan = {
   so_lieu: Record<string, string>;
+  do_phu_test_80?: Record<string, { trong: number; tong: number }>;
+  chat_luong_du_lieu?: { so_tin_phu_hoa: number; nguon: Record<string, number>; muc_toa_do: Record<string, number>; thieu_pt: Record<string, number> };
   bang_mo_hinh: { mo_hinh: string; mae_ty: number; mape: number; r2: number }[];
   giai_thich: { nen_log: number; mo_hinh: string; nhom: string[] };
   web_model: Record<string, string | number>;
   can_ho: Record<string, string | number>;
-  dat: Record<string, string | number>;
   thue: { mape: Record<string, number>; so_tin: Record<string, number>; ty_suat_tv: Record<string, number> };
 };
 export type DanhMuc = {
-  phuong_dat: { ma: string; ten: string; quan: string; so_lo: number }[];
   du_an: { ma: string; ten: string; so_tin: number; quan: string; phuong: string }[];
   phuong_can_ho: { k: string; ten: string }[];
   duong_phu_hoa: string[];

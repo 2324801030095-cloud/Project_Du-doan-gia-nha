@@ -4,6 +4,7 @@ Chạy từ thư mục gốc đề tài:
     python scripts/chay_toan_bo.py --thu-thap    # thu thập dữ liệu mới trước
     python scripts/chay_toan_bo.py --tu <tên>    # chạy tiếp từ một bước, ví dụ --tu du_doan_gia_thue
     python scripts/chay_toan_bo.py --xu-huong    # chỉ notebook xu hướng + dựng lại trang (dùng sau mỗi kỳ thu thập)
+    python scripts/chay_toan_bo.py --nha-pho     # chỉ bài chính: notebook nhà phố -> dữ liệu web/API -> README -> kiểm thử
     python scripts/chay_toan_bo.py --readme      # chỉ ghi lại bảng "Kết quả chính" của README từ models/*.json
 Vì sao thứ tự này:
 - giá thuê ghi thêm 2 cột vào dataset/processed/{nha,can_ho}_da_xu_ly.csv -> phải chạy SAU nhà phố và căn hộ;
@@ -27,7 +28,6 @@ BUOC = [
     ("2324801030095", nb("2324801030095")),
     ("du_doan_gia_can_ho", nb("du_doan_gia_can_ho")),
     ("du_doan_gia_thue", nb("du_doan_gia_thue")),
-    ("du_doan_gia_dat", nb("du_doan_gia_dat")),
     ("du_doan_xu_huong_gia", nb("du_doan_xu_huong_gia")),
     ("build_site", TRANG),
     ("tro_ly_y_dinh", nb("tro_ly_y_dinh")),
@@ -38,7 +38,7 @@ BUOC = [
     ("kiem_tra_tro_ly", ["node", "tests/kiem_tra_tro_ly.js"]),
 ]
 # notebook -> file sinh ra nó trong scripts/sinh_notebook/
-SINH = {"2324801030095": "chinh", "du_doan_gia_can_ho": "can_ho", "du_doan_gia_thue": "gia_thue", "du_doan_gia_dat": "dat",
+SINH = {"2324801030095": "chinh", "du_doan_gia_can_ho": "can_ho", "du_doan_gia_thue": "gia_thue",
         "du_doan_xu_huong_gia": "xu_huong", "tro_ly_y_dinh": "tro_ly"}
 
 
@@ -60,23 +60,30 @@ def cap_nhat_readme():
     dong = lambda d, k, ten: next(r for r in d[k] if r["Mô hình"] == ten)
     baseline = lambda d, k: next(r for r in d[k] if r["Mô hình"].startswith("Baseline"))
     pa = lambda d, k: next((f"{r['Mô hình'].removeprefix('Phần A – ')}: {vn(r['MAPE (%)'])}%" for r in d[k] if r["Mô hình"].startswith("Phần A")), "chính là mô hình cuối")
-    N, C, D = J("danh_gia_mo_hinh"), J("danh_gia_mo_hinh_can_ho"), J("danh_gia_mo_hinh_dat")
-    n, c, dd = N["ten_mo_hinh"], C["ten_mo_hinh"], D["ten_mo_hinh"]
-    tn, tc, td = dong(N, "test_phu_hoa", n), dong(C, "test", c), dong(D, "test_tdm", dd)
-    bang = f"""| | Nhà phố – Phú Hòa | Căn hộ | Đất nền – TDM |
-|---|---|---|---|
-| Mô hình | {n} | {c} | {dd} |
-| MAPE tập test (kết quả chính) | {vn(tn['MAPE (%)'])}% (KTC {vn(tn['MAPE thấp (95%)'])}–{vn(tn['MAPE cao (95%)'])}; {int(tn['Số căn'])} căn) | {vn(tc['MAPE (%)'])}% | {vn(td['MAPE (%)'])}% (KTC {vn(td['MAPE thấp (95%)'])}–{vn(td['MAPE cao (95%)'])}; {int(td['Số căn'])} lô) |
-| MAPE kiểm định chéo theo nhóm | {vn(dong(N, 'kiem_dinh_cheo_phu_hoa', n)['MAPE (%)'])}% | {vn(dong(C, 'kiem_dinh_cheo', c)['MAPE (%)'])}% | {vn(dong(D, 'kiem_dinh_cheo_tdm', dd)['MAPE (%)'])}% |
-| Baseline (đơn giá khu vực), kiểm định chéo | {vn(baseline(N, 'kiem_dinh_cheo_phu_hoa')['MAPE (%)'])}% | {vn(baseline(C, 'kiem_dinh_cheo')['MAPE (%)'])}% | {vn(baseline(D, 'kiem_dinh_cheo_tdm')['MAPE (%)'])}% |
-| Phần A (mô hình môn học tốt nhất), tập test | {pa(N, "test_phu_hoa")} | {pa(C, "test")} | {pa(D, "test_tdm")} |"""
+    N, C = J("danh_gia_mo_hinh"), J("danh_gia_mo_hinh_can_ho")
+    n, c = N["ten_mo_hinh"], C["ten_mo_hinh"]
+    tn, tc = dong(N, "test_phu_hoa", n), dong(C, "test", c)
+    bn, bc = baseline(N, "test_phu_hoa"), baseline(C, "test")
+    phu = N.get("do_phu_test_80", {}).get("test Phú Hòa")
+    phu_s = f"{phu['trong']}/{phu['tong']} căn ({vn(phu['trong'] / phu['tong'] * 100, 0)}%)" if phu else "–"
+    # Mô hình và mốc so sánh đặt trên CÙNG một tập test (không đặt số kiểm định chéo cạnh số test)
+    bang = f"""| | Nhà phố – Phú Hòa (bài chính) | Căn hộ (mở rộng) |
+|---|---|---|
+| Mô hình | {n} | {c} |
+| Tập test giữ riêng | {int(tn['Số căn'])} căn | {int(tc['Số căn'])} căn |
+| MAPE mô hình trên test | {vn(tn['MAPE (%)'])}% (KTC 95% {vn(tn['MAPE thấp (95%)'])}–{vn(tn['MAPE cao (95%)'])}) | {vn(tc['MAPE (%)'])}% |
+| MAE mô hình trên test | {vn(tn['MAE (tỷ)'], 2)} tỷ đồng | {vn(tc['MAE (tỷ)'], 2)} tỷ đồng |
+| Mốc so sánh trên cùng tập test | {bn['Mô hình']}: MAPE {vn(bn['MAPE (%)'])}%, MAE {vn(bn['MAE (tỷ)'], 2)} tỷ | {bc['Mô hình']}: MAPE {vn(bc['MAPE (%)'])}%, MAE {vn(bc['MAE (tỷ)'], 2)} tỷ |
+| Kiểm định chéo trên tập train (mô hình / mốc) | {vn(dong(N, 'kiem_dinh_cheo_phu_hoa', n)['MAPE (%)'])}% / {vn(baseline(N, 'kiem_dinh_cheo_phu_hoa')['MAPE (%)'])}% | {vn(dong(C, 'kiem_dinh_cheo', c)['MAPE (%)'])}% / {vn(baseline(C, 'kiem_dinh_cheo')['MAPE (%)'])}% |
+| Khoảng giá 80%: độ phủ đo trên test | {phu_s} | – |"""
     p = GOC / "README.md"
     s = p.read_text(encoding="utf-8")
-    i = s.index("| | Nhà phố – Phú Hòa | Căn hộ | Đất nền – TDM |")
-    j = s.index("\n", s.index("| Phần A (mô hình môn học", i))
+    i = s.index("| | Nhà phố – Phú Hòa")
+    cuoi = "| Khoảng giá 80%" if "| Khoảng giá 80%" in s[i:i + 4000] else "| Phần A (mô hình môn học"
+    j = s.index("\n", s.index(cuoi, i))
     s = s[:i] + bang + s[j:]
-    ngay = J("mo_hinh_gia_dat")["ngay_du_lieu"]          # ngày của kỳ thu thập mới nhất
-    s = re.sub(r"## Kết quả chính \(dữ liệu [^)]*\)", f"## Kết quả chính (dữ liệu đến {ngay[8:10]}/{ngay[5:7]}/{ngay[:4]})", s)
+    ngay = J("du_lieu_web")["SO_LIEU"]["NGAY"]          # ngày của kỳ thu thập mới nhất (dd/mm/yyyy)
+    s = re.sub(r"## Kết quả chính \(dữ liệu [^)]*\)", f"## Kết quả chính (dữ liệu đến {ngay})", s)
     p.write_text(s, encoding="utf-8")
     print("Đã cập nhật bảng kết quả trong README.md")
 
@@ -87,6 +94,9 @@ if __name__ == "__main__":
         sys.exit(0)
     if not shutil.which("node"):
         sys.exit("Cần Node.js >= 18 (notebook trợ lý và kiểm thử trang dùng Node).")
+    if "--nha-pho" in sys.argv:          # chỉ luồng bài chính: notebook nhà phố -> dữ liệu web/API -> README -> kiểm thử
+        chay([b for b in BUOC if b[0] in ("2324801030095", "build_site", "cap_nhat_readme", "kiem_tra_mo_hinh", "kiem_tra_api")])
+        sys.exit(0)
     if "--xu-huong" in sys.argv:
         chay([b for b in BUOC if b[0] in ("du_doan_xu_huong_gia", "build_site_lan_2")])
         sys.exit(0)

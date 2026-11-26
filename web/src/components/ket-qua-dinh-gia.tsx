@@ -39,7 +39,7 @@ function O({ icon, nhan, children }: { icon: React.ReactNode; nhan: string; chil
   );
 }
 
-export function KetQuaDinhGia({ kq, loi, dang }: { kq: KetQua | null; loi: string; dang: boolean }) {
+export function KetQuaDinhGia({ kq, loi, dang, doPhu }: { kq: KetQua | null; loi: string; dang: boolean; doPhu?: { trong: number; tong: number } }) {
   const khung = useRef<HTMLElement>(null);
   const gia = useChayDan(kq?.gia_ty ?? 0);
   // có kết quả mới: cuộn khung kết quả vào tầm nhìn
@@ -67,9 +67,9 @@ export function KetQuaDinhGia({ kq, loi, dang }: { kq: KetQua | null; loi: strin
             <div className="relative flex flex-col items-center gap-6 sm:flex-row">
               <div className="rounded-2xl bg-white/95 p-2 shadow-lg"><MinhHoaTien className="h-28 w-40" /></div>
               <div className="flex-1 text-center sm:text-left">
-                <p className="text-sm font-semibold uppercase tracking-widest text-gold-400">Giá ước lượng</p>
+                <p className="text-sm font-semibold uppercase tracking-widest text-gold-400">Giá rao bán ước tính</p>
                 <p className="mt-1 text-5xl font-bold tabular-nums sm:text-6xl">{so(gia, gia >= 10 ? 1 : 2)} <span className="text-2xl font-semibold text-navy-100 sm:text-3xl">tỷ đồng</span></p>
-                <p className="mt-2 text-navy-100">Khoảng 80%: <b className="text-white">{ty(kq.khoang_80_ty[0])} – {ty(kq.khoang_80_ty[1])}</b></p>
+                <p className="mt-2 text-navy-100">Khoảng giá tham khảo 80%: <b className="text-white">{ty(kq.khoang_80_ty[0])} – {ty(kq.khoang_80_ty[1])}</b></p>
               </div>
               <div className="flex flex-wrap justify-center gap-2 sm:flex-col sm:items-end">
                 <span className="rounded-full bg-white/10 px-3 py-1 text-sm">{so(kq.don_gia_trieu_m2)} triệu/m²</span>
@@ -79,10 +79,13 @@ export function KetQuaDinhGia({ kq, loi, dang }: { kq: KetQua | null; loi: strin
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <O icon={<ChartNoAxesColumn size={16} />} nhan="Khoảng giá 80%">
+            <O icon={<ChartNoAxesColumn size={16} />} nhan="Khoảng giá tham khảo 80%">
               <p className="text-xl font-bold text-navy-900">{ty(kq.khoang_80_ty[0])} – {ty(kq.khoang_80_ty[1])}</p>
               <KhoangGia lo={kq.khoang_80_ty[0]} hi={kq.khoang_80_ty[1]} uoc={kq.gia_ty} />
-              <p className="mt-2 text-xs text-slate-500">8/10 căn tương tự có giá rao nằm trong khoảng này (đã kiểm chứng trên tập test).</p>
+              <p className="mt-2 text-xs text-slate-500">
+                Mục tiêu: 80% căn tương tự có giá rao trong khoảng này. Không phải bảo đảm cho từng căn.
+                {doPhu && <> Đo thực tế trên tập test Phú Hòa: <b>{doPhu.trong}/{doPhu.tong} căn ({so((doPhu.trong / doPhu.tong) * 100, 0)}%)</b>.</>}
+              </p>
             </O>
             <O icon={<Ruler size={16} />} nhan={kq.khoang_50_ty ? "Khoảng 50% (hẹp hơn)" : "Đơn giá"}>
               {kq.khoang_50_ty ? (
@@ -97,14 +100,14 @@ export function KetQuaDinhGia({ kq, loi, dang }: { kq: KetQua | null; loi: strin
                 </>
               )}
             </O>
-            <O icon={kq.thue_trieu_thang !== undefined ? <Banknote size={16} /> : <CalendarClock size={16} />} nhan={kq.thue_trieu_thang !== undefined ? "Cho thuê ước tính" : "Dữ liệu"}>
+            <O icon={kq.thue_trieu_thang !== undefined ? <Banknote size={16} /> : <CalendarClock size={16} />} nhan={kq.thue_trieu_thang !== undefined ? "Cho thuê ước tính (mở rộng)" : "Dữ liệu"}>
               {kq.thue_trieu_thang !== undefined ? (
                 <>
                   <p className="text-xl font-bold text-navy-900">{so(kq.thue_trieu_thang)} triệu/tháng</p>
-                  <p className="mt-2 text-xs text-slate-500">Tỷ suất cho thuê {so(kq.ty_suat_pt)}%/năm, từ tin cho thuê thật cùng khu vực.</p>
+                  <p className="mt-2 text-xs text-slate-500">= giá ước tính × tỷ suất cho thuê trung vị {so(kq.ty_suat_pt)}%/năm (đo từ tin cho thuê thật cùng khu vực).</p>
                 </>
               ) : (
-                <p className="text-sm text-slate-600">Mô hình rút gọn cho đất, học trên tin rao đất thật ở Thủ Dầu Một.</p>
+                <p className="text-sm text-slate-600">Mô hình học trên tin rao thật ở Bình Dương cũ.</p>
               )}
             </O>
           </div>
@@ -123,7 +126,7 @@ export function KetQuaDinhGia({ kq, loi, dang }: { kq: KetQua | null; loi: strin
             </div>
           )}
           <p className="text-center text-xs text-slate-400">
-            {kq.da_luu ? "Đã lưu vào lịch sử định giá của bạn." : "Đăng nhập để lưu kết quả."} Đây là giá rao ước lượng, không phải giá giao dịch.
+            {kq.da_luu ? "Đã lưu vào lịch sử định giá của bạn." : "Đăng nhập để lưu kết quả."} Đây là giá rao bán ước tính từ tin đăng, không phải giá giao dịch sau thương lượng.
           </p>
         </div>
       )}

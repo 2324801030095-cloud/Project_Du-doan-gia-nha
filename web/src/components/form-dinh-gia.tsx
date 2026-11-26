@@ -1,16 +1,15 @@
 "use client";
-import { Building2, House, LandPlot, LoaderCircle } from "lucide-react";
+import { Building2, House, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import type { DanhMuc } from "@/lib/api";
 import { LOI_VAO } from "@/lib/format";
 import { KetQuaDinhGia, type KetQua } from "./ket-qua-dinh-gia";
 
-type Loai = "nha-pho" | "can-ho" | "dat";
+type Loai = "nha-pho" | "can-ho";
 
 const TAB: { k: Loai; ten: string; icon: React.ReactNode }[] = [
   { k: "nha-pho", ten: "Nhà phố", icon: <House size={16} /> },
   { k: "can-ho", ten: "Căn hộ", icon: <Building2 size={16} /> },
-  { k: "dat", ten: "Đất", icon: <LandPlot size={16} /> },
 ];
 
 function O({ ten, children, goiY, rong }: { ten: string; children: React.ReactNode; goiY?: string; rong?: boolean }) {
@@ -43,7 +42,7 @@ function docForm(f: HTMLFormElement) {
   return o;
 }
 
-export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBanDau: Loai }) {
+export function FormDinhGia({ danhMuc, loaiBanDau, doPhu }: { danhMuc: DanhMuc; loaiBanDau: Loai; doPhu?: { trong: number; tong: number } }) {
   const [loai, setLoai] = useState<Loai>(loaiBanDau);
   const [kq, setKq] = useState<KetQua | null>(null);
   const [loi, setLoi] = useState("");
@@ -67,7 +66,7 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
   return (
     <div className="space-y-6">
       <div className="the p-6">
-        <div className="mx-auto mb-5 flex max-w-xl gap-2 rounded-xl bg-navy-50 p-1" role="tablist">
+        <div className="mx-auto mb-5 flex max-w-md gap-2 rounded-xl bg-navy-50 p-1" role="tablist">
           {TAB.map((t) => (
             <button key={t.k} role="tab" aria-selected={loai === t.k} onClick={() => { setLoai(t.k); setKq(null); setLoi(""); }}
               className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${loai === t.k ? "bg-white text-navy-900 shadow-sm" : "text-slate-500 hover:text-navy-800"}`}>
@@ -121,27 +120,6 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="nha_o_xa_hoi" className="size-4" /> Nhà ở xã hội</label>
             </>
           )}
-          {loai === "dat" && (
-            <>
-              <O ten="Diện tích (m²) *"><So name="dt" req min={21} max={20000} def={100} /></O>
-              <O ten="Phường">
-                <select name="phuong" className="o-nhap" defaultValue="thu dau mot|phu hoa">
-                  {danhMuc.phuong_dat.map((p) => <option key={p.ma} value={p.ma}>{p.ten} · {p.so_lo} lô</option>)}
-                </select>
-              </O>
-              <O ten="Ngang (m)"><So name="ngang" ph="5" min={1} max={200} /></O>
-              <O ten="Lối vào">
-                <select name="cap_loi_vao" data-so="1" className="o-nhap" defaultValue="">
-                  <option value="">Không rõ</option>
-                  {Object.entries(LOI_VAO).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
-              </O>
-              <O ten="Đường / hẻm rộng (m)"><So name="hem_rong" ph="6" min={1} max={60} /></O>
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="nen_du_an" data-bool="1" className="size-4" /> Nền dự án / khu dân cư</label>
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="tho_cu_toan_bo" className="size-4" /> Thổ cư toàn bộ</label>
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="so_rieng" className="size-4" /> Sổ riêng</label>
-            </>
-          )}
           {/* nút luôn nằm trong tầm nhìn: dính đáy màn hình khi form dài hơn cửa sổ */}
           <div className="sticky bottom-0 z-10 -mx-6 -mb-6 mt-2 border-t border-navy-100 bg-white/95 px-6 py-4 backdrop-blur sm:col-span-full">
             <button className="nut-vang mx-auto flex w-full max-w-md py-3 text-base" disabled={dang}>
@@ -151,7 +129,7 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
         </form>
       </div>
 
-      <KetQuaDinhGia kq={kq} loi={loi} dang={dang} />
+      <KetQuaDinhGia kq={kq} loi={loi} dang={dang} doPhu={loai === "nha-pho" ? doPhu : undefined} />
     </div>
   );
 }
