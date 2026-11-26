@@ -1,6 +1,6 @@
 # Chạy 2 bộ kiểm thử mỗi lần đẩy lên GitHub hoặc mở pull request.
 # Không chạy lại notebook (mất ~6 phút và cần dữ liệu thu thập): dùng mô hình và dữ liệu đã lưu trong repo.
-# Chạy lại toàn bộ trên máy: python cong_cu/chay_toan_bo.py
+# Chạy lại toàn bộ trên máy: python scripts/chay_toan_bo.py
 name: Kiểm thử
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: "24"
       - run: pip install -r requirements.txt
-      - name: Kiểm thử mô hình và dữ liệu (10 phép)
+      - name: Kiểm thử mô hình và dữ liệu (12 phép)
         run: python -X utf8 tests/kiem_tra_mo_hinh.py
-      - name: Kiểm thử trang demo và trợ lý (27 phép)
+      - name: Kiểm thử trang demo và trợ lý (46 phép)
         run: node tests/kiem_tra_tro_ly.js

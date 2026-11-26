@@ -2,7 +2,7 @@
 // Cách dùng: mở https://guland.vn/mua-ban-bat-dong-san-phuong-phu-hoa-thanh-pho-thu-dau-mot-binh-duong
 // trong trình duyệt, mở DevTools > Console, dán toàn bộ script rồi Enter.
 // Kết quả: tải về file guland_phu_hoa.csv (tất cả loại BĐS; notebook chỉ dùng loại "Nhà phố").
-// Sau khi tải: chép file thành data/raw/nha_phu_hoa_guland_raw.csv (bản cũ vẫn còn trong lịch sử git). Notebook tự lọc loại "Nhà phố"
+// Sau khi tải: chép file thành dataset/raw/nha_phu_hoa_guland_raw.csv (bản cũ vẫn còn trong lịch sử git). Notebook tự lọc loại "Nhà phố"
 // và tự dùng cột mo_ta (mô tả tin) nếu có.
 // Script nghỉ 0,3–0,7 giây giữa các lần tải trang để không gây tải cho máy chủ.
 // Ngày chạy để tạo dữ liệu của đề tài: 12/11/2026.

@@ -1,5 +1,5 @@
 """Sinh notebook notebooks/du_doan_gia_dat.ipynb (định giá đất nền / đất thổ cư).
-Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_dat.py notebooks/du_doan_gia_dat.ipynb
+Chạy từ thư mục gốc đề tài:  python scripts/sinh_notebook/dat.py notebooks/du_doan_gia_dat.ipynb
 """
 import sys
 
@@ -49,7 +49,7 @@ vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X
 
 GOC = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 sys.path.insert(0, str(GOC / "src"))
-RAW, PROC, MODEL_DIR, KET_QUA = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "model", GOC / "ket_qua"
+RAW, PROC, MODEL_DIR, KET_QUA = GOC / "dataset" / "raw", GOC / "dataset" / "processed", GOC / "models", GOC / "results"
 from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_duong, trich_dac_trung_chu, nhom_gan_trung, MoHinhGia, XepChongChu,
                          BaselineDonGiaPhuong, du_doan_cheo_lap, sai_so_tung_can, ktc_bootstrap, bang_danh_gia,
                          hieu_chinh_khoang, phan_vi_cho, muc_gia, mo_hinh_co_ban)
@@ -138,7 +138,7 @@ md(r"""
 2. **Phạm vi đất ở:** loại đất nông nghiệp/công nghiệp; giữ giá 0,2–100 tỷ, diện tích 40–3.000 m², đơn giá 1–200 triệu/m².
 3. **Tin trùng khớp hẳn:** cùng quận, cùng giá, cùng diện tích → giữ 1 (ưu tiên bản Chợ Tốt có tọa độ).
 4. **Gán tọa độ** cho tin alonhadat: tọa độ trung vị của tuyến đường (từ tin Chợ Tốt đất + nhà có tọa độ riêng), nếu không có thì tâm phường.
-5. **Loại tin không phản ánh giá đất ở thị trường** (ghi lý do vào `data/processed/dat_bi_loai.csv`):
+5. **Loại tin không phản ánh giá đất ở thị trường** (ghi lý do vào `dataset/processed/dat_bi_loai.csv`):
 
 | Quy tắc | Lý do |
 |---|---|
@@ -414,14 +414,14 @@ json.dump({"ten_mo_hinh": ten_chon, "kiem_dinh_cheo_tdm": ghi(bang_cv), "chon_mo
            "so_lo": {"tat_ca": len(df), "tdm": int(df["tdm"].sum()), "phu_hoa": int(df["phu_hoa"].sum())}},
           open(MODEL_DIR / "danh_gia_mo_hinh_dat.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 df.drop(columns=["van_ban", "mo_ta"]).to_csv(PROC / "dat_da_xu_ly.csv", index=False, encoding="utf-8-sig")
-print("Đã lưu: model/mo_hinh_gia_dat.joblib, model/mo_hinh_gia_dat.json, model/danh_gia_mo_hinh_dat.json, ket_qua/output_dat.csv, data/processed/dat_da_xu_ly.csv")
+print("Đã lưu: models/mo_hinh_gia_dat.joblib, models/mo_hinh_gia_dat.json, models/danh_gia_mo_hinh_dat.json, results/output_dat.csv, dataset/processed/dat_da_xu_ly.csv")
 """)
 
 md(r"""
 ## Kết luận
 - Mô hình định giá **đất ở** (thổ cư, nền dự án) học trên tin bán đất thật của Chợ Tốt và alonhadat, cùng quy trình làm sạch – chống rò rỉ – chọn mô hình như nhà phố và căn hộ. Kết quả ở Bước 4–5.
 - **Phần A** (Bước 4a) dùng đúng các mô hình của môn học trên thông số lô đất; **Phần B** (Bước 4b) thêm giá đất khu vực và gradient boosting. Hai phần được so trên cùng tập test ở cuối Bước 4b.
-- Mỗi lô đất ở Thủ Dầu Một có giá ước lượng, khoảng 80% và chẩn đoán *rẻ / hợp lý / cao* (`ket_qua/output_dat.csv`).
+- Mỗi lô đất ở Thủ Dầu Một có giá ước lượng, khoảng 80% và chẩn đoán *rẻ / hợp lý / cao* (`results/output_dat.csv`).
 - Trang demo có mục **Định giá đất** dùng mô hình rút gọn (sai số đã kiểm định ở Bước 6).
 
 **Hạn chế:** giá là **giá rao**; tin alonhadat không có tọa độ riêng (dùng tọa độ tuyến đường/phường); quy hoạch, lộ giới và hướng đất chưa có trong dữ liệu; đất nông nghiệp/công nghiệp quá ít tin nên không định giá.

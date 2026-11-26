@@ -1,8 +1,11 @@
-// Nạp phần JavaScript của demo/trang_ban_nha.html vào Node với một DOM giả lập tối thiểu,
+// Nạp phần JavaScript của web/index.html vào Node với một DOM giả lập tối thiểu,
 // để kiểm thử tự động trợ lý hỏi đáp và các hàm định giá mà không cần mở trình duyệt.
 // Dùng: const T = require("./nap_trang_demo.js");  T.hoi("nhà 80m2 hẻm xe hơi")  -> { y, e, text }
+// Chạy trực tiếp: node tests/nap_trang_demo.js dataset/labeled/cau_hoi_kiem_tra.csv
+//   -> in ý định do LUẬT TỪ KHÓA của trợ lý (botYDinhLuat) nhận ra cho từng câu (cột y_dinh, cau_hoi), "null" = không nhận ra.
+//   Notebook tro_ly_y_dinh.ipynb dùng để so sánh luật với mô hình học máy trên cùng bộ câu hỏi.
 const fs = require("fs"), path = require("path");
-const html = fs.readFileSync(path.join(__dirname, "..", "demo", "trang_ban_nha.html"), "utf8");
+const html = fs.readFileSync(path.join(__dirname, "..", "web", "index.html"), "utf8");
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 function el() {
   const store = { innerHTML: "", textContent: "", value: "", hidden: false, checked: false, dataset: {}, style: { setProperty() {} }, scrollTop: 0, scrollHeight: 0 };
@@ -43,3 +46,13 @@ api.hoi = (q, giuNguCanh = false) => {
   return { y, e, text, html: r.html, goi_y: r.goi_y };
 };
 module.exports = api;
+
+if (require.main === module) {
+  const dong = fs.readFileSync(process.argv[2], "utf8").split(/\r?\n/).slice(1).filter(Boolean);
+  for (const l of dong) {
+    const m = l.match(/^[^,]+,"(.*)"$/);
+    if (!m) throw new Error("dòng CSV không đúng dạng: " + l);
+    const { t, e } = api.botTrich(m[1]);
+    console.log(api.botYDinhLuat(t, e) ?? "null");
+  }
+}

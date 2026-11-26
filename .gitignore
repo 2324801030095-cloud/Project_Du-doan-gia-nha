@@ -19,4 +19,4 @@ catboost_info/
 .playwright-mcp/
 
 # khóa AI riêng của máy này – không đưa lên GitHub
-demo/khoa_ai.local.js
+web/khoa_ai.local.js

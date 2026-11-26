@@ -540,7 +540,7 @@ def kiem_dinh_lui(y, bat_dau=4):
     so với baseline "không đổi" (dự báo y[t+1] = y[t]). Trả về dict sai số tuyệt đối từng kỳ và kết luận.
     Holt chỉ được coi là tốt hơn khi sai số trung bình THẤP HƠN baseline trên các kỳ kiểm tra."""
     y = np.asarray(y, float)
-    assert np.isfinite(y).all(), "chuỗi chỉ số có kỳ rỗng (NaN) - kiểm tra ảnh chụp trong data/lich_su"
+    assert np.isfinite(y).all(), "chuỗi chỉ số có kỳ rỗng (NaN) - kiểm tra ảnh chụp trong dataset/history"
     loi_holt, loi_khong_doi = [], []
     for t in range(bat_dau, len(y) - 1):
         l, xh = holt(y[: t + 1])

@@ -1,5 +1,5 @@
 """Sinh notebook notebooks/2324801030095.ipynb (nội dung markdown + code nằm trong script này).
-Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_chinh.py notebooks/2324801030095.ipynb
+Chạy từ thư mục gốc đề tài:  python scripts/sinh_notebook/chinh.py notebooks/2324801030095.ipynb
 Sau đó chạy notebook:       jupyter nbconvert --to notebook --execute --inplace notebooks/2324801030095.ipynb
 """
 import sys
@@ -64,13 +64,13 @@ md(r"""
 
 | Nguồn | Script | Phạm vi | Thông tin đặc biệt |
 |---|---|---|---|
-| guland.vn | `thu_thap/guland_thu_thap.js` (chạy trong trình duyệt) | Phường Phú Hòa | Bảng thông số chi tiết: loại hẻm, độ rộng hẻm, diện tích sàn |
-| Chợ Tốt Nhà (nhatot.com) | `thu_thap/chotot_thu_thap.py` | Toàn Bình Dương cũ, loại "Nhà ở" | **Tọa độ**, ngang × dài, số tầng, phòng, WC, loại nhà, pháp lý, **giá gốc lúc đăng** |
-| alonhadat.com.vn | `thu_thap/alonhadat_thu_thap.py` | TP. Thủ Dầu Một, loại nhà | Địa chỉ cũ kèm phường, kích thước, đường trước nhà, ngày đăng |
+| guland.vn | `scripts/guland_thu_thap.js` (chạy trong trình duyệt) | Phường Phú Hòa | Bảng thông số chi tiết: loại hẻm, độ rộng hẻm, diện tích sàn |
+| Chợ Tốt Nhà (nhatot.com) | `src/thu_thap.py chotot` | Toàn Bình Dương cũ, loại "Nhà ở" | **Tọa độ**, ngang × dài, số tầng, phòng, WC, loại nhà, pháp lý, **giá gốc lúc đăng** |
+| alonhadat.com.vn | `src/thu_thap.py alonhadat` | TP. Thủ Dầu Một, loại nhà | Địa chỉ cũ kèm phường, kích thước, đường trước nhà, ngày đăng |
 
 **Vì sao lấy cả khu vực ngoài Phú Hòa?** Mô hình học được quy luật chung (diện tích, số tầng, hẻm/mặt tiền… ảnh hưởng giá ra sao) từ nhiều căn hơn. Khác biệt về vị trí được mô hình xử lý bằng đặc trưng "giá khu vực". Bước 8 kiểm chứng điều này: huấn luyện trên toàn vùng cho sai số **trên chính các căn Phú Hòa** thấp hơn so với chỉ học trên Phú Hòa.
 
-**Hợp nhất các kỳ thu thập.** Mỗi trang chỉ hiện tin đang rao, nên mỗi kỳ thu thập (lưu trong `data/lich_su/`) có một phần tin mới và một phần tin đã gỡ. Notebook dùng **mọi kỳ**: một tin đã gỡ vẫn là một giá rao thật tại thời điểm thu; tin có ở nhiều kỳ chỉ giữ **bản mới nhất**. Nhờ vậy dữ liệu (nhất là số căn Phú Hòa) tăng dần sau mỗi lần thu thập định kỳ. Trang demo chỉ hiển thị các tin **còn rao ở kỳ mới nhất**.
+**Hợp nhất các kỳ thu thập.** Mỗi trang chỉ hiện tin đang rao, nên mỗi kỳ thu thập (lưu trong `dataset/history/`) có một phần tin mới và một phần tin đã gỡ. Notebook dùng **mọi kỳ**: một tin đã gỡ vẫn là một giá rao thật tại thời điểm thu; tin có ở nhiều kỳ chỉ giữ **bản mới nhất**. Nhờ vậy dữ liệu (nhất là số căn Phú Hòa) tăng dần sau mỗi lần thu thập định kỳ. Trang demo chỉ hiển thị các tin **còn rao ở kỳ mới nhất**.
 
 **Giới hạn:** giá là **giá rao bán**, chưa phải giá giao dịch. Không lưu tên, số điện thoại người đăng.
 """)
@@ -89,11 +89,11 @@ nx = lambda s: display(Markdown(s))     # in nhận xét: mọi con số lấy t
 vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")   # 1234.5 -> "1.234,5"
 
 import sys
-# Thư mục gốc của đề tài: notebook nằm trong notebooks/, mã dùng chung ở src/, dữ liệu ở data/
+# Thư mục gốc của đề tài: notebook nằm trong notebooks/, mã dùng chung ở src/, dữ liệu ở dataset/
 GOC = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 sys.path.insert(0, str(GOC / "src"))
-RAW, PROC, LICH_SU = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "data" / "lich_su"
-MODEL_DIR, KET_QUA = GOC / "model", GOC / "ket_qua"
+RAW, PROC, LICH_SU = GOC / "dataset" / "raw", GOC / "dataset" / "processed", GOC / "dataset" / "history"
+MODEL_DIR, KET_QUA = GOC / "models", GOC / "results"
 MODEL_DIR.mkdir(exist_ok=True); KET_QUA.mkdir(exist_ok=True); PROC.mkdir(parents=True, exist_ok=True)
 from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_duong, trich_dac_trung_chu, nhom_gan_trung,
                          MoHinhGia, BaselineDonGiaPhuong, chi_so_danh_gia)
@@ -106,7 +106,7 @@ pd.set_option("display.width", 200)
 RANDOM_STATE = 42
 
 def doc_cac_ky(ten_raw, mau_lich_su):
-    # Hợp nhất mọi kỳ thu thập: bản mới nhất (data/raw) + các ảnh chụp có ghi ngày (data/lich_su).
+    # Hợp nhất mọi kỳ thu thập: bản mới nhất (dataset/raw) + các ảnh chụp có ghi ngày (dataset/history).
     # Tin đã gỡ ở kỳ sau vẫn là một giá rao thật tại thời điểm thu; mỗi tin chỉ giữ bản MỚI NHẤT (giá, mô tả cập nhật nhất).
     ky = [pd.read_csv(RAW / ten_raw, dtype={"id": str})] + [pd.read_csv(f, dtype={"id": str}) for f in sorted(LICH_SU.glob(mau_lich_su))]
     d = pd.concat(ky, ignore_index=True)
@@ -398,13 +398,13 @@ df["ty_le_san"] = df["dt_san"] / df["dt_dat"]
 df["nhom"] = nhom_gan_trung(df)          # nhóm tin gần trùng, dùng khi chia train/test (Bước 6)
 df["phu_hoa"] = (df["phuong"] == "phu hoa").astype(int)
 df["tdm"] = (df["quan"] == "thu dau mot").astype(int)
-print(f"Còn {len(df)} căn | Thủ Dầu Một: {df['tdm'].sum()} | Phú Hòa: {df['phu_hoa'].sum()}  (danh sách tin bị loại: data/processed/tin_bi_loai.csv)")
+print(f"Còn {len(df)} căn | Thủ Dầu Một: {df['tdm'].sum()} | Phú Hòa: {df['phu_hoa'].sum()}  (danh sách tin bị loại: dataset/processed/tin_bi_loai.csv)")
 kich_co = df["nhom"].map(df["nhom"].value_counts())
 print(f"Nhóm gần trùng: {df['nhom'].nunique()} nhóm cho {len(df)} căn; {int((kich_co > 1).sum())} căn nằm trong nhóm có từ 2 tin trở lên")
 """)
 
 md(r"""
-**Quan sát:** Số tin bị loại nhỏ so với tổng, nhưng đây là những điểm có thể làm lệch mô hình mạnh nhất (ví dụ nhà lắp ghép 720 triệu được đăng như "bán nhà"). Danh sách tin bị loại và lý do được lưu ra `data/processed/tin_bi_loai.csv` để có thể kiểm tra lại.
+**Quan sát:** Số tin bị loại nhỏ so với tổng, nhưng đây là những điểm có thể làm lệch mô hình mạnh nhất (ví dụ nhà lắp ghép 720 triệu được đăng như "bán nhà"). Danh sách tin bị loại và lý do được lưu ra `dataset/processed/tin_bi_loai.csv` để có thể kiểm tra lại.
 
 **Nhóm tin gần trùng (cột `nhom`).** Hàm `nhom_gan_trung` gom các tin nhiều khả năng là **cùng một căn** đăng lại: cùng quận, diện tích lệch ≤ 3%, giá lệch ≤ 12%, và có thêm một bằng chứng (mô tả giống nhau, hoặc cùng phường và cùng kích thước ngang × dài, hoặc cùng phường và cùng tuyến đường). Dữ liệu vẫn giữ nguyên các tin này, nhưng khi đánh giá, **cả nhóm luôn nằm về một phía** (cùng train hoặc cùng test). Quy tắc cố ý gom rộng: gom thừa chỉ làm kết quả đánh giá khắt khe hơn, còn bỏ sót thì kết quả đẹp giả.
 
@@ -1061,7 +1061,7 @@ xuat.assign(gia_du_doan_ty=xuat["gia_uoc_luong_ty"].round(3),
             chenh_lech_pt=xuat["chenh_lech_pt"].round(1), mo_hinh=ten_tot_nhat)[
     ["ma_tin", "nguon", "dien_tich_m2", "gia_rao_ty", "gia_du_doan_ty", "khoang_80_ty", "chenh_lech_pt", "chan_doan", "mo_hinh"]
 ].to_csv(KET_QUA / "output.csv", index=False, encoding="utf-8-sig")
-print("Đã ghi ket_qua/input.csv (thông số", len(xuat), "căn Phú Hòa) và ket_qua/output.csv (giá ước lượng, khoảng 80%, chẩn đoán)")
+print("Đã ghi results/input.csv (thông số", len(xuat), "căn Phú Hòa) và results/output.csv (giá ước lượng, khoảng 80%, chẩn đoán)")
 """)
 
 code(r"""
@@ -1128,7 +1128,7 @@ bang_nguong = pd.DataFrame(dong).set_index("Ngưỡng lọc"); display(bang_nguo
 """)
 
 md(r"""
-**3. Kiểm tra tay việc gom tin trùng.** Quy tắc gom tin gần trùng chỉ được kiểm thử trên ví dụ dựng sẵn; muốn biết nó đúng đến đâu trên dữ liệu thật thì **người phải xem từng cặp**. Ô dưới xuất 25 cặp **đã gom** và 25 cặp **gần giống nhưng không gom** (cùng quận, diện tích lệch ≤ 3%, giá lệch ≤ 12%) ra `data/kiem_tra_tay/cap_tin_gan_trung.csv`, xáo thứ tự để người gán nhãn không biết cặp nào đã gom. Mở file, xem hai tin (tiêu đề, giá, diện tích, phường, đường, link), điền cột `cung_mot_can`: **1** = cùng một căn, **0** = hai căn khác nhau. Chạy lại notebook thì ô này tính:
+**3. Kiểm tra tay việc gom tin trùng.** Quy tắc gom tin gần trùng chỉ được kiểm thử trên ví dụ dựng sẵn; muốn biết nó đúng đến đâu trên dữ liệu thật thì **người phải xem từng cặp**. Ô dưới xuất 25 cặp **đã gom** và 25 cặp **gần giống nhưng không gom** (cùng quận, diện tích lệch ≤ 3%, giá lệch ≤ 12%) ra `dataset/labeled/cap_tin_gan_trung.csv`, xáo thứ tự để người gán nhãn không biết cặp nào đã gom. Mở file, xem hai tin (tiêu đề, giá, diện tích, phường, đường, link), điền cột `cung_mot_can`: **1** = cùng một căn, **0** = hai căn khác nhau. Chạy lại notebook thì ô này tính:
 - **Gom đúng** = trong các cặp đã gom, bao nhiêu % thật sự cùng một căn;
 - **Bỏ sót** = trong các cặp không gom, bao nhiêu % thật ra là cùng một căn (tin trùng lọt qua → kết quả đánh giá có thể đẹp giả).
 
@@ -1136,7 +1136,7 @@ File đã có thì không bị ghi đè, để không mất nhãn đã điền.
 """)
 
 code(r"""
-CAP = GOC / "data" / "kiem_tra_tay" / "cap_tin_gan_trung.csv"
+CAP = GOC / "dataset" / "labeled" / "cap_tin_gan_trung.csv"
 if not CAP.exists():
     rng_cap = np.random.default_rng(0)
     da_gom = [tuple(g.index[:2]) for _, g in df.groupby("nhom") if len(g) >= 2]
@@ -1193,14 +1193,14 @@ nx(f'''**Đọc kết quả ba phép kiểm:**
 - **Theo mức giá rao:** {", ".join(f"{k} {vn(mg.loc[k, 'MAPE (%)'])}%" for k in mg.index)}. Tin rẻ bất thường thường là giá mồi, nhà nát, đất chưa thổ cư mà quy tắc lọc chưa bắt hết.
 - **Theo phường:** từ {vn(pw["MAPE (%)"].min(), 0)}% ({pw["MAPE (%)"].idxmin()}) đến {vn(pw["MAPE (%)"].max(), 0)}% ({pw["MAPE (%)"].idxmax()}); {int(TC["phuong"]["MAPE (%)"].isna().sum())} phường dưới 20 căn ghi "chưa đủ mẫu", không nên kết luận về các phường này.
 - **Ngưỡng lọc đơn giá:** chấm trên cùng {len(chung)} căn, MAPE Thủ Dầu Một của 4 ngưỡng chỉ trong khoảng {vn(mt.min())}–{vn(mt.max())}% → {"**kết quả không phụ thuộc đáng kể vào ngưỡng lọc** (kể cả khi không lọc), nên giữ ngưỡng 3 lần" if mt.max() - mt.min() < 2 else "ngưỡng lọc ảnh hưởng đáng kể tới kết quả, cần xem lại"}.
-- **Gom tin trùng:** nhãn 50 cặp trong `data/kiem_tra_tay/cap_tin_gan_trung.csv` (Claude gán, đối chiếu hai lần với mô tả đầy đủ; mỗi cặp có lý do ở cột `ly_do`, nên có người kiểm lại). Trong các cặp quy tắc gom, {g1_}/{n1_} thật sự cùng một căn (quy tắc cố ý gom rộng: gom thừa chỉ làm đánh giá khắt khe hơn); trong các cặp quy tắc không gom, {g2_}/{n2_} thật ra cùng một căn (bỏ sót → tin trùng lọt qua giữa train và test).''')
+- **Gom tin trùng:** nhãn 50 cặp trong `dataset/labeled/cap_tin_gan_trung.csv` (Claude gán, đối chiếu hai lần với mô tả đầy đủ; mỗi cặp có lý do ở cột `ly_do`, nên có người kiểm lại). Trong các cặp quy tắc gom, {g1_}/{n1_} thật sự cùng một căn (quy tắc cố ý gom rộng: gom thừa chỉ làm đánh giá khắt khe hơn); trong các cặp quy tắc không gom, {g2_}/{n2_} thật ra cùng một căn (bỏ sót → tin trùng lọt qua giữa train và test).''')
 """)
 
 md(r"""
 ## Bước 12: Lưu mô hình và hàm dự đoán
-- Huấn luyện lại mô hình đã chọn trên **toàn bộ** dữ liệu sạch → `model/mo_hinh_gia_nha.joblib` (kèm phân vị sai số để tính khoảng tin cậy).
-- `model/mo_hinh_gia_nha.json`: **mô hình rút gọn** (Ridge, 11 thông số người dùng nhập được) cho trang demo `demo/trang_ban_nha.html` tính ngay trên trình duyệt. Mô hình này huấn luyện lại trên dữ liệu Phú Hòa mới, các thông số được **chặn trên ở phân vị 97%** để mô hình tuyến tính không ngoại suy quá đà. Sai số kiểm định chéo của nó được ghi kèm để trang demo hiển thị trung thực.
-- `data/processed/nha_da_xu_ly.csv`: dữ liệu sạch + giá ước lượng (notebook xu hướng dùng lại).
+- Huấn luyện lại mô hình đã chọn trên **toàn bộ** dữ liệu sạch → `models/mo_hinh_gia_nha.joblib` (kèm phân vị sai số để tính khoảng tin cậy).
+- `models/mo_hinh_gia_nha.json`: **mô hình rút gọn** (Ridge, 11 thông số người dùng nhập được) cho trang demo `web/index.html` tính ngay trên trình duyệt. Mô hình này huấn luyện lại trên dữ liệu Phú Hòa mới, các thông số được **chặn trên ở phân vị 97%** để mô hình tuyến tính không ngoại suy quá đà. Sai số kiểm định chéo của nó được ghi kèm để trang demo hiển thị trung thực.
+- `dataset/processed/nha_da_xu_ly.csv`: dữ liệu sạch + giá ước lượng (notebook xu hướng dùng lại).
 """)
 
 code(r"""
@@ -1327,7 +1327,7 @@ else:
     gt_ph = {str(df.loc[i, "id"]): {k: round(float(v), 4) for k, v in GT.loc[i].items()} for i in df.index[df["phu_hoa"] == 1]}
     json.dump({"nen_log": round(nen, 4), "muc_tieu": mo_hinh_cuoi_muc_tieu, "mo_hinh": ten_tot_nhat, "nhom": list(GT.columns), "can": gt_ph},
               open(MODEL_DIR / "giai_thich_nha.json", "w", encoding="utf-8"), ensure_ascii=False)
-    print("Đã lưu model/giai_thich_nha.json cho", len(gt_ph), "căn Phú Hòa")
+    print("Đã lưu models/giai_thich_nha.json cho", len(gt_ph), "căn Phú Hòa")
 """)
 
 code(r"""
@@ -1381,7 +1381,7 @@ md(r"""
 **Kết quả đạt được** (các con số chính và hạn chế định lượng được in từ kết quả ở ô cuối notebook)
 - Đánh giá bằng **kiểm định chéo lặp, chia theo nhóm tin gần trùng**, mọi chỉ số có khoảng tin cậy 95%. Mô hình cuối là mô hình tốt nhất trong các mô hình của môn học (Phần A), được so với một mô hình đối chứng ngoài bài giảng (Bước 8–9). Con số trình bày gồm **ba cách đo** trên các căn Phú Hòa: kiểm định chéo (Bước 8), tập test giữ riêng (Bước 9) và dự đoán chéo theo nhóm trên toàn bộ căn Phú Hòa (Bước 11), mỗi số kèm khoảng tin cậy và cách đọc (bảng ngay dưới phần kết luận).
 - So với cách làm của phiên bản 1 và baseline đơn giá phường: xem bảng kiểm chứng ở Bước 8, có kèm khoảng tin cậy của chênh lệch.
-- Mỗi dự đoán có **khoảng giá 80%** đã kiểm chứng độ phủ, và mỗi tin Phú Hòa có **chẩn đoán** rẻ / hợp lý / cao so với thị trường (`ket_qua/output.csv`).
+- Mỗi dự đoán có **khoảng giá 80%** đã kiểm chứng độ phủ, và mỗi tin Phú Hòa có **chẩn đoán** rẻ / hợp lý / cao so với thị trường (`results/output.csv`).
 - Yếu tố quyết định giá: diện tích đất, **vị trí** (tọa độ, khoảng cách tới trung tâm), sau đó là lối vào và thông tin trong mô tả tin.
 
 **Những gì đã thử nhưng không cải thiện (đã gỡ khỏi quy trình)**
@@ -1393,7 +1393,7 @@ md(r"""
 - Vị trí chỉ chính xác tới **tuyến đường hoặc phường** với phần lớn tin; muốn tốt hơn cần số nhà hoặc tọa độ do người đăng ghim.
 - Không có thông tin chất lượng xây dựng thật (vật liệu, tuổi nhà); chỉ đọc được gián tiếp qua mô tả.
 - **Căn hộ chung cư** không nằm trong mô hình này: xem notebook `du_doan_gia_can_ho.ipynb` (cùng quy trình đánh giá, đặc trưng riêng: dự án, tầng, pháp lý, nhà ở xã hội).
-- Mô hình phản ánh thị trường **tháng 11/2026**; cần cập nhật dữ liệu định kỳ (`thu_thap/cap_nhat_dinh_ky.py`). Xu hướng giá được phân tích ở notebook `du_doan_xu_huong_gia.ipynb`.
+- Mô hình phản ánh thị trường **tháng 11/2026**; cần cập nhật dữ liệu định kỳ (`scripts/cap_nhat_dinh_ky.py`). Xu hướng giá được phân tích ở notebook `du_doan_xu_huong_gia.ipynb`.
 """)
 
 code(r"""

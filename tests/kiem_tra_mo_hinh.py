@@ -1,6 +1,8 @@
 """Kiểm thử tự động cho mã dùng chung (src/mo_hinh_gia.py) và kết quả đã sinh ra.
 Chạy từ thư mục gốc đề tài:  python tests/kiem_tra_mo_hinh.py
-Mỗi phép kiểm in ĐẠT / KHÔNG ĐẠT; mã thoát khác 0 nếu có phép kiểm không đạt."""
+Mỗi phép kiểm in ĐẠT / KHÔNG ĐẠT; mã thoát khác 0 nếu có phép kiểm không đạt.
+Xem các số kết quả còn viết tay trong markdown của một notebook:
+    python tests/kiem_tra_mo_hinh.py --markdown notebooks/2324801030095.ipynb"""
 import sys
 import warnings
 
@@ -15,6 +17,84 @@ import pandas as pd
 from sklearn.base import BaseEstimator, RegressorMixin
 
 import mo_hinh_gia as M
+
+# ---------- Số liệu viết tay trong markdown ----------
+# Markdown của notebook không được chứa số KẾT QUẢ viết tay.
+# Số kết quả (MAPE, độ phủ, số căn...) phải được in ra từ biến trong ô code (hàm nx), nên khi dữ liệu cập nhật thì chữ tự đúng.
+# Trong ô markdown, các số sau bị coi là số kết quả viết tay:
+#   1. số có phần thập phân (23,9) hoặc có dấu % (26,5% / 80%) mà KHÔNG phải một giá trị cố định trong mã nguồn
+#      (ngưỡng lọc, tham số, mức 80% của khoảng giá...), tức mã của notebook hoặc src/mo_hinh_gia.py;
+#   2. số đếm có đơn vị (N căn / tin / lô / dự án / cặp / nhóm) không phải giá trị cố định trong mã;
+#   3. mọi số ước chừng: đứng sau "~", "≈" hoặc "khoảng" (trừ mức 80% / 95% của khoảng giá và khoảng tin cậy).
+#   4. mọi khoảng "a–b%".
+# Phần chữ cố định trong các nhận xét nx(f'''...''') (bỏ các biểu thức {…}) được kiểm như markdown.
+# Giới hạn còn lại: một số kết quả trùng đúng một hằng số trong mã (ví dụ 0,6 trùng tham số 0.6) mà không đứng sau "khoảng/~/≈"
+# thì không phân biệt được; các nhận xét có số đã được chuyển sang nx nên trường hợp này chỉ còn ở các ngưỡng thật sự cố định.
+# Dùng: python tests/kiem_tra_mo_hinh.py --markdown <notebook>
+
+import json
+import re
+DON_VI = r"căn|tin|lô|dự án|cặp|nhóm"
+MUC_CO_DINH = {80.0, 95.0}          # mức của khoảng giá 80% và khoảng tin cậy 95%
+
+
+def _so(chuoi):
+    return {float(x) for x in re.findall(r"\d+(?:\.\d+)?", chuoi)}
+
+
+NX = re.compile(r"nx\(f'''(.*?)'''\)", re.DOTALL)
+
+
+def _chu_tinh(nx_f):
+    """Phần chữ cố định của một nhận xét nx(f'''...'''): bỏ các biểu thức {…} (lồng tối đa 1 cấp)."""
+    return re.sub(r"\{(?:[^{}]|\{[^{}]*\})*\}", "{…}", nx_f)
+
+
+def kiem_markdown(duong_dan):
+    nb = json.load(open(duong_dan, encoding="utf-8"))
+    ma = "\n".join("".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code")
+    ma = NX.sub("", ma)                     # chữ của nhận xét không phải hằng số của mã
+    ma += (GOC / "src" / "mo_hinh_gia.py").read_text(encoding="utf-8")
+    co_dinh = _so(ma)
+    co_dinh |= {round(x * 100, 6) for x in co_dinh if x <= 1}          # 0.8 trong mã <-> "80%" trong chữ
+    sai = []
+    for i, c in enumerate(nb["cells"]):
+        nguon = "".join(c["source"])
+        if c["cell_type"] == "markdown":
+            cac_doan = [nguon]
+        else:                               # chữ cố định trong nx(...) cũng là chữ người đọc thấy
+            cac_doan = [_chu_tinh(m.group(1)) for m in NX.finditer(nguon)]
+        for md in cac_doan:
+            sai += _so_viet_tay(i, md, co_dinh)
+    return sai
+
+
+def _so_viet_tay(i, md, co_dinh):
+    # khoảng "a–b%" là nhận định về kết quả (ngưỡng cố định luôn là một số); không tra hằng số vì 0.25 trong mã trùng "25%"
+    sai = [(i, md[max(0, m.start() - 60):m.end() + 20].replace("\n", " "))
+           for m in re.finditer(r"(?<![\w.,{])\d+(?:,\d+)?\s*[–-]\s*\d+(?:,\d+)?\s*%", md)]
+    for m in re.finditer(rf"(?<![\w.,{{])(\d+(?:[.,]\d+)*)(\s*%|\s+(?:{DON_VI})\b)?", md):
+        so, duoi = m.group(1), m.group(2) or ""
+        if "." in so and not re.fullmatch(r"\d{1,3}(\.\d{3})+", so):
+            continue                      # số mục (4.4, 5.1), không phải số liệu
+        x = float(so.replace(".", "").replace(",", ".")) if re.fullmatch(r"\d{1,3}(\.\d{3})+", so) else float(so.replace(",", "."))
+        truoc = md[max(0, m.start() - 8):m.start()]
+        uoc_chung = re.search(r"(~|≈|khoảng)\s*$", truoc) and x not in MUC_CO_DINH
+        if not uoc_chung:
+            if "," not in so and "." not in so and not duoi:
+                continue                  # số nguyên trơn (số bước, số kỳ, năm, tên lớp...) không kiểm
+            if x in co_dinh:
+                continue
+        sai.append((i, md[max(0, m.start() - 60):m.end() + 20].replace("\n", " ")))
+    return sai
+
+
+if "--markdown" in sys.argv:
+    s = kiem_markdown(sys.argv[sys.argv.index("--markdown") + 1])
+    for i, t in s:
+        print(f"ô {i}: …{t}…")
+    print(len(s), "số kết quả viết tay trong markdown")
+    sys.exit(0)
 
 KQ = []
 def kiem(ten):
@@ -97,7 +177,7 @@ def _():
 @kiem("Dữ liệu sạch: không có tin cho thuê / giá vô lý; tập test không chung nhóm với tập train")
 def _():
     for f, cot_dt in [("nha_da_xu_ly.csv", "dt_dat"), ("can_ho_da_xu_ly.csv", "dt_dat")]:
-        d = pd.read_csv(GOC / "data" / "processed" / f)
+        d = pd.read_csv(GOC / "dataset" / "processed" / f)
         assert d["gia_ty"].between(0.3, 60).all(), f"{f}: có giá ngoài phạm vi"
         assert (d["gia_ty"] * 1000 / d[cot_dt]).between(5, 250).all(), f"{f}: có đơn giá vô lý"
         if "tap" in d:
@@ -109,8 +189,8 @@ def _():
 
     from mo_hinh_gia import khong_dau
     for f, du_lieu in [("mo_hinh_gia_nha.joblib", "nha_da_xu_ly.csv"), ("mo_hinh_gia_can_ho.joblib", "can_ho_da_xu_ly.csv")]:
-        goi = joblib.load(GOC / "model" / f)
-        d = pd.read_csv(GOC / "data" / "processed" / du_lieu).head(20)
+        goi = joblib.load(GOC / "models" / f)
+        d = pd.read_csv(GOC / "dataset" / "processed" / du_lieu).head(20)
         d["van_ban"] = d["tieu_de"].fillna("").map(khong_dau)
         p = np.exp(goi["model"].predict(d))
         assert np.isfinite(p).all() and (p > 0.1).all() and (p < 100).all(), f"{f}: dự đoán bất thường"
@@ -120,7 +200,7 @@ def _():
 @kiem("Khoảng 80% đã lưu cho nhà phố theo mức giá: nhà đắt có biên độ rộng hơn nhà rẻ")
 def _():
     import joblib
-    k = joblib.load(GOC / "model" / "mo_hinh_gia_nha.joblib")["khoang_theo_muc"]
+    k = joblib.load(GOC / "models" / "mo_hinh_gia_nha.joblib")["khoang_theo_muc"]
     rong = lambda g: k["nhom"][g]["q90"] - k["nhom"][g]["q10"]
     assert len(k["nguong"]) == 3 and rong("3") > rong("0"), "biên độ mức đắt nhất không rộng hơn mức rẻ nhất"
 
@@ -143,30 +223,27 @@ def _():
 @kiem("Dữ liệu gốc đọc lại được và đã ẩn danh: mỗi dòng JSONL là 1 bản ghi hợp lệ (kể cả khi tách dòng kiểu Unicode), không còn thông tin người đăng / số điện thoại")
 def _():
     import json
-    sys.path.insert(0, str(GOC / "cong_cu"))
-    from an_danh_du_lieu import TRUONG_NGUOI_BAN, an_danh_bang, an_danh_tin
-    for f in sorted((GOC / "data").rglob("*.jsonl")):
+    from thu_thap import TRUONG_NGUOI_BAN, an_danh_bang, an_danh_tin
+    for f in sorted((GOC / "dataset").rglob("*.jsonl")):
         dong = [l for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
         for i, l in enumerate(dong):
             a = json.loads(l)                                   # lỗi -> phép kiểm không đạt
             assert not (TRUONG_NGUOI_BAN & set(a)), f"{f.name} dòng {i + 1}: còn trường người đăng {TRUONG_NGUOI_BAN & set(a)}"
             # ẩn danh thêm lần nữa mà không đổi gì = không còn SĐT ở bất kỳ trường chữ nào
             assert an_danh_tin(json.loads(l)) == a, f"{f.name} dòng {i + 1}: còn số điện thoại"
-    for f in sorted((GOC / "data").rglob("*.csv")) + sorted((GOC / "ket_qua").glob("*.csv")):
+    for f in sorted((GOC / "dataset").rglob("*.csv")) + sorted((GOC / "results").glob("*.csv")):
         n = an_danh_bang(pd.read_csv(f, dtype=str, keep_default_na=False))[1]
         assert n == 0, f"{f.name}: còn {n} ô có số điện thoại"
 
 @kiem("Số liệu trong notebook và README khớp kết quả đã lưu: markdown của MỌI notebook không còn số kết quả viết tay; số chính hiện đúng trong phần in ra của notebook chính và README")
 def _():
     # Dữ liệu cập nhật định kỳ thì số liệu thật đổi. Nhận xét có số được in từ biến (nx) nên tự đúng; phép kiểm này bắt
-    # (1) số kết quả còn viết tay trong markdown (tests/so_lieu_markdown.py), (2) notebook chưa chạy lại sau khi kết quả đổi,
+    # (1) số kết quả còn viết tay trong markdown (tests/kiem_tra_mo_hinh.py --markdown), (2) notebook chưa chạy lại sau khi kết quả đổi,
     # (3) README chưa cập nhật.
     import json
-    sys.path.insert(0, str(GOC / "tests"))
-    from so_lieu_markdown import kiem as kiem_markdown
     sai = {f.name: len(s) for f in sorted((GOC / "notebooks").glob("*.ipynb")) if (s := kiem_markdown(f))}
-    assert not sai, f"còn số kết quả viết tay trong markdown (chạy tests/so_lieu_markdown.py để xem): {sai}"
-    dg = json.loads((GOC / "model" / "danh_gia_mo_hinh.json").read_text(encoding="utf-8"))
+    assert not sai, f"còn số kết quả viết tay trong markdown (chạy tests/kiem_tra_mo_hinh.py --markdown <notebook> để xem): {sai}"
+    dg = json.loads((GOC / "models" / "danh_gia_mo_hinh.json").read_text(encoding="utf-8"))
     vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")
     chon = dg["ten_mo_hinh"]
     te_ph = next(m for m in dg["test_phu_hoa"] if m["Mô hình"] == chon)

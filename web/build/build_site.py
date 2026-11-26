@@ -1,7 +1,7 @@
-"""Dựng lại trang demo sau khi chạy lại 2 notebook:  python demo/_build/build_site.py
-Đọc: model/mo_hinh_gia_nha.json (mô hình Ridge rút gọn cho trình duyệt), model/danh_gia_mo_hinh.json,
-     model/xu_huong_gia.json, data/processed/*_da_xu_ly.csv (+ các file data/raw/*_raw.csv để lấy tên đường/hướng có dấu).
-Ghi: demo/trang_ban_nha.html"""
+"""Dựng lại trang demo sau khi chạy lại 2 notebook:  python web/build/build_site.py
+Đọc: models/mo_hinh_gia_nha.json (mô hình Ridge rút gọn cho trình duyệt), models/danh_gia_mo_hinh.json,
+     models/xu_huong_gia.json, dataset/processed/*_da_xu_ly.csv (+ các file dataset/raw/*_raw.csv để lấy tên đường/hướng có dấu).
+Ghi: web/index.html"""
 import json
 import os
 import re
@@ -13,15 +13,15 @@ import pandas as pd
 S = os.path.dirname(os.path.abspath(__file__)); DEMO = os.path.dirname(S); ROOT = os.path.dirname(DEMO)
 J = lambda *p: os.path.join(ROOT, *p)
 tpl = open(os.path.join(S, "template.html"), encoding="utf-8").read()
-MODEL = json.load(open(J("model", "mo_hinh_gia_nha.json"), encoding="utf-8"))
-DG = json.load(open(J("model", "danh_gia_mo_hinh.json"), encoding="utf-8"))
-TREND = json.load(open(J("model", "xu_huong_gia.json"), encoding="utf-8"))
-df = pd.read_csv(J("data", "processed", "nha_da_xu_ly.csv"), dtype={"id": str})
+MODEL = json.load(open(J("models", "mo_hinh_gia_nha.json"), encoding="utf-8"))
+DG = json.load(open(J("models", "danh_gia_mo_hinh.json"), encoding="utf-8"))
+TREND = json.load(open(J("models", "xu_huong_gia.json"), encoding="utf-8"))
+df = pd.read_csv(J("dataset", "processed", "nha_da_xu_ly.csv"), dtype={"id": str})
 
 # ---- thông tin hiển thị có dấu, lấy từ dữ liệu gốc ----
-g = pd.read_csv(J("data", "raw", "nha_phu_hoa_guland_raw.csv"), dtype={"id": str}).set_index("id")
-c = pd.read_csv(J("data", "raw", "chotot_binh_duong_raw.csv"), dtype={"id": str}).set_index("id")
-a = pd.read_csv(J("data", "raw", "alonhadat_tdm_raw.csv"), dtype={"id": str}).set_index("id")
+g = pd.read_csv(J("dataset", "raw", "nha_phu_hoa_guland_raw.csv"), dtype={"id": str}).set_index("id")
+c = pd.read_csv(J("dataset", "raw", "chotot_binh_duong_raw.csv"), dtype={"id": str}).set_index("id")
+a = pd.read_csv(J("dataset", "raw", "alonhadat_tdm_raw.csv"), dtype={"id": str}).set_index("id")
 HUONG_CT = {1: "Đông", 2: "Tây", 3: "Nam", 4: "Bắc", 5: "Đông Bắc", 6: "Đông Nam", 7: "Tây Bắc", 8: "Tây Nam"}
 def nv(v):
     return None if v is None or (isinstance(v, float) and np.isnan(v)) else v
@@ -70,7 +70,7 @@ bl = cvp["Baseline (đơn giá phường)"]
 v1 = next(m for m in DG["kiem_chung_phu_hoa"] if m["Mô hình"].startswith("Cách làm phiên bản 1"))
 te = next(m for m in DG["test_phu_hoa"] if m["Mô hình"] == best)
 vn = lambda v, d=1: f"{v:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")
-raw_n = sum(len(pd.read_csv(J("data", "raw", f))) for f in ["nha_phu_hoa_guland_raw.csv", "alonhadat_tdm_raw.csv"]) + int((c["loai_tin"] == "ban").sum())
+raw_n = sum(len(pd.read_csv(J("dataset", "raw", f))) for f in ["nha_phu_hoa_guland_raw.csv", "alonhadat_tdm_raw.csv"]) + int((c["loai_tin"] == "ban").sum())
 TOK = {"BEST": best, "N_PH": str(len(ph)), "N_ALL": vn(len(df), 0), "N_RAW": vn(raw_n, 0),
        "NGAY": pd.to_datetime(c["ngay_thu_thap"].iloc[0]).strftime("%d/%m/%Y"),
        "T_MAPE": vn(cvp[best]["MAPE (%)"]), "T_LO": vn(cvp[best]["MAPE thấp (95%)"]), "T_HI": vn(cvp[best]["MAPE cao (95%)"]),
@@ -79,10 +79,10 @@ TOK = {"BEST": best, "N_PH": str(len(ph)), "N_ALL": vn(len(df), 0), "N_RAW": vn(
        "T_W20": vn(cvp[best]["Trong ±20% (%)"], 0), "B_W20": vn(bl["Trong ±20% (%)"], 0), "WEB_MAPE": vn(MODEL["cv_mape"]),
        "TEST_N": str(int(te["Số căn"])), "TEST_MAPE": vn(te["MAPE (%)"]), "TEST_LO": vn(te["MAPE thấp (95%)"]), "TEST_HI": vn(te["MAPE cao (95%)"])}
 # ---- căn hộ chung cư (notebook du_doan_gia_can_ho.ipynb) ----
-CH = json.load(open(J("model", "mo_hinh_gia_can_ho.json"), encoding="utf-8"))
-CH_DG = json.load(open(J("model", "danh_gia_mo_hinh_can_ho.json"), encoding="utf-8"))
-chd = pd.read_csv(J("data", "processed", "can_ho_da_xu_ly.csv"), dtype={"id": str})
-raw_ch = pd.read_csv(J("data", "raw", "chotot_can_ho_raw.csv"))
+CH = json.load(open(J("models", "mo_hinh_gia_can_ho.json"), encoding="utf-8"))
+CH_DG = json.load(open(J("models", "danh_gia_mo_hinh_can_ho.json"), encoding="utf-8"))
+chd = pd.read_csv(J("dataset", "processed", "can_ho_da_xu_ly.csv"), dtype={"id": str})
+raw_ch = pd.read_csv(J("dataset", "raw", "chotot_can_ho_raw.csv"))
 sys.path.insert(0, J("src"))
 from mo_hinh_gia import ten_phuong as _tp
 
@@ -106,9 +106,9 @@ TOK.update({"CH_N": vn(CH_DG["so_can"]["tat_ca"], 0), "CH_DA": str(CH_DG["so_can
 
 # ---- giá thuê, đất nền, giải thích mô hình, bản đồ (notebook du_doan_gia_thue / du_doan_gia_dat) ----
 doc = lambda *p: json.load(open(J(*p), encoding="utf-8")) if os.path.exists(J(*p)) else None
-THUE = doc("model", "gia_thue_web.json") or {}
-DAT = doc("model", "mo_hinh_gia_dat.json") or {}
-GT = doc("model", "giai_thich_nha.json") or {}
+THUE = doc("models", "gia_thue_web.json") or {}
+DAT = doc("models", "mo_hinh_gia_dat.json") or {}
+GT = doc("models", "giai_thich_nha.json") or {}
 gt_can = GT.get("can", {})
 for o, (_, r) in zip(L, ph.iterrows()):           # L và ph cùng thứ tự
     if "thue_uoc_luong_trieu" in r and pd.notna(r["thue_uoc_luong_trieu"]):
@@ -121,11 +121,11 @@ for o, (_, r) in zip(CH_LIST, tdm_ch.iterrows()):
     if "thue_uoc_luong_trieu" in r and pd.notna(r["thue_uoc_luong_trieu"]):
         o["thue"] = round(float(r["thue_uoc_luong_trieu"]), 1); o["ys"] = round(float(r["ty_suat_cho_thue_pt"]), 2)
 DAT_LIST = []
-if os.path.exists(J("ket_qua", "output_dat.csv")):
-    raw_dat = pd.read_csv(J("data", "raw", "chotot_dat_raw.csv"))
+if os.path.exists(J("results", "output_dat.csv")):
+    raw_dat = pd.read_csv(J("dataset", "raw", "chotot_dat_raw.csv"))
     for w in raw_dat["phuong"].dropna().unique():
         ten_ph.setdefault(_tp(w), re.sub(r"^(Phường|Xã|Thị trấn)\s*", "", w))
-    od = pd.read_csv(J("ket_qua", "output_dat.csv"), dtype={"id": str})
+    od = pd.read_csv(J("results", "output_dat.csv"), dtype={"id": str})
     duong_goc = raw_dat.assign(id=raw_dat["id"].astype(str)).set_index("id")["duong"].to_dict()   # tên đường có dấu
     ten_duong_hien = lambda r: nv(duong_goc.get(str(r["id"]))) or (nv(r["duong"]) and str(r["duong"]).title())
     DAT_LIST = [{"id": str(r["id"]), "ph": ten_ph.get(r["phuong"], str(r["phuong"]).title()) if pd.notna(r["phuong"]) else "Thủ Dầu Một (không rõ phường)", "duong": ten_duong_hien(r),
@@ -156,11 +156,11 @@ for k, g_ in ch_ve.groupby(ch_ve["du_an"].fillna("id:" + ch_ve["id"].astype(str)
     CH_TOA.append({"ten": can[0]["da"] or can[0]["t"][:60], "co_du_an": not k.startswith("id:"), "ph": can[0]["ph"],
                    "lat": round(float(g_["lat"].median()), 5), "lon": round(float(g_["lon"].median()), 5), "n": len(can),
                    "dg": round(float((g_["gia_ty"] * 1000 / g_["dt_dat"]).median()), 1), "g_tv": round(float(g_["gia_ty"].median()), 3), "can": can})
-if os.path.exists(J("data", "processed", "dat_da_xu_ly.csv")):
-    dd_ = pd.read_csv(J("data", "processed", "dat_da_xu_ly.csv"), dtype={"id": str})
+if os.path.exists(J("dataset", "processed", "dat_da_xu_ly.csv")):
+    dd_ = pd.read_csv(J("dataset", "processed", "dat_da_xu_ly.csv"), dtype={"id": str})
     them(dd_, "dat", "gia_ty", lambda r: r["don_gia"], lambda r: r["tieu_de"], cx(dd_))
-if os.path.exists(J("data", "processed", "thue_da_xu_ly.csv")):
-    th_ = pd.read_csv(J("data", "processed", "thue_da_xu_ly.csv"), dtype={"id": str})
+if os.path.exists(J("dataset", "processed", "thue_da_xu_ly.csv")):
+    th_ = pd.read_csv(J("dataset", "processed", "thue_da_xu_ly.csv"), dtype={"id": str})
     cnt = th_.groupby(["lat", "lon"])["id"].transform("size")
     them(th_, "thue", "thue_trieu_thang", lambda r: r["thue_trieu_thang"] * 1000 / r["dt_dat"], lambda r: r["tieu_de"], th_["lat"].notna() & (cnt <= 3))
 # L và CH_LIST vừa được bổ sung trường (thuê, giải thích, tọa độ, id) -> ghi lại bản mới vào dữ liệu trang
@@ -168,9 +168,9 @@ data = [x for x in data if not x.startswith(("const LISTINGS = ", "const CH_LIST
 data += ["const LISTINGS = " + json.dumps(L, ensure_ascii=False) + ";", "const CH_LIST = " + json.dumps(CH_LIST, ensure_ascii=False) + ";"]
 # Mô hình ý định của trợ lý (notebook tro_ly_y_dinh.ipynb): TF-IDF + Logistic Regression -> tham số cho trình duyệt
 TL = None
-if os.path.exists(J("model", "tro_ly_y_dinh.joblib")):
+if os.path.exists(J("models", "tro_ly_y_dinh.joblib")):
     import joblib
-    goi_tl = joblib.load(J("model", "tro_ly_y_dinh.joblib"))
+    goi_tl = joblib.load(J("models", "tro_ly_y_dinh.joblib"))
     clf, phan, cot = goi_tl["mo_hinh"], [], 0
     for ten, vec in goi_tl["dac_trung"].transformer_list:
         tu = sorted(vec.vocabulary_.items(), key=lambda kv: kv[1])
@@ -219,5 +219,5 @@ for n in used:
 sprite = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' + "".join(syms) + "</svg>"
 out = tpl.replace("<!--@@ICONS@@-->", "<!-- Icon: Lucide (ISC) -->\n" + sprite).replace("/*@@DATA@@*/", "\n".join(data))
 assert "@@" not in out.replace("<!--@@", "").replace("/*@@", ""), re.findall(r"@@\w+@@", out)
-open(os.path.join(DEMO, "trang_ban_nha.html"), "w", encoding="utf-8").write(out)
+open(os.path.join(DEMO, "index.html"), "w", encoding="utf-8").write(out)
 print("written", len(out), "| listings:", len(L), "| tokens:", TOK)

@@ -1,6 +1,6 @@
 """Sinh notebook notebooks/du_doan_gia_thue.ipynb (giá thuê + tỷ suất cho thuê).
-Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_gia_thue.py notebooks/du_doan_gia_thue.ipynb
-Cần chạy SAU notebook nhà phố và căn hộ (dùng data/processed/*_da_xu_ly.csv để tính tỷ suất cho thuê).
+Chạy từ thư mục gốc đề tài:  python scripts/sinh_notebook/gia_thue.py notebooks/du_doan_gia_thue.ipynb
+Cần chạy SAU notebook nhà phố và căn hộ (dùng dataset/processed/*_da_xu_ly.csv để tính tỷ suất cho thuê).
 """
 import sys
 
@@ -26,7 +26,7 @@ Hai notebook định giá trả lời *"căn này đáng giá bao nhiêu?"*. Ng�
 
 **Lưu ý phương pháp:** mô hình giá thuê **không dùng mô tả tin**, chỉ dùng thông số căn nhà và vị trí. Lý do: mô hình sẽ được áp dụng cho tin **rao bán**, mà lời văn của tin bán khác hẳn tin cho thuê. Dùng mô tả sẽ làm dự đoán lệch một cách khó kiểm soát.
 
-> Chạy sau 2 notebook định giá (cần `data/processed/nha_da_xu_ly.csv`, `can_ho_da_xu_ly.csv`). Khoảng 3 phút.
+> Chạy sau 2 notebook định giá (cần `dataset/processed/nha_da_xu_ly.csv`, `can_ho_da_xu_ly.csv`). Khoảng 3 phút.
 """)
 
 md(r"""
@@ -51,7 +51,7 @@ vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X
 
 GOC = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 sys.path.insert(0, str(GOC / "src"))
-RAW, PROC, MODEL_DIR, KET_QUA = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "model", GOC / "ket_qua"
+RAW, PROC, MODEL_DIR, KET_QUA = GOC / "dataset" / "raw", GOC / "dataset" / "processed", GOC / "models", GOC / "results"
 from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_duong, ten_du_an, trich_dac_trung_chu, nhom_gan_trung, mo_hinh_co_ban,
                          MoHinhGia, du_doan_cheo_lap, sai_so_tung_can, ktc_bootstrap, bang_danh_gia, hieu_chinh_khoang)
 from sklearn.base import BaseEstimator, RegressorMixin
@@ -352,9 +352,9 @@ md(r"""
 - Tỷ suất ở đây là **gộp**. Sau khi trừ thuế cho thuê, phí quản lý, sửa chữa và thời gian nhà trống, tỷ suất thực nhận thường thấp hơn 1–2 điểm %.
 
 ## Bước 6: Lưu mô hình và kết quả
-- `model/mo_hinh_gia_thue.joblib`: hai mô hình giá thuê + phân vị sai số (khoảng 80%).
-- `model/gia_thue_web.json`: bảng giá thuê/m² theo dự án và phường (cho trang demo, trợ lý hỏi đáp).
-- `ket_qua/ty_suat_cho_thue.csv`: giá thuê ước tính, tỷ suất, số năm hoàn vốn của từng căn đang rao bán ở Thủ Dầu Một.
+- `models/mo_hinh_gia_thue.joblib`: hai mô hình giá thuê + phân vị sai số (khoảng 80%).
+- `models/gia_thue_web.json`: bảng giá thuê/m² theo dự án và phường (cho trang demo, trợ lý hỏi đáp).
+- `results/ty_suat_cho_thue.csv`: giá thuê ước tính, tỷ suất, số năm hoàn vốn của từng căn đang rao bán ở Thủ Dầu Một.
 """)
 
 code(r"""
@@ -392,7 +392,7 @@ for d, f in [(ban_nha, "nha_da_xu_ly.csv"), (ban_ch, "can_ho_da_xu_ly.csv")]:
     goc.to_csv(PROC / f, index=False, encoding="utf-8-sig")
 cot_t = ["id", "url", "tieu_de", "gia_ty", "dt_dat", "phong_ngu", "quan", "phuong", "lat", "lon", "duong"]
 pd.concat([ch[cot_t].assign(loai="Căn hộ"), nha[cot_t].assign(loai="Nhà")]).rename(columns={"gia_ty": "thue_trieu_thang"})   .to_csv(PROC / "thue_da_xu_ly.csv", index=False, encoding="utf-8-sig")
-print("Đã lưu:", "model/mo_hinh_gia_thue.joblib, model/gia_thue_web.json, ket_qua/ty_suat_cho_thue.csv, data/processed/thue_da_xu_ly.csv")
+print("Đã lưu:", "models/mo_hinh_gia_thue.joblib, models/gia_thue_web.json, results/ty_suat_cho_thue.csv, dataset/processed/thue_da_xu_ly.csv")
 """)
 
 md(r"""

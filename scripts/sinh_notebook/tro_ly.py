@@ -1,6 +1,6 @@
 """Sinh notebook notebooks/tro_ly_y_dinh.ipynb: huấn luyện mô hình phân loại ý định cho trợ lý hỏi đáp trên trang demo.
-Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_tro_ly.py notebooks/tro_ly_y_dinh.ipynb
-Cần Node.js để so sánh với luật từ khóa cũ (tests/y_dinh_luat.js); không có Node thì bỏ qua phần so sánh.
+Chạy từ thư mục gốc đề tài:  python scripts/sinh_notebook/tro_ly.py notebooks/tro_ly_y_dinh.ipynb
+Cần Node.js để so sánh với luật từ khóa cũ (tests/nap_trang_demo.js); không có Node thì bỏ qua phần so sánh.
 """
 import sys
 
@@ -18,8 +18,8 @@ md(r"""
 Trợ lý trên trang demo phải hiểu người dùng muốn gì: định giá nhà, tìm nhà, hỏi giá thuê, hỏi pháp lý… Bản cũ dùng **luật từ khóa** viết tay: câu nào khớp mẫu thì hiểu, khác cách diễn đạt một chút là không hiểu. Notebook này thay bằng **mô hình học có giám sát**:
 
 - **T (nhiệm vụ):** phân loại một câu hỏi tiếng Việt vào 1 trong 19 ý định (gồm cả "ngoài phạm vi").
-- **E (kinh nghiệm):** bộ câu hỏi có gán nhãn ý định (`data/tro_ly/cau_hoi_huan_luyen.csv`).
-- **P (độ đo):** độ chính xác và F1 trung bình các lớp trên **tập kiểm tra viết riêng** (`data/tro_ly/cau_hoi_kiem_tra.csv`): câu không dấu, viết tắt, sai chính tả, cách hỏi khác hẳn tập huấn luyện.
+- **E (kinh nghiệm):** bộ câu hỏi có gán nhãn ý định (`dataset/labeled/cau_hoi_huan_luyen.csv`).
+- **P (độ đo):** độ chính xác và F1 trung bình các lớp trên **tập kiểm tra viết riêng** (`dataset/labeled/cau_hoi_kiem_tra.csv`): câu không dấu, viết tắt, sai chính tả, cách hỏi khác hẳn tập huấn luyện.
 
 **Lưu ý trung thực:** các câu hỏi do người làm đề tài **viết tay** để mô tả cách người dùng có thể hỏi; chưa có nhật ký câu hỏi thật của người dùng. Phần **trả lời** của trợ lý vẫn lấy số liệu từ dữ liệu và mô hình định giá thật của đề tài.
 
@@ -56,7 +56,7 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 warnings.filterwarnings("ignore")
 sns.set_theme(style="whitegrid", context="notebook")
 GOC = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
-DL, MODEL_DIR = GOC / "data" / "tro_ly", GOC / "model"
+DL, MODEL_DIR = GOC / "dataset" / "labeled", GOC / "models"
 RANDOM_STATE = 42
 
 train = pd.read_csv(DL / "cau_hoi_huan_luyen.csv")
@@ -133,7 +133,7 @@ Luật từ khóa cũ rất chính xác với những mẫu câu nó biết (ví
 | Luật trước | Luật nhận ra thì theo luật, không nhận ra thì hỏi mô hình |
 | Mô hình khi chắc | Mô hình chắc ≥ ngưỡng τ thì theo mô hình, không thì theo luật |
 
-Chiến lược và ngưỡng τ được chọn trên **dự đoán ngoài-fold của tập huấn luyện**, để tập kiểm tra vẫn chỉ dùng một lần ở cuối. Các câu huấn luyện mà luật cũ đã được viết dựa theo bị loại khỏi bước chọn này, để luật không được lợi thế "đã thấy đề". Luật cũ được chạy bằng chính mã JavaScript của trang (`tests/y_dinh_luat.js`).
+Chiến lược và ngưỡng τ được chọn trên **dự đoán ngoài-fold của tập huấn luyện**, để tập kiểm tra vẫn chỉ dùng một lần ở cuối. Các câu huấn luyện mà luật cũ đã được viết dựa theo bị loại khỏi bước chọn này, để luật không được lợi thế "đã thấy đề". Luật cũ được chạy bằng chính mã JavaScript của trang (`tests/nap_trang_demo.js`).
 """)
 
 code(r"""
@@ -141,7 +141,7 @@ def chay_luat(f):
     node = shutil.which("node")
     if not node:
         return None
-    ra = subprocess.run([node, str(GOC / "tests" / "y_dinh_luat.js"), str(f)], capture_output=True, text=True, encoding="utf-8", cwd=GOC, check=True)
+    ra = subprocess.run([node, str(GOC / "tests" / "nap_trang_demo.js"), str(f)], capture_output=True, text=True, encoding="utf-8", cwd=GOC, check=True)
     return pd.Series([None if x == "null" else x for x in ra.stdout.split()], dtype=object)
 
 LUAT_TR, LUAT_TE = chay_luat(DL / "cau_hoi_huan_luyen.csv"), chay_luat(DL / "cau_hoi_kiem_tra.csv")
@@ -231,7 +231,7 @@ md(r"""
 
 md(r"""
 ## Bước 5: Lưu mô hình cho trang web
-`model/tro_ly_y_dinh.joblib` chứa bộ đặc trưng TF-IDF, mô hình Logistic Regression, chiến lược kết hợp, câu ví dụ cho từng ý định (dùng làm gợi ý khi hỏi lại), và vài câu mẫu kèm xác suất do Python tính, để kiểm thử tự động xác nhận trình duyệt tính **giống hệt** Python. Script `demo/_build/build_site.py` đọc file này và nhúng tham số vào trang.
+`models/tro_ly_y_dinh.joblib` chứa bộ đặc trưng TF-IDF, mô hình Logistic Regression, chiến lược kết hợp, câu ví dụ cho từng ý định (dùng làm gợi ý khi hỏi lại), và vài câu mẫu kèm xác suất do Python tính, để kiểm thử tự động xác nhận trình duyệt tính **giống hệt** Python. Script `web/build/build_site.py` đọc file này và nhúng tham số vào trang.
 """)
 
 code(r"""
@@ -243,7 +243,7 @@ vi_du.update({"dinh_gia": "Nhà 1 trệt 1 lầu 80m² hẻm xe hơi giá bao nh
 mau = [{"cau": c, "p": [round(float(x), 6) for x in LR.predict_proba(DT.transform([chuan_hoa(c)]))[0]]} for c in test["cau_hoi"].iloc[::20]]
 joblib.dump({"dac_trung": DT, "mo_hinh": LR, "chien_luoc": CHIEN_LUOC, "nguong": TAU, "vi_du": vi_du, "mau": mau,
              "ket_qua_kiem_tra": KQ_TE.round(2).to_dict()}, MODEL_DIR / "tro_ly_y_dinh.joblib")
-print("Đã lưu model/tro_ly_y_dinh.joblib ·", sum(len(v.vocabulary_) for _, v in DT.transformer_list), "đặc trưng ·", len(LOP), "ý định")
+print("Đã lưu models/tro_ly_y_dinh.joblib ·", sum(len(v.vocabulary_) for _, v in DT.transformer_list), "đặc trưng ·", len(LOP), "ý định")
 """)
 
 md(r"""

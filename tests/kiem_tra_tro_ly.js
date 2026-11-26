@@ -1,4 +1,4 @@
-// Kiểm thử tự động cho trợ lý hỏi đáp trên trang demo (demo/trang_ban_nha.html).
+// Kiểm thử tự động cho trợ lý hỏi đáp trên trang demo (web/index.html).
 // Chạy từ thư mục gốc đề tài:  node tests/kiem_tra_tro_ly.js
 // 1) Hiểu đúng ý định với nhiều cách hỏi (có dấu, không dấu, viết tắt)  2) trích đúng thông tin
 // 3) con số trả lời khớp đúng mô hình  4) nhớ ngữ cảnh khi hỏi tiếp.
@@ -94,7 +94,7 @@ kiem("Giải thích SHAP của mô hình đầy đủ hiển thị trong chi ti�
 kiem("Bản đồ căn hộ: mỗi dự án đúng 1 chấm, đủ căn, căn ngoài TDM vẫn lưu được", () => {
   const ds = T.CH_TOA.filter((t) => t.co_du_an), ten = ds.map((t) => t.ten), tong = T.CH_TOA.reduce((s, t) => s + t.n, 0);
   // so với số căn hộ sạch notebook đã lưu (dữ liệu đổi theo kỳ); chỉ căn có tọa độ ở tâm phường bị bỏ khỏi bản đồ
-  const n_sach = JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "..", "model", "danh_gia_mo_hinh_can_ho.json"), "utf8")).so_can.tat_ca;
+  const n_sach = JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "..", "models", "danh_gia_mo_hinh_can_ho.json"), "utf8")).so_can.tat_ca;
   if (tong < 0.95 * n_sach) return `chỉ có ${tong}/${n_sach} căn hộ trên bản đồ`;
   if (T.CH_TOA.some((t) => t.n !== t.can.length || !(t.lat > 10.8 && t.lat < 11.7 && t.lon > 106.3 && t.lon < 107))) return "số căn hoặc tọa độ tòa sai";
   const ngoai = T.CH_TOA.flatMap((t) => t.can).find((c) => !T.CH_LIST.some((x) => x.id === c.id));
@@ -111,7 +111,7 @@ kiem("Trình duyệt tính xác suất ý định giống Python (TF-IDF + Logis
   }
   return "";
 });
-const kiemTra = require("fs").readFileSync(require("path").join(__dirname, "..", "data", "tro_ly", "cau_hoi_kiem_tra.csv"), "utf8")
+const kiemTra = require("fs").readFileSync(require("path").join(__dirname, "..", "dataset", "labeled", "cau_hoi_kiem_tra.csv"), "utf8")
   .split(/\r?\n/).slice(1).filter(Boolean).map((l) => l.match(/^([^,]+),"(.*)"$/)).map((m) => [m[2], m[1] === "ngoai_pham_vi" ? null : m[1]]);
 kiem("Tập kiểm tra viết riêng: trợ lý hiểu đúng ≥ 90% và hơn luật cũ", () => {
   let moi = 0, cu = 0;
@@ -173,14 +173,14 @@ kiem("Chế độ AI: lược đồ công cụ hợp lệ; tham số sai bị ch
   return T.kiemThamSo(sc, { dien_tich_m2: 80, so_tang: 2, loi_vao: "mat_tien", phuong: "Phú Hòa" }) || "";
 });
 kiem("Chế độ AI: khóa API không nằm trong file trang; câu trả lời của Claude được escape", () => {
-  const html = require("fs").readFileSync(require("path").join(__dirname, "..", "demo", "trang_ban_nha.html"), "utf8");
+  const html = require("fs").readFileSync(require("path").join(__dirname, "..", "web", "index.html"), "utf8");
   if (/sk-ant-[A-Za-z0-9_-]{10}/.test(html)) return "file trang chứa chuỗi giống khóa API";
   const h = T.aiMd("<img src=x onerror=alert(1)> **3,2 tỷ**\n- ý 1");
   return /<img/.test(h) || !/<b>3,2 tỷ<\/b>/.test(h) || !/<li>ý 1<\/li>/.test(h) ? h : "";
 });
 
 kiem("Mọi phần tử mã trang gọi bằng $('id') đều có trong HTML (DOM giả của kiểm thử không bắt được lỗi này)", () => {
-  const h = require("fs").readFileSync(require("path").join(__dirname, "..", "demo", "trang_ban_nha.html"), "utf8");
+  const h = require("fs").readFileSync(require("path").join(__dirname, "..", "web", "index.html"), "utf8");
   const ids = new Set([...h.matchAll(/id="([^"$]+)"/g)].map((m) => m[1]));
   const thieu = [...new Set([...h.matchAll(/\$\("([a-z0-9_-]+)"\)/g)].map((m) => m[1]))].filter((x) => !ids.has(x));
   return thieu.length ? "thiếu id: " + thieu.join(", ") : "";
@@ -410,7 +410,7 @@ kiemAsync("Groq: câu hỏi sau rút gọn kết quả công cụ cũ; tạo l�
   } finally { T.AI.goi = null; Object.assign(T.AI, { key: "", nha: "claude", model: "claude-opus-5-5", ds: [], msgs: [] }); }
 });
 
-kiem("Khóa mặc định của máy (demo/khoa_ai.local.js): tự bật Groq; đã tắt thì không tự bật; khóa đã lưu được ưu tiên; file khóa không lên git", () => {
+kiem("Khóa mặc định của máy (web/khoa_ai.local.js): tự bật Groq; đã tắt thì không tự bật; khóa đã lưu được ưu tiên; file khóa không lên git", () => {
   const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
   const cu = [global.localStorage, globalThis.PHH_KHOA_MAC_DINH]; global.localStorage = kho(); globalThis.PHH_KHOA_MAC_DINH = "gsk_khoa-mac-dinh";
   try {
@@ -421,7 +421,7 @@ kiem("Khóa mặc định của máy (demo/khoa_ai.local.js): tự bật Groq; �
     T.AI.key = ""; global.localStorage.setItem("phh_ai_tat", "1");
     if (T.aiKhoaMacDinh() || T.AI.key) return "đã tắt mà vẫn tự bật";
     const gi = require("fs").readFileSync(require("path").join(__dirname, "..", ".gitignore"), "utf8");
-    return /^demo\/khoa_ai\.local\.js$/m.test(gi) ? "" : "file khóa chưa nằm trong .gitignore";
+    return /^web\/khoa_ai\.local\.js$/m.test(gi) ? "" : "file khóa chưa nằm trong .gitignore";
   } finally { [global.localStorage, globalThis.PHH_KHOA_MAC_DINH] = cu; Object.assign(T.AI, { key: "", nha: "claude", model: "claude-opus-5-5", ds: [], macDinh: false }); }
 });
 (async () => {

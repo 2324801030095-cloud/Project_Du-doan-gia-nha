@@ -667,7 +667,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-<!-- Khóa AI mặc định của máy này (nếu có): demo/khoa_ai.local.js, KHÔNG đưa lên git (.gitignore). Thiếu file thì trang cho nhập khóa. -->
+<!-- Khóa AI mặc định của máy này (nếu có): web/khoa_ai.local.js, KHÔNG đưa lên git (.gitignore). Thiếu file thì trang cho nhập khóa. -->
 <script src="khoa_ai.local.js"></script>
 </head>
 <body>
@@ -993,7 +993,7 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
                 <thead><tr><th>Thời điểm</th><th>Nhà phố thứ cấp</th></tr></thead><tbody id="trend-src"></tbody></table>
             </div>
           </div>
-          <p class="note"><svg class="ic ic-sm"><use href="#i-info"/></svg><span>Biên dưới = mức giảm trung vị người bán đang áp dụng khi đổi giá; biên trên = mức tăng quý gần nhất trước khi thị trường đảo chiều (DKRA quý II/2026: +2%/quý); 12 tháng mở rộng gấp đôi. Giá tương lai = giá ước tính hiện tại × (1 + %), chưa gồm sai số định giá. Khi có thêm các kỳ thu thập (<code>thu_thap/cap_nhat_dinh_ky.py</code>), notebook tự huấn luyện mô hình dự báo có kiểm định lùi.</span></p>
+          <p class="note"><svg class="ic ic-sm"><use href="#i-info"/></svg><span>Biên dưới = mức giảm trung vị người bán đang áp dụng khi đổi giá; biên trên = mức tăng quý gần nhất trước khi thị trường đảo chiều (DKRA quý II/2026: +2%/quý); 12 tháng mở rộng gấp đôi. Giá tương lai = giá ước tính hiện tại × (1 + %), chưa gồm sai số định giá. Khi có thêm các kỳ thu thập (<code>scripts/cap_nhat_dinh_ky.py</code>), notebook tự huấn luyện mô hình dự báo có kiểm định lùi.</span></p>
         </div>
       </section>
       <section class="panel full">

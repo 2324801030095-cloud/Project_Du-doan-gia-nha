@@ -1,5 +1,5 @@
 """Sinh notebook notebooks/du_doan_gia_can_ho.ipynb (nội dung markdown + code nằm trong script này).
-Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_can_ho.py notebooks/du_doan_gia_can_ho.ipynb
+Chạy từ thư mục gốc đề tài:  python scripts/sinh_notebook/can_ho.py notebooks/du_doan_gia_can_ho.ipynb
 Sau đó chạy notebook:       jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_gia_can_ho.ipynb
 """
 import sys
@@ -49,8 +49,8 @@ md(r"""
 
 | Nguồn | Script | Phạm vi | Thông tin |
 |---|---|---|---|
-| Chợ Tốt Nhà | `python thu_thap/chotot_thu_thap.py --can-ho` | Danh mục "Căn hộ/Chung cư", toàn Bình Dương cũ | Giá, diện tích sử dụng, phòng ngủ, WC, **tên dự án**, loại căn hộ (chung cư, nhà ở xã hội, duplex, penthouse…), tầng, pháp lý, bàn giao, nội thất, tọa độ |
-| alonhadat | `python thu_thap/alonhadat_thu_thap.py --can-ho` | Căn hộ chung cư, TP. Thủ Dầu Một | Giá, diện tích, phòng ngủ, địa chỉ, mô tả |
+| Chợ Tốt Nhà | `python src/thu_thap.py chotot --can-ho` | Danh mục "Căn hộ/Chung cư", toàn Bình Dương cũ | Giá, diện tích sử dụng, phòng ngủ, WC, **tên dự án**, loại căn hộ (chung cư, nhà ở xã hội, duplex, penthouse…), tầng, pháp lý, bàn giao, nội thất, tọa độ |
+| alonhadat | `python src/thu_thap.py alonhadat --can-ho` | Căn hộ chung cư, TP. Thủ Dầu Một | Giá, diện tích, phòng ngủ, địa chỉ, mô tả |
 
 Thị trường căn hộ Bình Dương cũ tập trung ở Dĩ An và Thuận An (giáp TP.HCM). Thủ Dầu Một có ít dự án hơn. Mô hình học trên toàn vùng, vì giá căn hộ phụ thuộc chủ yếu vào dự án và vị trí, và những yếu tố này đã có trong đặc trưng.
 """)
@@ -68,11 +68,11 @@ nx = lambda s: display(Markdown(s))                                             
 vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")   # 1234.5 -> 1.234,5
 
 import sys
-# Thư mục gốc của đề tài: notebook nằm trong notebooks/, mã dùng chung ở src/, dữ liệu ở data/
+# Thư mục gốc của đề tài: notebook nằm trong notebooks/, mã dùng chung ở src/, dữ liệu ở dataset/
 GOC = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 sys.path.insert(0, str(GOC / "src"))
-RAW, PROC, LICH_SU = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "data" / "lich_su"
-MODEL_DIR, KET_QUA = GOC / "model", GOC / "ket_qua"
+RAW, PROC, LICH_SU = GOC / "dataset" / "raw", GOC / "dataset" / "processed", GOC / "dataset" / "history"
+MODEL_DIR, KET_QUA = GOC / "models", GOC / "results"
 MODEL_DIR.mkdir(exist_ok=True); KET_QUA.mkdir(exist_ok=True); PROC.mkdir(parents=True, exist_ok=True)
 from mo_hinh_gia import (khong_dau, ten_phuong, ten_quan, ten_du_an, trich_dac_trung_chu, nhom_gan_trung, hieu_chinh_khoang, phan_vi_cho,
                          MoHinhGia, XepChongChu, BaselineDonGiaDuAn, mo_hinh_co_ban,
@@ -491,14 +491,14 @@ xuat.assign(gia_du_doan_ty=xuat["gia_uoc_luong_ty"].round(3),
             chenh_lech_pt=xuat["chenh_lech_pt"].round(1), mo_hinh=ten_tot_nhat)[
     ["ma_tin", "nguon", "link_tin", "phuong", "du_an", "dien_tich_su_dung_m2", "phong_ngu", "gia_rao_ty", "gia_du_doan_ty",
      "khoang_80_ty", "chenh_lech_pt", "chan_doan", "mo_hinh"]].to_csv(KET_QUA / "output_can_ho.csv", index=False, encoding="utf-8-sig")
-print("Đã ghi ket_qua/output_can_ho.csv:", len(xuat), "căn hộ Thủ Dầu Một")
+print("Đã ghi results/output_can_ho.csv:", len(xuat), "căn hộ Thủ Dầu Một")
 """)
 
 md(r"""
 ## Bước 11: Lưu mô hình
-- `model/mo_hinh_gia_can_ho.joblib`: mô hình đầy đủ + phân vị sai số.
-- `model/mo_hinh_gia_can_ho.json`: **mô hình rút gọn cho trang web**. Nó gồm bảng đơn giá theo dự án (co về đơn giá phường khi dự án có ít tin) cộng với hồi quy Ridge trên 7 thông số người dùng nhập được (diện tích, phòng ngủ, WC, tầng, sổ hồng, nội thất, nhà ở xã hội). Sai số kiểm định chéo theo nhóm của chính mô hình này được ghi kèm.
-- `data/processed/can_ho_da_xu_ly.csv`: dữ liệu sạch + giá ước lượng.
+- `models/mo_hinh_gia_can_ho.joblib`: mô hình đầy đủ + phân vị sai số.
+- `models/mo_hinh_gia_can_ho.json`: **mô hình rút gọn cho trang web**. Nó gồm bảng đơn giá theo dự án (co về đơn giá phường khi dự án có ít tin) cộng với hồi quy Ridge trên 7 thông số người dùng nhập được (diện tích, phòng ngủ, WC, tầng, sổ hồng, nội thất, nhà ở xã hội). Sai số kiểm định chéo theo nhóm của chính mô hình này được ghi kèm.
+- `dataset/processed/can_ho_da_xu_ly.csv`: dữ liệu sạch + giá ước lượng.
 """)
 
 code(r"""
@@ -606,7 +606,7 @@ md(r"""
 - Đề tài định giá được **cả hai dạng nhà ở**: nhà gắn liền với đất (notebook `2324801030095.ipynb`) và **căn hộ chung cư** (notebook này), trên dữ liệu tin rao thật, cùng một quy trình đánh giá khắt khe (kiểm định chéo lặp chia theo nhóm, khoảng tin cậy 95%, tập test giữ riêng).
 - Với căn hộ, **dự án** là yếu tố quyết định giá. Mô hình học máy cải thiện thêm so với cách "đơn giá dự án × diện tích" nhờ số phòng, tầng, pháp lý, nội thất và mô tả tin (mức cải thiện và khoảng tin cậy ở Bước 7).
 - **Phần A** (Bước 6b) cho thấy giới hạn của các mô hình trong môn học khi chỉ dùng thông số của căn: thiếu thông tin dự án. Phần B đưa đơn giá dự án (tính trên tập học) vào làm đặc trưng; so sánh hai phần trên tập test ở Bước 8.
-- Mỗi căn hộ Thủ Dầu Một có **chẩn đoán** rẻ / hợp lý / cao so với thị trường (`ket_qua/output_can_ho.csv`).
+- Mỗi căn hộ Thủ Dầu Một có **chẩn đoán** rẻ / hợp lý / cao so với thị trường (`results/output_can_ho.csv`).
 
 **Hạn chế**
 - Thủ Dầu Một và đặc biệt **Phú Hòa có ít tin căn hộ**; mô hình dựa nhiều vào dữ liệu Dĩ An, Thuận An. Kết quả riêng cho Phú Hòa chỉ mang tính tham khảo.

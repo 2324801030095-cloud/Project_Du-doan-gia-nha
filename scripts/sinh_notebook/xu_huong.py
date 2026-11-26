@@ -1,5 +1,5 @@
 """Sinh notebook notebooks/du_doan_xu_huong_gia.ipynb (nội dung markdown + code nằm trong script này).
-Chạy từ thư mục gốc đề tài:  python cong_cu/dung_notebook_xu_huong.py notebooks/du_doan_xu_huong_gia.ipynb
+Chạy từ thư mục gốc đề tài:  python scripts/sinh_notebook/xu_huong.py notebooks/du_doan_xu_huong_gia.ipynb
 Sau đó chạy notebook:       jupyter nbconvert --to notebook --execute --inplace notebooks/du_doan_xu_huong_gia.ipynb
 """
 import sys
@@ -23,7 +23,7 @@ md(r"""
 
 | Có | Chưa có (và lý do) |
 |---|---|
-| Các căn rao bán thật ở Bình Dương cũ (notebook `2324801030095.ipynb`) và các **ảnh chụp có ghi ngày** trong `data/lich_su/` | Lịch sử giá nhiều năm của từng phường: các trang rao vặt chỉ hiển thị tin đang đăng; kho lưu trữ web (Internet Archive) từ chối truy cập tự động từ máy này |
+| Các căn rao bán thật ở Bình Dương cũ (notebook `2324801030095.ipynb`) và các **ảnh chụp có ghi ngày** trong `dataset/history/` | Lịch sử giá nhiều năm của từng phường: các trang rao vặt chỉ hiển thị tin đang đăng; kho lưu trữ web (Internet Archive) từ chối truy cập tự động từ máy này |
 | **Giá gốc lúc đăng** và giá hiện tại của từng tin Chợ Tốt → biết người bán đã tăng hay giảm giá | Giá giao dịch công chứng: không công khai |
 | Ngày đăng của từng tin (tháng 9–11/2026) | |
 | Số liệu thị trường DKRA Consulting (TP.HCM & vùng phụ cận) đã công bố, có đối chiếu nguyên văn | Số liệu chính thức riêng cho Thủ Dầu Một / Phú Hòa |
@@ -32,7 +32,7 @@ md(r"""
 1. Đo **mặt bằng giá hiện tại** bằng mô hình định giá (Bước 1);
 2. Đo **xu hướng ngắn hạn** từ các tín hiệu thật trong dữ liệu (Bước 2–4) và đối chiếu với báo cáo thị trường (Bước 5);
 3. Đưa ra **nhận định 6–12 tháng có điều kiện**, ghi rõ cách tính từng con số (Bước 6);
-4. Xây sẵn **bộ chỉ số theo ảnh chụp định kỳ** (Bước 7): `thu_thap/cap_nhat_dinh_ky.py` chạy hằng ngày, lưu một ảnh chụp dữ liệu thật mỗi ngày; mỗi tuần là một kỳ của chỉ số. Khi đủ kỳ, mô hình dự báo được huấn luyện và **kiểm định lùi** tự động.
+4. Xây sẵn **bộ chỉ số theo ảnh chụp định kỳ** (Bước 7): `scripts/cap_nhat_dinh_ky.py` chạy hằng ngày, lưu một ảnh chụp dữ liệu thật mỗi ngày; mỗi tuần là một kỳ của chỉ số. Khi đủ kỳ, mô hình dự báo được huấn luyện và **kiểm định lùi** tự động.
 """)
 
 md(r"""
@@ -58,11 +58,11 @@ nx = lambda s: display(Markdown(s))                                             
 vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")   # 1234.5 -> 1.234,5
 
 import sys
-# Thư mục gốc của đề tài: notebook nằm trong notebooks/, mã dùng chung ở src/, dữ liệu ở data/
+# Thư mục gốc của đề tài: notebook nằm trong notebooks/, mã dùng chung ở src/, dữ liệu ở dataset/
 GOC = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 sys.path.insert(0, str(GOC / "src"))
-RAW, PROC, LICH_SU = GOC / "data" / "raw", GOC / "data" / "processed", GOC / "data" / "lich_su"
-MODEL_DIR, KET_QUA = GOC / "model", GOC / "ket_qua"
+RAW, PROC, LICH_SU = GOC / "dataset" / "raw", GOC / "dataset" / "processed", GOC / "dataset" / "history"
+MODEL_DIR, KET_QUA = GOC / "models", GOC / "results"
 MODEL_DIR.mkdir(exist_ok=True); KET_QUA.mkdir(exist_ok=True); PROC.mkdir(parents=True, exist_ok=True)
 from mo_hinh_gia import khong_dau, trich_dac_trung_chu, phan_vi_cho, nhom_khoang
 
@@ -356,7 +356,7 @@ md(r"""
 - Với người mua ở Phú Hòa: dùng khoảng giá 80% của mô hình định giá (notebook chính) làm mốc trả giá; khi người bán đang hạ giá (dòng "Hiện tại" ở trên) thì có thêm lợi thế **thương lượng**.
 
 ## Bước 7: Bộ chỉ số giá theo ảnh chụp định kỳ (tự hoàn thiện theo thời gian)
-Mỗi lần chạy `python thu_thap/cap_nhat_dinh_ky.py`, một ảnh chụp dữ liệu thật có ghi ngày được lưu vào `data/lich_su/`. Ô dưới đây tính cho mỗi kỳ:
+Mỗi lần chạy `python scripts/cap_nhat_dinh_ky.py`, một ảnh chụp dữ liệu thật có ghi ngày được lưu vào `dataset/history/`. Ô dưới đây tính cho mỗi kỳ:
 - **Chỉ số lặp lại (repeat-listing):** thay đổi giá trung vị của **các tin xuất hiện ở cả hai kỳ liên tiếp** (cùng mã tin), sau đó nhân dồn thành chỉ số;
 - **Chỉ số hedonic:** trung vị log(giá rao / giá mô hình) của các tin mới trong kỳ.
 
@@ -415,7 +415,7 @@ else:
 code(r"""
 xuat = {
     "nguon_du_lieu": "THAT",
-    "ghi_chu": "Toàn bộ tính từ tin rao thật (các kỳ thu thập trong data/lich_su) và số liệu DKRA đã công bố. Không có số liệu giả lập.",
+    "ghi_chu": "Toàn bộ tính từ tin rao thật (các kỳ thu thập trong dataset/history) và số liệu DKRA đã công bố. Không có số liệu giả lập.",
     "ngay_du_lieu": goi["ngay_du_lieu"],
     "can_chuan": "Đất 100 m² (5x20), 1 trệt 1 lầu, 3PN, 2WC, hẻm xe hơi 5 m, sổ riêng",
     "gia_can_chuan_theo_phuong": CHUAN[["Phường (cũ)", "Số tin", "Giá căn chuẩn (tỷ)", "Đơn giá căn chuẩn (tr/m²)"]].round(3).to_dict("records"),
@@ -434,7 +434,7 @@ xuat = {
     "chi_so_dinh_ky": CHI_SO.round(4).to_dict("records"), "bien_dong_giua_cac_ky": BIEN_DONG.round(3).to_dict("records"),
 }
 json.dump(xuat, open(MODEL_DIR / "xu_huong_gia.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-print("Đã lưu model/xu_huong_gia.json")
+print("Đã lưu models/xu_huong_gia.json")
 """)
 
 md(r"""
