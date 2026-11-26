@@ -56,12 +56,14 @@ GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử m�
 
 **Thu thập định kỳ:** chạy `thu_thap/bat_lich_tu_dong.bat` một lần (tự xin quyền Administrator) để đăng ký tác vụ 07:00 hằng ngày, chạy cả khi không đăng nhập. Mỗi lần chạy: thu tin mới nhất → lưu ảnh chụp có ghi ngày vào `data/lich_su/` → chạy lại toàn bộ notebook, trang web, README và kiểm thử (không tự commit hay đẩy lên GitHub). Chỉ số xu hướng lấy mỗi tuần một kỳ. Khi đủ 8 kỳ tuần, notebook xu hướng tự kiểm định lùi mô hình dự báo. Chợ Tốt và alonhadat thu tự động; **guland** (nguồn chính của tin Phú Hòa) chặn trình duyệt tự động nên phải thu tay: mở trang guland Phú Hòa trong trình duyệt, chạy `thu_thap/guland_thu_thap.js` trong Console, chép file tải về thành `data/raw/nha_phu_hoa_guland_raw.csv`. Tác vụ ghi nhắc vào nhật ký khi dữ liệu guland cũ quá 14 ngày.
 
-## Kết quả chính (dữ liệu đến 24/11/2026)
+## Kết quả chính (dữ liệu đến 26/11/2026)
 
 | | Nhà phố – Phú Hòa | Căn hộ | Đất nền – TDM |
 |---|---|---|---|
-| Mô hình | LightGBM | LightGBM Huber + chữ | Ridge |
-| MAPE tập test (kết quả chính) | 22,1% (KTC 15,9–30,7; 44 căn) | 11,9% | 31,7% (KTC 23,5–41,9; 71 lô) |
-| MAPE kiểm định chéo theo nhóm | 23,0% | 13,7% | 26,4% |
-| Baseline (đơn giá khu vực), kiểm định chéo | 30,7% | 17,5% | 38,6% |
-| Phần A (mô hình môn học tốt nhất), tập test | Random Forest (300 cây): 24,9% | Random Forest (300 cây): 14,9% | Random Forest (300 cây): 30,3% |
+| Mô hình | Random Forest (300 cây) | LightGBM Huber + chữ | Ridge |
+| MAPE tập test (kết quả chính) | 26,4% (KTC 19,5–38,7; 44 căn) | 13,7% | 26,8% (KTC 19,7–36,7; 68 lô) |
+| MAPE kiểm định chéo theo nhóm | 23,5% | 12,6% | 26,1% |
+| Baseline (đơn giá khu vực), kiểm định chéo | 30,7% | 16,1% | 36,6% |
+| Phần A (mô hình môn học tốt nhất), tập test | chính là mô hình cuối | Random Forest (300 cây): 14,0% | Random Forest (300 cây): 21,7% |
+
+**Nhà phố – mô hình cuối:** mô hình tốt nhất trong các mô hình của môn học (Phần A, chọn bằng kiểm định chéo), dùng đúng đặc trưng của Phần A. Phần B chỉ so nó với một mô hình đối chứng ngoài bài giảng (LightGBM + giá khu vực) và đo độ tin cậy (kiểm định chéo lặp, bootstrap, khoảng giá 80%).

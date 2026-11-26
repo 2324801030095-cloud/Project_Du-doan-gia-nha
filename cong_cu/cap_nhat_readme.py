@@ -9,7 +9,7 @@ vn = lambda x, d=1: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X
 J = lambda f: json.loads((GOC / "model" / f"{f}.json").read_text(encoding="utf-8"))
 dong = lambda d, k, ten: next(r for r in d[k] if r["Mô hình"] == ten)
 baseline = lambda d, k: next(r for r in d[k] if r["Mô hình"].startswith("Baseline"))
-pa = lambda d, k: next((f"{r['Mô hình'].removeprefix('Phần A – ')}: {vn(r['MAPE (%)'])}%" for r in d[k] if r["Mô hình"].startswith("Phần A")), "–")
+pa = lambda d, k: next((f"{r['Mô hình'].removeprefix('Phần A – ')}: {vn(r['MAPE (%)'])}%" for r in d[k] if r["Mô hình"].startswith("Phần A")), "chính là mô hình cuối")
 
 N, C, D = J("danh_gia_mo_hinh"), J("danh_gia_mo_hinh_can_ho"), J("danh_gia_mo_hinh_dat")
 n, c, dd = N["ten_mo_hinh"], C["ten_mo_hinh"], D["ten_mo_hinh"]

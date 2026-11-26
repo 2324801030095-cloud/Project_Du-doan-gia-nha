@@ -831,8 +831,8 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
       <div class="sec-head"><div><div class="eyebrow">Phương pháp</div><h2>Từ tin rao đến con số định giá</h2><p>Toàn bộ quy trình được thực hiện trong notebook <code>2324801030095.ipynb</code>; trang web dùng lại đúng tham số mô hình đã huấn luyện.</p></div></div>
       <div class="process">
         <div><span class="n">BƯỚC 01</span><div class="pi"><svg class="ic ic-lg"><use href="#i-database"/></svg></div><h3>Thu thập dữ liệu</h3><p>@@N_RAW@@ tin rao thật từ guland, Chợ Tốt Nhà, alonhadat (cập nhật @@NGAY@@). Hợp nhất, sửa lỗi, loại trùng và tin không phải giá thị trường: còn @@N_ALL@@ căn, Phú Hòa @@N_PH@@ căn.</p></div>
-        <div><span class="n">BƯỚC 02</span><div class="pi"><svg class="ic ic-lg"><use href="#i-list-checks"/></svg></div><h3>Xây dựng đặc trưng</h3><p>Thông số căn nhà, giá khu vực (12 căn gần nhất, phường, tuyến đường), 21 từ khóa đọc từ mô tả tin và mô hình chữ TF‑IDF.</p></div>
-        <div><span class="n">BƯỚC 03</span><div class="pi"><svg class="ic ic-lg"><use href="#i-git-compare-arrows"/></svg></div><h3>So sánh mô hình</h3><p>6 mô hình và 1 baseline, kiểm định chéo lặp 3 lần, chia theo nhóm tin gần trùng. Chọn mô hình đơn giản nhất không kém mô hình tốt nhất một cách có ý nghĩa: @@BEST@@.</p></div>
+        <div><span class="n">BƯỚC 02</span><div class="pi"><svg class="ic ic-lg"><use href="#i-list-checks"/></svg></div><h3>Xây dựng đặc trưng</h3><p>Thông số căn nhà (diện tích, kích thước, tầng, phòng, lối vào), tọa độ và khoảng cách tới trung tâm, 21 từ khóa đọc từ mô tả tin.</p></div>
+        <div><span class="n">BƯỚC 03</span><div class="pi"><svg class="ic ic-lg"><use href="#i-git-compare-arrows"/></svg></div><h3>So sánh mô hình</h3><p>6 mô hình của môn học (hồi quy tuyến tính, cây quyết định, KNN, SVM, mạng nơ-ron, Random Forest), chọn bằng kiểm định chéo chia theo nhóm tin gần trùng: @@BEST@@. So thêm với một mô hình đối chứng ngoài bài giảng (LightGBM + giá khu vực).</p></div>
         <div><span class="n">BƯỚC 04</span><div class="pi"><svg class="ic ic-lg"><use href="#i-calculator"/></svg></div><h3>Định giá & giải thích</h3><p>Mỗi tin có giá ước lượng của mô hình đầy đủ. Ô định giá dùng bản Ridge rút gọn 11 thông số để tính ngay trên trình duyệt.</p></div>
       </div>
       <div class="two">
@@ -1820,7 +1820,7 @@ function rentBlock(o) {
     <div><span>Hoàn vốn (chỉ bằng tiền thuê)</span><strong>≈ ${fmt(100 / o.ys, 0)} năm</strong></div></div>
     <p>Mô hình giá thuê học trên ${fmt((THUE.so_tin || {}).nha || 0, 0)} tin cho thuê nhà thật (MAPE ≈ ${fmt((THUE.mape || {}).nha || 0, 0)}%). Tỷ suất gộp, chưa trừ thuế, sửa chữa, thời gian trống.</p>`;
 }
-const GT_TEN = { "Giá khu vực (căn lân cận, phường, tuyến đường)": "Giá khu vực", "Vị trí chi tiết (tọa độ, khoảng cách trung tâm)": "Vị trí chi tiết",
+const GT_TEN = { "Vị trí (tọa độ, khoảng cách trung tâm)": "Vị trí",
   "Diện tích và kích thước lô": "Diện tích, kích thước", "Tầng, diện tích sàn, phòng, nội thất": "Tầng, sàn, phòng, nội thất",
   "Lối vào (mặt tiền, hẻm)": "Lối vào (mặt tiền, hẻm)", "Pháp lý": "Pháp lý", "Thông tin khác trong mô tả tin": "Từ khóa khác trong mô tả" };
 function whyBlock(o) {
@@ -1832,7 +1832,7 @@ function whyBlock(o) {
     const w = Math.abs(r.c) / mx * 50, l = r.c >= 0 ? 50 : 50 - w;
     return `<div class="wf-row"><span>${esc(GT_TEN[r.k] || r.k)}</span><span class="wf-tr"><i style="left:${l}%;width:${w}%;background:${col}"></i></span><span class="v" style="color:${col}">${p >= 0 ? "+" : "−"}${fmt(Math.abs(p), 0)}%</span></div>`; }).join("");
   return `<h4>${icon("chart-column-increasing")}Vì sao căn này có giá như vậy</h4>${h}
-    <p>Phân tích đóng góp (SHAP) của mô hình đầy đủ ${esc(GT_META.mo_hinh || "")}: đỏ = yếu tố làm căn này đắt hơn căn trung bình trong dữ liệu, xanh = làm rẻ hơn.</p>`;
+    <p>Phân tích đóng góp theo đường đi trên cây của mô hình ${esc(GT_META.mo_hinh || "")} (mô hình không học căn này): đỏ = yếu tố làm căn này đắt hơn căn trung bình trong dữ liệu, xanh = làm rẻ hơn.</p>`;
 }
 
 /* ---------- Yêu thích & so sánh (lưu trên trình duyệt; không có cũng vẫn chạy) ---------- */
@@ -2360,7 +2360,7 @@ const FAQ = {
   faq_noxh: () => `<p><b>Nhà ở xã hội</b> có giá bán ban đầu được Nhà nước kiểm soát. Người mua phải thuộc đối tượng và đáp ứng điều kiện theo quy định (về thu nhập, nhà ở hiện có…). Việc bán lại cũng có thời hạn và điều kiện riêng.</p>
     <p>Trong dữ liệu, căn hộ nhà ở xã hội ở Bình Dương (các dự án Becamex Hòa Lợi, Định Hòa, Vietsing…) có đơn giá thấp hơn rõ rệt căn hộ thương mại. Mô hình định giá căn hộ xử lý riêng phân khúc này.</p>
     <span class="ghi">Điều kiện mua thay đổi theo quy định từng thời kỳ; nên kiểm tra quy định hiện hành trước khi giao dịch.</span>`,
-  faq_mo_hinh: () => `<p><b>Nhà phố:</b> mô hình ${esc(MODEL.mo_hinh_day_du || "LightGBM")} học trên ${fmt(TONG_NHA, 0)} căn rao bán thật ở Bình Dương cũ. Đặc trưng gồm diện tích, kích thước, số tầng, lối vào, <b>giá khu vực</b> (giá các căn gần nhất, cùng phường, cùng đường) và từ khóa trong mô tả tin. Sai số trên các căn Phú Hòa khoảng <b>${fmt(MODEL.mo_hinh_day_du_mape_cv_phu_hoa ?? MODEL.cv_mape, 0)}%</b>.</p>
+  faq_mo_hinh: () => `<p><b>Nhà phố:</b> mô hình ${esc(MODEL.mo_hinh_day_du || "Random Forest")} (tốt nhất trong các mô hình của môn học) học trên ${fmt(TONG_NHA, 0)} căn rao bán thật ở Bình Dương cũ. Đặc trưng gồm diện tích, kích thước, số tầng, lối vào, <b>tọa độ</b> và khoảng cách tới trung tâm, cùng từ khóa trong mô tả tin. Sai số trên các căn Phú Hòa khoảng <b>${fmt(MODEL.mo_hinh_day_du_mape_cv_phu_hoa ?? MODEL.cv_mape, 0)}%</b>.</p>
     <p><b>Căn hộ:</b> giá chủ yếu do <b>dự án</b> quyết định, cộng với diện tích, phòng ngủ, tầng, pháp lý, nội thất. Sai số khoảng <b>${fmt(CH_MODEL.mo_hinh_day_du_mape, 0)}%</b>.</p>
     <p>Sai số được đo nghiêm ngặt: mỗi căn được dự đoán bởi mô hình chưa từng học căn đó (kể cả các tin đăng lại của nó). Mỗi kết quả kèm <b>khoảng giá 80%</b>.</p>
     <span class="ghi">Công cụ trên trang dùng bản rút gọn để chạy ngay trên trình duyệt (nhà phố ~${fmt(MODEL.cv_mape, 0)}%, căn hộ ~${fmt(CH_MODEL.cv_mape, 0)}%). Mô hình đầy đủ nằm trong các notebook của đề tài.</span>`,

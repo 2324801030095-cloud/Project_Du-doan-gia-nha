@@ -1,5 +1,6 @@
 ﻿nguon,url,tieu_de,gia_ty,dt_dat,don_gia,ly_do_loai
 chotot,https://www.nhatot.com/133103043.htm,CẦN BÁN 10 KIOS  HAI MẶT TIỀN ,2.7,433.0,6.235565819861431,Thổ cư < 50% diện tích
+chotot,https://www.nhatot.com/136045837.htm,"Bán nhà mặt tiền Phước Hoà, Bình Dương",4.0,150.0,26.666666666666668,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135923042.htm,Bán nhà Tân Định Bến Cát - 5x23m - 1 tỷ xx,1.0,115.0,8.695652173913043,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135505094.htm,"Bán nhà Tân Định KP1, 8x15m, 1.4 tỷ",1.4,120.0,11.666666666666666,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135522357.htm,"Bán nhà ở xã hội Richland Residence, Bình Dương, 70m2",1.68,70.0,24.0,Nhà ở xã hội
@@ -11,7 +12,6 @@ chotot,https://www.nhatot.com/135411254.htm,Nhà cấp 4 150m2 hướng Tây g�
 chotot,https://www.nhatot.com/135367830.htm,"Nhà sân vườn đường 9m Mỹ Phước 2, Bến Cát, Bình Dương",2.08,155.0,13.419354838709678,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135755297.htm,NHÀ VSIP 2 - SỔ RIÊNG - 450TR SỞ HỮU,2.2,75.0,29.333333333333332,Nhà ở xã hội
 chotot,https://www.nhatot.com/135897287.htm,"Cần bán 2 căn nhà ki-ốt  nằm ngày chợ hòa lợi,tphcm ,1 sổ ",2.5,89.0,28.089887640449437,Giá mồi / không rõ ràng
-chotot,https://www.nhatot.com/135848482.htm,BÁN NHÀ MẶT TIỀN ĐƯỜNG N1,2.7,150.0,18.0,Nhà lắp ghép / thi công
 chotot,https://www.nhatot.com/135882535.htm,Bán nhà Vườn Thiên Đàng 2 Ecolakes Bến Cát Bình Dương,3.0,120.0,25.0,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135941211.htm,Chính chủ bán căn góc công viên 180m2 EcoLakes Vườn Thiên Đàng 1⁠,3.999,180.0,22.216666666666665,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135217685.htm,"Bán biệt thự mini đường 1/ DT 748, An Điền, Bến Cát, Bình Dương.",4.3,282.0,15.24822695035461,Thổ cư < 50% diện tích
@@ -21,6 +21,7 @@ chotot,https://www.nhatot.com/135828253.htm,"Bán nhà góc VISIP1, 128m2, giả
 chotot,https://www.nhatot.com/135764860.htm,"Bán nhà cấp 4 + quán cơm, cafe đang kinh doanh - Bến Cát, Bình Dương",13.0,200.0,65.0,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135629560.htm,Bán đất xã thanh tuyền hẻm xe hơi,2.0,400.0,5.0,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135877112.htm,🔥 HÀNG HIẾM TRUNG TÂM DẦU TIẾNG – NHÀ MẶT TIỀN ĐƯỜNG LỚN,2.2,93.0,23.655913978494624,Giá mồi / không rõ ràng
+chotot,https://www.nhatot.com/136011783.htm,"Nhà 4x10m, 1 tỷ099, gần chợ Khánh Long, Bình Dương",1.099,80.0,13.7375,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135504521.htm,"Bán nhà cấp 4 gác Tây, 68m2, Đông Hòa, Dĩ An",3.0,68.0,44.11764705882353,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135386024.htm,"Bán nhà gần VinCom Dĩ An, Bình Dương",3.0,88.0,34.09090909090909,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135697732.htm,"Nhà 1 trệt 1 lầu thu 10trieu gần ngã tư Chiêu Liêu, Tân Bình, Dĩ An",3.05,375.0,8.133333333333333,Đơn giá lệch > 3 lần khu vực
@@ -33,9 +34,10 @@ chotot,https://www.nhatot.com/135854590.htm,"Nhà mặt tiền kinh doanh Đ Hai
 chotot,https://www.nhatot.com/135693123.htm,"Nhà mặt tiền kinh doanh Dĩ An, hơn 5 tỷ",5.0,64.0,78.125,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135596559.htm,Bán nhà 1 trệt 2 lầu sát chợ dĩ an gần nhà thờ dĩ an,6.9,110.0,62.72727272727273,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/132985470.htm,"Nhà phố mặt tiền kinh doanh kdc Hương Sen gần chợ Việt Lập,p An Bình",8.0,61.0,131.14754098360655,Đơn giá lệch > 3 lần khu vực
-chotot,https://www.nhatot.com/131233380.htm,"Nhà phố mới xây hoàn công khu tái định cư Đông Hòa C, phường Đông Hòa",8.6,66.0,130.3030303030303,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135477787.htm,Bán nhà mặt tiền Quốc Lộ 1K Dĩ An 187.6m2 ngang 9.6m,10.0,187.6,53.30490405117271,Thổ cư < 50% diện tích
+chotot,https://www.nhatot.com/135692540.htm,KDC HIM LAM PHÚ ĐÔNG - 4 TẦNG HOÀN CÔNG CHUẨN - 93m2 (5 x 18.5) 12.3 T,12.3,92.5,132.97297297297297,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/133809170.htm,"Nhà phố mặt tiền đường Thống Nhất, phường Bình An, Tp. Dĩ An",14.9,72.0,206.94444444444446,Đơn giá lệch > 3 lần khu vực
+chotot,https://www.nhatot.com/136037353.htm,"Nhà 120m mặt tiền đường Gs1, khu BigC Go Dĩ An. Nhà đang cho thuê 18tr",16.0,120.0,133.33333333333334,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/134943013.htm,Nhà 107m ngang 7m góc 2 mặt tiền đường Nguyễn An Ninh  Dĩ An,20.0,107.0,186.9158878504673,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135519240.htm,"Nhà xã hội 1 trệt 1 lầu 1 lửng, 69m2, Bình Dương",1.8,69.0,26.08695652173913,Nhà ở xã hội
 chotot,https://www.nhatot.com/135385690.htm,"Bán nhà Vĩnh Tân, TP Tân Uyên, BD - 1.79 tỷ",1.799,197.0,9.131979695431472,Thổ cư < 50% diện tích
@@ -46,12 +48,15 @@ chotot,https://www.nhatot.com/132657486.htm,cần bán gâp nhà mặt tiền DT
 chotot,https://www.nhatot.com/135788670.htm,Cần bán gấp ,4.9,423.0,11.583924349881796,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135864235.htm,Nhà 5x20 sổ riêng thổ cư gần Đồng Khởi 650tr,0.65,100.0,6.5,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135809469.htm,"Nhà gỗ hiện đại 720 triệu, hoàn thiện toàn quốc",0.72,72.0,10.0,Nhà lắp ghép / thi công
+chotot,https://www.nhatot.com/136047257.htm,"Nhà ở xã hội Bình Dương 840 triệu, 60m2, 2PN",0.84,60.0,14.0,Nhà ở xã hội
 chotot,https://www.nhatot.com/135694309.htm,"Bán nhà P. Hiệp Thành, Thủ Dầu Một, Bình Dương - 1 tỷ xxx",1.0,44.5998,22.421625209081654,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135958123.htm,"Bán nhà Định Hoà, TDM, BD - 99.5m2",1.0,99.5,10.050251256281408,Giá mồi / không rõ ràng
+chotot,https://www.nhatot.com/135904087.htm,Nhà cấp 4 hiện đại gần Cty ChangShin Đồng Khởi,1.0,132.0,7.575757575757576,Đơn giá lệch > 3 lần khu vực
 alonhadat,https://alonhadat.com.vn/-chi-25-trieu-m-dat-mat-tien-tran-trui-ngay-trung-tam-tp-moi-binh-duong--19133969.html,🚀 Chỉ 25 triệu/m² đất mặt tiền trần trụi ngay trung tâm tp mới bình dương! 🚀,1.38,150.0,9.2,Đơn giá lệch > 3 lần khu vực
 guland,https://guland.vn/post/can-ban-can-happy-one-van-xuan-gia-1-ty-550-2129755,Cân bán căn happy one vạn xuân gia 1 ty 550,1.55,54.0,28.703703703703702,Căn hộ chung cư đăng nhầm mục nhà
 chotot,https://www.nhatot.com/135385625.htm,"Nhà gỗ tam hợp viện 1,6 tỷ, full gỗ tếch",1.6,178.21867000000003,8.977735048746574,Nhà lắp ghép / thi công
 chotot,https://www.nhatot.com/135755665.htm,Nhà cần bán,1.8,125.0,14.4,Đơn giá lệch > 3 lần khu vực
+chotot,https://www.nhatot.com/135504664.htm,Bán nhà sân vườn 225m2 giá 1.85 tỷ,1.85,225.0,8.222222222222221,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135339621.htm,"Nhà bán Định Hoà, Thủ Dầu Một, 97m2, 3PN",2.0,97.0,20.61855670103093,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135921166.htm,Nhà Phú Thọ Thủ Dầu Một Bình Dương,2.0,109.0,18.34862385321101,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135974955.htm,"Bán nhà 2 mặt tiền ô tô Phú Hòa, 130m2, 2 tỷ XXX",2.0,130.0,15.384615384615385,Giá mồi / không rõ ràng
@@ -77,39 +82,37 @@ alonhadat,https://alonhadat.com.vn/ban-gap-nha-dx063-dinh-hoa-dien-tich-422m2-co
 chotot,https://www.nhatot.com/135504662.htm,"Nhà 1 Trệt 1 Lầu Gần Chợ Phú Mỹ, Bình Dương",3.0,60.0,50.0,Giá mồi / không rõ ràng
 alonhadat,https://alonhadat.com.vn/ban-mat-bang-kinh-doanh-hiep-thanh-ke-ben-truong-nguyen-dinh-chieu-dien-tich-5-5x30-19182046.html,Bán Mặt bằng kinh doanh Hiệp Thành kế bên trường Nguyễn Đình Chiểu. Diện tích: 5.5x30,3.0,176.0,17.045454545454547,Đơn giá lệch > 3 lần khu vực
 alonhadat,https://alonhadat.com.vn/ban-nha-mat-tien-duong-so-26-tai-dinh-cu-dinh-hoa-dt-4-36m-x-25m-tho-cu-het-dat-19111875.html,"Bán Nhà Mặt tiền Đường số 26 Tái Định Cư Định Hòa. Dt 4,36m x 25m thổ cư hết đất",3.05,109.0,27.98165137614679,Thổ cư < 50% diện tích
+chotot,https://www.nhatot.com/135858054.htm,"Nhà Hiệp Thành gần QL13 nhựa 5m.  Ngang 5,8m.",3.3,93.0,35.483870967741936,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135516534.htm,"Bán nhà phố, biệt thự, shophouse dự án Chánh Mỹ, Bình Dương",3.4,120.0,28.333333333333332,Nhà ở xã hội
 chotot,https://www.nhatot.com/136005125.htm,BÁN NHÀ TRUNG TÂM PHƯỜNG THỦ DẦU MỘT – SÂN Ô TÔ,3.5,70.0,50.0,Thổ cư < 50% diện tích
-chotot,https://www.nhatot.com/135858054.htm,"Nhà Hiệp Thành gần QL13 nhựa 5m.  Ngang 5,8m.",3.5,93.0,37.634408602150536,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135766263.htm,"Bán nhà Tân Phước Khánh, Sổ hồng riêng, 2PN, sân ô tô",3.5,115.0,30.434782608695652,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135584732.htm,Bán nhà đẹp 2 mặt tiền ngay chợ hoà phú gần siêu thị eaon TP mới BD,3.6,150.0,24.0,Thổ cư < 50% diện tích
 guland,https://guland.vn/post/ban-nha-rieng-207m2-co-san-40-m2-tho-cu-gia-35-ty-tai-duong-le-hong-phong-phuong-phu-hoa-thanh-pho-thu-dau-mot-binh-duong-2628638,Bán Nhà riêng 207m2 có sẵn 40 m2 thổ cư giá 3.5 tỷ tại Đường Lê Hồng Phong Phường Phú Hòa Thành phố Thủ Dầu Một Bình Dương,3.6,207.0,17.391304347826086,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135324340.htm,Giảm Mạnh bán nhanh Nhà Mặt tiền nhự 7m DX101 Hiệp An,3.65,135.0,27.037037037037038,Thổ cư < 50% diện tích
+chotot,https://www.nhatot.com/136049987.htm,Bán Nhà Gần Chợ Bình Điền - Trường Cấp 2 Phú Hoà Thủ Dầu Một BD,3.65,151.0,24.172185430463575,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135504562.htm,"Bán nhà đất 7.5x20m thổ cư, 2 căn nhà, xe tải, sân ô tô, Thủ Dầu Một",3.75,80.0,46.875,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135411653.htm,🌤️🌤️ NHÀ TRỆT LẦU 3PN – PHÚ HÒA – GIÁ 3 TỶ XXX 🌤️🌤️,3.85,135.0,28.51851851851852,Giá mồi / không rõ ràng
 alonhadat,https://alonhadat.com.vn/ban-nha-phu-my-thu-dau-mot-p-binh-duong-moi-dien-tich-140m2-co-60m-tho-cu-19195151.html,Bán Nhà Phú Mỹ Thủ Dầu Một (P. Bình Dương mới). Diện tích: 140m2 có 60m thổ cư,3.9,140.0,27.857142857142858,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135504540.htm,"Nhà gần Chợ Tân Long, Nguyễn Thị Minh Khai, 86.5m2",4.0,86.5,46.24277456647399,Giá mồi / không rõ ràng
+chotot,https://www.nhatot.com/136026549.htm,"Bán Nhà 1 Trệt 2 Lầu Phú Lợi, Bình Dương, Hoàn Công",4.0,90.0,44.44444444444444,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135369692.htm,"Nhà mặt tiền Nguyễn Chí Thanh, Thủ Dầu Một, Bình Dương - 4.19 tỷ",4.19,39.0998,107.16167346124531,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135878616.htm,NHÀ PHÚ HOÀ 1/ Lê Hồng Phong Thủ Dầu Một Bình Dương,4.25,93.0,45.69892473118279,Thổ cư < 50% diện tích
 alonhadat,https://alonhadat.com.vn/can-ban-mat-tien-kinh-doanh-duong-huynh-thi-hieu-tan-an-thu-dau-mot-ngay-cho-ben-the-19159170.html,"Cần bán mặt tiền kinh doanh đường Huỳnh Thị Hiếu, Tân An, Thủ Dầu Một ngay chợ Bến Thế",4.5,353.0,12.747875354107649,Thổ cư < 50% diện tích
 alonhadat,https://alonhadat.com.vn/nha-1-tret-2-lau-khu-nha-o-dich-vu-thuong-mai-phu-my-102m2-18449491.html,NHÀ dx20 gần Chợ Phú Mỹ. Bình dương 100m2,4.65,100.0,46.5,Thổ cư < 50% diện tích
-chotot,https://www.nhatot.com/135828010.htm,"Nhà mặt tiền kinh doanh đường N3, P. An Phú, T.D.M - Giảm sốc 800tr",4.7,60.0,78.33333333333333,Đơn giá lệch > 3 lần khu vực
-chotot,https://www.nhatot.com/135748151.htm,Bán nhà 1 trệt 2 lầu ngay vòng xoay Hiệp Thành đường nhựa thông,4.75,83.0,57.2289156626506,Thổ cư < 50% diện tích
+chotot,https://www.nhatot.com/135760005.htm,"🧨 HIỆP THÀNH 🧨 🌤️🌤️ NHÀ NGANG 7,4M – FULL NỘI THẤT – GIÁ 4 TỶ 750 🌤️🌤️",4.75,83.0,57.2289156626506,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135784328.htm,"Bán Nhà 3PN Gần Vòng xoay Hiệp Thành 3, Bình Dương",4.75,83.62,56.804592202822285,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135902512.htm,Bán nhà phố Unitown - TP Mới Bình Dương - 5 tỷ xxx,5.0,105.0,47.61904761904762,Giá mồi / không rõ ràng
+chotot,https://www.nhatot.com/135784331.htm,"Bán nhà 610m2 lô góc 2 mặt tiền, có nhà và 11 phòng trọ cho thuê",5.5,610.0,9.01639344262295,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135661901.htm,HIẾM - CHỦ CẦN BÁN NHÀ HUỲNH VĂN NGHỆ - 8x21,5.99,169.0,35.44378698224852,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/135784809.htm,"Bán nhà 1 trệt 2 lầu T.Phố Mới Bình Dương, 5PN, full nội thất",6.0,150.0,40.0,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/133877804.htm,Bán nhà Phú Hoà gần đại học Thủ Dầu Một,6.3,173.0,36.41618497109827,Nhà lắp ghép / thi công
 alonhadat,https://alonhadat.com.vn/dat-dinh-hoa-dx082-binh-duong-gan-bv-lon--15395608.html,Nhà  KDC K8.  Hiệp Thành gần đại học Bình Dương  95m2,6.45,95.0,67.89473684210526,Thổ cư < 50% diện tích
 guland,https://guland.vn/post/ban-nha-biet-thu-phu-hoa-gia-66-ty-0937-090-thien-2733507,Bán nhà biệt thự phú hòa giá 6.6 tỷ 0937 090 *** thiện,6.6,260.0,25.384615384615383,Thổ cư < 50% diện tích
 guland,https://guland.vn/post/nha-1-tret-2-lau-moi-dep-mt-nguyen-thi-minh-1138205,Nhà 1 trệt 2 lầu mới đẹp Mt Nguyễn Thị Minh,6.8,67.0,101.49253731343283,Đơn giá lệch > 3 lần khu vực
-alonhadat,https://alonhadat.com.vn/ban-biet-thu-san-vuon-2-tang-520m2-shr-tho-cu-duong-xe-hoi-gan-song-nen-rat-mat-18001987.html,"Bán Biệt thự Sân Vườn 2 Tầng 520m2,SHR thổ cư,đường xe hơi,gần sông nên rất mát",7.4,520.0,14.23076923076923,Đơn giá lệch > 3 lần khu vực
-chotot,https://www.nhatot.com/135862999.htm,"Nhà 1 trệt 2 lầu + lửng, vừa ở vừa kinh doanh, 99.9m², Bình Dương",7.5,99.9,75.07507507507508,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135810544.htm,NHÀ CHÍNH CHỦ CẦN BÁN NHANH ĐƯỜNG NGUYỄN THÁI BÌNH PHU HOA BINH DƯƠNG,7.5,231.0,32.467532467532465,Thổ cư < 50% diện tích
 alonhadat,https://alonhadat.com.vn/nha-mat-tien-kd-cong-sau-cho-binh-diem-phuong-7m-x-40m-18760113.html,Nhà mặt tiền KD cổng sau chợ Bình Điềm  7m x 40m,7.8,280.0,27.857142857142858,Thổ cư < 50% diện tích
-alonhadat,https://alonhadat.com.vn/ban-can-goc-kdt-hud-chanh-my-binh-duong-dien-tich-132m2-duong-rong-12m-gia-chi-60tr-m2-17422866.html,"Bán căn góc KĐT Hud Chánh Mỹ,Bình Dương,Diện tích 132m2,đường rộng 12m,giá chỉ 63tr/m2",8.316,132.0,63.0,Đơn giá lệch > 3 lần khu vực
 guland,https://guland.vn/post/ban-nha-365m2-3-tang-ngang-13m-tai-duong-nguyen-thi-minh-khai-phu-hoa-thu-dau-mot-binh-duong-2912712,"Bán nhà 365m² 3 tầng ngang 13m tại đường Nguyễn Thị Minh Khai, Phú Hòa, Thủ Dầu Một - Bình Dương",9.0,365.0,24.65753424657534,Thổ cư < 50% diện tích
-chotot,https://www.nhatot.com/135203033.htm,"🔥 GIẢM MẠNH 4 TỶ – CHỈ CÒN 9,3 TỶ 🔥  🏘️ BÁN DÃY TRỌ MẶT TIỀN ĐƯỜNG BỜ K",9.3,671.0,13.859910581222056,Đơn giá lệch > 3 lần khu vực
-alonhadat,https://alonhadat.com.vn/ban-nha-mat-tien-duong-bach-dang-thu-dau-mot-binh-duong-dien-tich-7x15-tong-87m2-tc-19089322.html,"Bán Nhà mặt tiền đường Bạch Đằng, Thủ Dầu Một, Bình Dương. Diện tích: 7x15 tổng 87m2 tc",9.5,87.0,109.19540229885058,Đơn giá lệch > 3 lần khu vực
+alonhadat,https://alonhadat.com.vn/ban-nha-san-vuon-dt-555m2-phuong-hiep-thanh-thu-dau-mot-gan-benh-vien-tinh-9089558.html,"Bán nhà sân vườn Dt 555m2 phường Hiệp Thành, Thủ Dầu Một  gần Bệnh Viện tỉnh",9.5,555.0,17.117117117117118,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135272790.htm,"BÁN NHÀ XƯỞNG BÌNH DƯƠNG, CÓ 200M THỔ CƯ",10.5,838.0,12.52983293556086,Thổ cư < 50% diện tích
 alonhadat,https://alonhadat.com.vn/nha-tret-lung-kdc-hiep-thanh-3-binh-duong-100m-16202662.html,Nhà trong khu hiệp thành 3 gần trường Petrus ký binh dương 140m2,11.0,140.0,78.57142857142857,Thổ cư < 50% diện tích
 alonhadat,https://alonhadat.com.vn/dat-dep-khu-biet-thu-tiamo-phu-thinh-phu-tho-binh-duong-375m-16211352.html,Nhà Đường D  khu dân cư Chánh Nghĩa bình dương 100m2,11.5,100.0,115.0,Đơn giá lệch > 3 lần khu vực
@@ -119,24 +122,20 @@ chotot,https://www.nhatot.com/135464129.htm,"Bán nhà mặt tiền Lê Hồng P
 alonhadat,https://alonhadat.com.vn/ban-nha-pho-100m2-duong-ngo-gia-tu-chanh-nghia-thu-dau-mot-binh-duong-gia-13-5ty--19190273.html,"Bán100m2 đất thổ cư, mặt đường Ngô Gia tự,Chánh Nghĩa, Thủ Dầu Một, Bình Dương chỉ 13,5ty.",13.5,100.0,135.0,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/134527029.htm,9 chủ a/c bán phụ/ 5 TẦNG CÓ THANG MÁY- MẶT TIỀN SIÊU VIP THỦ DẦU MỘT,15.9,80.0,198.75,Đơn giá lệch > 3 lần khu vực
 alonhadat,https://alonhadat.com.vn/-sieu-pham-thu-dau-mot-gia-chi-16-5-ty-tl-nha-5-tang-mtkd-huynh-van-luy-18575691.html,⚠️SIÊU PHẨM THỦ DẦU MỘT⚠️ GIÁ CHỈ 16.5 tỷ TL! NHÀ 5 TẦNG MTKD HUỲNH VĂN LŨY,16.5,80.0,206.25,Đơn giá lệch > 3 lần khu vực
-alonhadat,https://alonhadat.com.vn/dat-mat-tien-30-thang-4-phu-hoa-gan-becamex-binh-duong-15319049.html,Nhà mặt tiền kinh doanh CMT8 phú cường  bình dương,18.9,164.0,115.2439024390244,Đơn giá lệch > 3 lần khu vực
 alonhadat,https://alonhadat.com.vn/nha-phu-hoa-khu-8-binh-duong-le-hong-phong-gia-re-15627285.html,Bán nhà biệt thự khu dân cư Chánh nghĩa  bình dương 200m2,22.9,200.0,114.5,Đơn giá lệch > 3 lần khu vực
-chotot,https://www.nhatot.com/131038996.htm,chính chủ nha —-  Lô góc 2 mặt tiền - Võ thành long,23.0,177.0,129.94350282485877,Đơn giá lệch > 3 lần khu vực
 guland,https://guland.vn/post/mat-tien-kinh-doanh-le-hong-phong-phuong-phu-hoa-10x47m-tho-cu-60m2-1701930,"Mặt tiền kinh doanh Lê Hồng Phong, phường Phú Hòa, 10x47m thổ cư 60m2",23.0,469.0,49.04051172707889,Thổ cư < 50% diện tích
 alonhadat,https://alonhadat.com.vn/bds-dong-tien-ngop-can-ban-gap-19144420.html,BDS dòng tiền Ngộp cần bán GẤP,28.56,408.0,70.0,Thổ cư < 50% diện tích
-chotot,https://www.nhatot.com/135653902.htm,"Bán Biệt Thự Giáp Sài Gòn, 516m2, Lô Góc Sông Sài Gòn",32.0,516.0,62.01550387596899,Đơn giá lệch > 3 lần khu vực
 alonhadat,https://alonhadat.com.vn/ban-toa-nha-vip-mat-tien-ho-van-cong-thu-dau-mot-19139583.html,"Bán toà nhà Vip mặt tiền Hồ Văn Cống, Thủ Dầu Một",48.0,600.0,80.0,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135485325.htm,Bán NOXH Vsip1 Thuận An 30m2 Sổ riêng 530 triệu,0.53,30.0,17.666666666666668,Nhà ở xã hội
 chotot,https://www.nhatot.com/135519774.htm,bán nhà ngay vòng xoay an phú hẻm xe máy giá rẻ,0.89,60.0,14.833333333333334,Đơn giá lệch > 3 lần khu vực
+chotot,https://www.nhatot.com/135171521.htm,Nhà sổ chung kế chợ trường nhánh đường Lê Thị Trung Thuận An chỉ 920tr,0.92,56.0,16.428571428571427,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135432101.htm,🌟Sở hữu căn nhà MT Đại lộ Bình Dương chỉ cần thanh toán 1 tỷ đồng,1.0,80.0,12.5,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135506875.htm,sang nhanh căn nhà bình chuẩn giá re,1.1,75.0,14.666666666666666,Nhà ở xã hội
 chotot,https://www.nhatot.com/135786185.htm,"Bán nhà 1 trệt 1 lầu 6x13m KP Hòa Long, Lái Thiêu - 2PN 2WC giá 1.45 t",1.45,78.0,18.58974358974359,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135693182.htm,Nhà TP trên 50m2 chỉ 2 tỷ xxx Vĩnh Phú,2.0,52.0,38.46153846153846,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/134777011.htm,BÁN NHÀ CẤP 4 FULL THỔ CƯ 118M2 ĐƯỜNG 22/12 KẾ CHỢ BÚNG,2.15,118.0,18.220338983050848,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135524954.htm,"Nhà 1 trệt 1 lầu 120m2, 3PN, 3WC, Bình Dương",2.55,120.0,21.25,Giá mồi / không rõ ràng
-chotot,https://www.nhatot.com/134795360.htm,Nhà Phố Lavela Thuận An Giá Gốc Từ Chủ Đầu Tư Còn 2.9 Tỷ/Căn,2.9,158.0,18.354430379746834,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/136007253.htm,Bán nhà trệt lầu giá Rẻ gần ngã tư Miễu Ông Cù - Thuận An,3.2,68.0,47.05882352941177,Giá mồi / không rõ ràng
-chotot,https://www.nhatot.com/136009745.htm,"Bán nhà 1 trệt 2 lầu đối diện chợ Vị Hảo, 300m2 sàn, có 7 phòng trọ",3.65,300.0,12.166666666666666,Đơn giá lệch > 3 lần khu vực
 chotot,https://www.nhatot.com/135911051.htm,"Bán nhà Bình Nhâm - Lái Thiêu, đường 4m, thông, gần chợ, trường học",3.7,118.0,31.35593220338983,Giá mồi / không rõ ràng
 chotot,https://www.nhatot.com/136009624.htm,"Bán nhà Vĩnh Phú, 1 trệt 1 lửng, 3PN, DT 92m2, giá 3.85 tỷ",3.85,92.0,41.84782608695652,Thổ cư < 50% diện tích
 chotot,https://www.nhatot.com/135765124.htm,"Nhà 2 lầu full nội thất cao cấp sát KDC Hiệp Thành 3, Bình Dương",4.0,61.0,65.57377049180327,Giá mồi / không rõ ràng

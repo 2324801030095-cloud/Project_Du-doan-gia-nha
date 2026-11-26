@@ -1,11 +1,11 @@
 ﻿nguon,url,tieu_de,gia_ty,dt_dat,don_gia,ly_do_loai
 chotot,https://www.nhatot.com/135807845.htm,Căn hộ NOXH Thăng Long - Hòa Lợi giá từ 863 triệu,0.863,58.0,14.879310344827585,Giá 'chỉ từ' / giá mồi
+chotot,https://www.nhatot.com/135507637.htm,Căn Hộ,1.2,38.0,31.57894736842105,"Đơn giá lệch > 2,5 lần khu vực"
 chotot,https://www.nhatot.com/133512767.htm,Nhà ở xã hội thạnh tân  giá rẻ cho  người lao động tại Dĩ An,0.399999,39.0,10.256384615384615,"Đơn giá lệch > 2,5 lần khu vực"
 chotot,https://www.nhatot.com/134482055.htm,Bán nhanh căn 2 PN- view 2 mặt / Chung cư Hoàng Long. Sóng Thần,0.84,48.75,17.23076923076923,"Đơn giá lệch > 2,5 lần khu vực"
 chotot,https://www.nhatot.com/135681149.htm,CĂN HỘ DĨ AN TPHCM  1PN 39M² CHỈ 930 TRIỆU ,0.93,39.0,23.846153846153847,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/134378071.htm,"Căn hộ The Eastgate-cần bán căn studio 33,7m2 full nội thất giá 1ty350",1.35,33.7,40.059347181008896,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/135930455.htm,CĂN HỘ 2PN2WC HỒ CHÍ MINH GIÁ TỪ 1.6 TỶ,1.6,52.0,30.76923076923077,Giá 'chỉ từ' / giá mồi
-chotot,https://www.nhatot.com/135476576.htm,"Căn hộ FENICA, chỉ 1.8 tỷ/căn, góp 6tr/tháng, miễn lãi 24 tháng ",1.8,50.0,36.0,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/131541883.htm,"Stown Phúc An - căn 3PN/2WC nhà mới 100%, ngày Vincom Dĩ An - Đã có sổ",2.2,80.0,27.5,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/135731851.htm,"CHUNG CƯ PHÚC ĐẠT NGAY LÀNG ĐẠI HỌC GIÁ TỪ 2,250 TỶ FULL NỘI THẤT",2.25,60.0,37.5,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/135943600.htm,🚀 MUỐN SỞ HỮU CĂN HỘ TP.HCM? BẮT ĐẦU CHỈ TỪ 130 TRIỆU! NHẬN CĂN 2PN2WC,2.3,67.0,34.32835820895522,Giá 'chỉ từ' / giá mồi
@@ -26,6 +26,7 @@ chotot,https://www.nhatot.com/135902568.htm,Căn hộ Studio 800tr tặng nội 
 chotot,https://www.nhatot.com/135512637.htm,"Bán căn hộ NOXH K Home New City, 35m2, Bình Dương",0.8,35.0,22.857142857142858,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/135518937.htm,"Bán căn hộ K Home New City, 73m2, 2PN, Bình Dương",0.84,73.0,11.506849315068493,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/135520367.htm,"Chung cư Phúc Đạt Tân Uyên, 47m2, full nội thất",0.846,47.0,18.0,Giá 'chỉ từ' / giá mồi
+chotot,https://www.nhatot.com/136032954.htm,CHỈ 978TR SỞ HỮU CĂN HỘ 1 PN+ 47M2 BÀN GIAO FULL NỘI THẤT,0.978,47.0,20.80851063829787,Giá 'chỉ từ' / giá mồi
 alonhadat,https://alonhadat.com.vn/nha-o-xa-hoi-thanh-pho-moi-binh-duong-cu-tra-truoc-250tr-so-huu-lun-noi-that-so-rieng-19014238.html,"Nhà ở xã hội Thành phố mới Bình Dương cũ trả trước 250tr sở hữu lun nội thất , sổ riêng",1.025,47.0,21.80851063829787,Giá 'chỉ từ' / giá mồi
 alonhadat,https://alonhadat.com.vn/can-ho-nam-mekong-grand-plaza-gia-chi-tu-1-8-ty-1-buoc-ra-wtc-metro-so-1-trung-tam-t-18958072.html,"Căn Hộ Nam Mekong Grand Plaza Giá Chỉ Từ 1,8 Tỷ | 1 Bước Ra WTC & Metro Số 1 | Trung Tâm T",1.8,36.0,50.0,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/135810014.htm,"Cực hời - Chính chủ bán nhanh căn hộ 1 PN Harmonie chỉ 2,25 tỷ đồng",2.25,43.96,51.182893539581436,"Đơn giá lệch > 2,5 lần khu vực"
@@ -43,8 +44,6 @@ chotot,https://www.nhatot.com/132965266.htm,"1PN Monrei Sài Gòn,38m2,Quà Tặ
 chotot,https://www.nhatot.com/133170720.htm,"Mitsubishi Nhật Bản - Vốn 280 triệu nhận nhà - Giá từ 1,650",1.65,41.0,40.24390243902439,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/134682565.htm,"2PN giá 1,7 tỷ/căn - vốn 30% nhận nhà ở ngay- nhà sẵn sổ sẵn",1.75,55.0,31.818181818181817,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/131580124.htm,"KẸT BANK, BÁN GẤP CĂN HỘ 2 PHÒNG NGỦ 2WC, CĂN GÓC 2 VIEW, SỔ SẴN ",1.75,60.0,29.166666666666668,Giá 'chỉ từ' / giá mồi
-chotot,https://www.nhatot.com/130497514.htm,"Legacy - CH 2 PN block A giá chỉ 1,8 tỷ, đã có sổ riêng, dân cư ở kín",1.8,60.0,30.0,Giá 'chỉ từ' / giá mồi
-chotot,https://www.nhatot.com/129323217.htm,Dimond Boulevard Thuận An - Giỏ hàng CĐT chỉ từ 1.35 tỷ/ căn 1pn,1.9,56.0,33.92857142857143,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/132965203.htm,"Căn 2PN1WC Monrei Sài Gòn 52m2 Tập đoàn Mitsubishi,Giá từ PKD",1.916,38.0,50.421052631578945,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/132965184.htm,"Căn 2PN1WC Monrei Sài Gòn 52m2 Tập đoàn Mitsubishi,Giá từ PKD",1.916,52.0,36.84615384615385,Giá 'chỉ từ' / giá mồi
 chotot,https://www.nhatot.com/135923787.htm,Mua Nhà TP.HCM Chỉ Cần 50Tr / là ký HDMB tại Dự Án A&K Tower,2.1,55.0,38.18181818181818,Giá 'chỉ từ' / giá mồi

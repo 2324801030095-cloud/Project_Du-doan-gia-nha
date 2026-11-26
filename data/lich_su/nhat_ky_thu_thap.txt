@@ -157,3 +157,310 @@ Ket thuc, ma loi = 1
 o=0: +50 (tổng 50/1967)
 o=50: +50 (tổng 100/1967)
 o=100: +50 (tổng 150/1967)
+==== Thu 11/26/2026 13:16:16.65 ====
+== Thu thập chotot ...
+o=0: +50 (tổng 50/2094)
+o=50: +50 (tổng 100/2094)
+o=100: +50 (tổng 150/2094)
+o=150: +50 (tổng 200/2094)
+o=200: +50 (tổng 250/2094)
+o=250: +50 (tổng 300/2094)
+o=300: +50 (tổng 350/2094)
+o=350: +50 (tổng 400/2094)
+o=400: +50 (tổng 450/2094)
+o=450: +50 (tổng 500/2094)
+o=500: +50 (tổng 550/2094)
+o=550: +50 (tổng 600/2094)
+o=600: +50 (tổng 650/2094)
+o=650: +50 (tổng 700/2094)
+o=700: +50 (tổng 750/2094)
+o=750: +50 (tổng 800/2094)
+o=800: +50 (tổng 850/2094)
+o=850: +50 (tổng 900/2094)
+o=900: +50 (tổng 950/2094)
+o=950: +50 (tổng 1000/2094)
+o=1000: +50 (tổng 1050/2094)
+o=1050: +50 (tổng 1100/2094)
+o=1100: +50 (tổng 1150/2094)
+o=1150: +50 (tổng 1200/2094)
+o=1200: +50 (tổng 1250/2094)
+o=1250: +50 (tổng 1300/2094)
+o=1300: +50 (tổng 1350/2094)
+o=1350: +50 (tổng 1400/2094)
+o=1400: +50 (tổng 1450/2094)
+o=1450: +50 (tổng 1500/2094)
+o=1500: +50 (tổng 1550/2094)
+o=1550: +50 (tổng 1600/2094)
+o=1600: +50 (tổng 1650/2094)
+o=1650: +50 (tổng 1700/2094)
+o=1700: +50 (tổng 1750/2094)
+o=1750: +50 (tổng 1800/2094)
+o=1800: +50 (tổng 1850/2094)
+o=1850: +50 (tổng 1900/2094)
+o=1900: +50 (tổng 1950/2094)
+o=1950: +50 (tổng 2000/2094)
+o=2000: +50 (tổng 2050/2094)
+o=2050: +44 (tổng 2094/2094)
+Bảng mã học từ dữ liệu: {'house_type': {1: 'Nhà mặt tiền', 3: 'Nhà hẻm', 4: 'Nhà liền kề', 2: 'Biệt thự'}, 'property_legal_document': {1: 'Đã có sổ', 5: 'Sổ chung / công chứng vi bằng', 2: 'Đang chờ sổ', 6: 'Giấy tờ viết tay', 4: 'Không có sổ'}, 'furnishing_sell': {2: 'Nội thất đầy đủ', 3: 'Hoàn thiện cơ bản', 1: 'Nội thất cao cấp', 4: 'Bàn giao thô'}, 'direction': {6: 'Hướng Đông Nam', 1: 'Hướng Đông', 4: 'Hướng Bắc', 3: 'Hướng Nam', 2: 'Hướng Tây', 5: 'Hướng Đông Bắc', 8: 'Hướng Tây Nam', 7: 'Hướng Tây Bắc'}, 'pc': {2: 'Hẻm xe hơi', 9: 'Hiện trạng khác', 3: 'Nhà nở hậu', 6: 'Nhà chưa hoàn công', 5: 'Nhà dính quy hoạch / lộ giới', 7: 'Nhà nát', 8: 'Đất chưa chuyển thổ'}}
+Đã lưu 2094 tin -> D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\data\raw\chotot_binh_duong_raw.csv
+   đã lưu ảnh chụp: data\lich_su\chotot_2026-11-26.csv (2094 tin)
+== Thu thập alonhadat ...
+nha-mat-tien trang 1 + 20 tổng 20
+nha-mat-tien trang 2 + 20 tổng 40
+nha-mat-tien trang 3 + 20 tổng 60
+nha-mat-tien trang 4 + 17 tổng 77
+nha-mat-tien trang 5 + 0 tổng 77
+nha-trong-hem trang 1 + 20 tổng 97
+nha-trong-hem trang 2 + 20 tổng 117
+retry 0 The read operation timed out - chờ 5s
+nha-trong-hem trang 3 + 20 tổng 137
+nha-trong-hem trang 4 + 20 tổng 157
+nha-trong-hem trang 5 + 20 tổng 177
+retry 0 The read operation timed out - chờ 5s
+nha-trong-hem trang 6 + 20 tổng 197
+nha-trong-hem trang 7 + 20 tổng 217
+nha-trong-hem trang 8 + 7 tổng 224
+nha-trong-hem trang 9 + 0 tổng 224
+biet-thu-nha-lien-ke trang 1 + 20 tổng 244
+biet-thu-nha-lien-ke trang 2 + 20 tổng 264
+biet-thu-nha-lien-ke trang 3 + 5 tổng 269
+biet-thu-nha-lien-ke trang 4 + 0 tổng 269
+Đã lưu 269 tin -> D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\data\raw\alonhadat_tdm_raw.csv
+   đã lưu ảnh chụp: data\lich_su\alonhadat_2026-11-26.csv (269 tin)
+== Thu thập chotot_can_ho ...
+o=0: +50 (tổng 50/2039)
+o=50: +50 (tổng 100/2039)
+o=100: +50 (tổng 150/2039)
+o=150: +50 (tổng 200/2039)
+o=200: +50 (tổng 250/2039)
+o=250: +50 (tổng 300/2039)
+o=300: +50 (tổng 350/2039)
+o=350: +50 (tổng 400/2039)
+o=400: +50 (tổng 450/2039)
+o=450: +50 (tổng 500/2039)
+o=500: +50 (tổng 550/2039)
+o=550: +50 (tổng 600/2039)
+o=600: +50 (tổng 650/2039)
+o=650: +50 (tổng 700/2039)
+o=700: +50 (tổng 750/2039)
+o=750: +50 (tổng 800/2039)
+o=800: +50 (tổng 850/2039)
+o=850: +50 (tổng 900/2039)
+o=900: +50 (tổng 950/2039)
+o=950: +50 (tổng 1000/2039)
+o=1000: +50 (tổng 1050/2039)
+o=1050: +50 (tổng 1100/2039)
+o=1100: +50 (tổng 1150/2039)
+o=1150: +50 (tổng 1200/2039)
+o=1200: +50 (tổng 1250/2039)
+o=1250: +50 (tổng 1300/2039)
+o=1300: +50 (tổng 1350/2039)
+o=1350: +50 (tổng 1400/2039)
+o=1400: +50 (tổng 1450/2039)
+o=1450: +50 (tổng 1500/2039)
+o=1500: +50 (tổng 1550/2039)
+o=1550: +50 (tổng 1600/2039)
+o=1600: +50 (tổng 1650/2039)
+o=1650: +50 (tổng 1700/2039)
+o=1700: +50 (tổng 1750/2039)
+o=1750: +50 (tổng 1800/2039)
+o=1800: +50 (tổng 1850/2039)
+o=1850: +50 (tổng 1900/2039)
+o=1900: +50 (tổng 1950/2039)
+o=1950: +50 (tổng 2000/2039)
+o=2000: +39 (tổng 2039/2039)
+Bảng mã học từ dữ liệu: {'property_legal_document': {6: 'Sổ hồng riêng', 5: 'Hợp đồng mua bán', 4: 'Hợp đồng đặt cọc', 2: 'Đang chờ sổ', 1: '1'}, 'furnishing_sell': {2: 'Nội thất đầy đủ', 3: 'Hoàn thiện cơ bản', 1: 'Nội thất cao cấp', 4: 'Bàn giao thô'}, 'apartment_type': {1: 'Chung cư', 7: 'Nhà ở xã hội', 2: 'Căn hộ dịch vụ', 3: 'Duplex', 4: 'Penthouse', 6: 'Officetel', 5: 'Tập thể, cư xá'}, 'direction': {7: 'Hướng Tây Bắc', 8: 'Hướng Tây Nam', 5: 'Hướng Đông Bắc', 6: 'Hướng Đông Nam', 4: 'Hướng Bắc', 1: 'Hướng Đông', 3: 'Hướng Nam', 2: 'Hướng Tây'}, 'property_status': {2: 'Đã bàn giao', 1: 'Chưa bàn giao'}}
+Đã lưu 2039 tin -> D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\data\raw\chotot_can_ho_raw.csv
+   đã lưu ảnh chụp: data\lich_su\chotot_can_ho_2026-11-26.csv (2039 tin)
+== Thu thập alonhadat_can_ho ...
+can-ho-chung-cu trang 1 + 20 tổng 20
+can-ho-chung-cu trang 2 + 0 tổng 20
+Đã lưu 20 tin -> D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\data\raw\alonhadat_can_ho_tdm_raw.csv
+   đã lưu ảnh chụp: data\lich_su\alonhadat_can_ho_2026-11-26.csv (20 tin)
+== Thu thập chotot_dat ...
+o=0: +50 (tổng 50/1201)
+o=50: +50 (tổng 100/1201)
+o=100: +50 (tổng 150/1201)
+o=150: +50 (tổng 200/1201)
+o=200: +50 (tổng 250/1201)
+o=250: +50 (tổng 300/1201)
+o=300: +50 (tổng 350/1201)
+o=350: +50 (tổng 400/1201)
+o=400: +50 (tổng 450/1201)
+o=450: +50 (tổng 500/1201)
+o=500: +50 (tổng 550/1201)
+o=550: +50 (tổng 600/1201)
+o=600: +50 (tổng 650/1201)
+o=650: +50 (tổng 700/1201)
+o=700: +50 (tổng 750/1201)
+o=750: +50 (tổng 800/1201)
+o=800: +50 (tổng 850/1201)
+o=850: +50 (tổng 900/1201)
+o=900: +50 (tổng 950/1201)
+o=950: +50 (tổng 1000/1201)
+o=1000: +50 (tổng 1050/1201)
+o=1050: +50 (tổng 1100/1201)
+o=1100: +50 (tổng 1150/1201)
+o=1150: +50 (tổng 1200/1201)
+o=1200: +1 (tổng 1201/1201)
+Bảng mã học từ dữ liệu: {'property_legal_document': {1: 'Đã có sổ', 5: 'Sổ chung / công chứng vi bằng', 2: 'Đang chờ sổ'}, 'land_type': {1: 'Đất thổ cư', 2: 'Đất nền dự án', 4: 'Đất nông nghiệp', 3: 'Đất công nghiệp'}, 'pc': {1: 'Mặt tiền', 2: 'Hẻm xe hơi', 6: 'Thổ cư toàn bộ', 5: 'Thổ cư 1 phần', 3: 'Nở hậu', 4: 'Chưa có thổ cư'}, 'direction': {6: 'Hướng Đông Nam', 7: 'Hướng Tây Bắc', 3: 'Hướng Nam', 8: 'Hướng Tây Nam', 5: 'Hướng Đông Bắc', 1: 'Hướng Đông', 4: 'Hướng Bắc', 2: 'Hướng Tây'}}
+Đã lưu 1201 tin -> D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\data\raw\chotot_dat_raw.csv
+   đã lưu ảnh chụp: data\lich_su\chotot_dat_2026-11-26.csv (1201 tin)
+== Thu thập alonhadat_dat ...
+dat-tho-cu-dat-o trang 1 + 20 tổng 20
+dat-tho-cu-dat-o trang 2 + 20 tổng 40
+dat-tho-cu-dat-o trang 3 + 20 tổng 60
+dat-tho-cu-dat-o trang 4 + 20 tổng 80
+dat-tho-cu-dat-o trang 5 + 20 tổng 100
+retry 0 The read operation timed out - chờ 5s
+dat-tho-cu-dat-o trang 6 + 20 tổng 120
+dat-tho-cu-dat-o trang 7 + 20 tổng 140
+dat-tho-cu-dat-o trang 8 + 20 tổng 160
+dat-tho-cu-dat-o trang 9 + 20 tổng 180
+dat-tho-cu-dat-o trang 10 + 20 tổng 200
+dat-tho-cu-dat-o trang 11 + 20 tổng 220
+dat-tho-cu-dat-o trang 12 + 20 tổng 240
+dat-tho-cu-dat-o trang 13 + 20 tổng 260
+dat-tho-cu-dat-o trang 14 + 7 tổng 267
+dat-tho-cu-dat-o trang 15 + 0 tổng 267
+dat-nen-lien-ke-dat-du-an trang 1 + 9 tổng 276
+dat-nen-lien-ke-dat-du-an trang 2 + 0 tổng 276
+Đã lưu 276 tin -> D:\Nam 4 HK_I\Hoc May\Bao Cao\Du Doan Gia Nha Phu Hoa\data\raw\alonhadat_dat_tdm_raw.csv
+   đã lưu ảnh chụp: data\lich_su\alonhadat_dat_2026-11-26.csv (276 tin)
+Số tin theo kỳ và nguồn:
+nguon       alonhadat  alonhadat_can_ho  alonhadat_dat  chotot  chotot_can_ho  chotot_dat  guland
+ky                                                                                               
+2026-11-12        NaN               NaN            NaN     NaN            NaN         NaN   190.0
+2026-11-14      281.0               NaN            NaN  2078.0            NaN         NaN     NaN
+2026-11-15      276.0               NaN            NaN  2044.0            NaN         NaN     NaN
+2026-11-17      275.0              20.0          291.0  2084.0         2100.0      1214.0     NaN
+2026-11-24      265.0              20.0          274.0  2032.0         2069.0      1191.0   385.0
+2026-11-26      269.0              20.0          276.0  2094.0         2039.0      1201.0     NaN
+Ngày cập nhật: 2026-11-26 | nguồn lỗi: không
+Ảnh chụp nhà ở: 3/8 tuần (đủ 8 tuần, notebook xu hướng tự kiểm định lùi mô hình dự báo)
+== Chạy lại toàn bộ đề tài với dữ liệu mới
+== 2324801030095 ...
+written 77 cells
+[NbConvertApp] Converting notebook notebooks/2324801030095.ipynb to notebook
+D:\Nam 4 HK_I\Hoc May\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+[NbConvertApp] Writing 979872 bytes to notebooks\2324801030095.ipynb
+   xong (1463 giây)
+== du_doan_gia_can_ho ...
+written 33 cells
+[NbConvertApp] Converting notebook notebooks/du_doan_gia_can_ho.ipynb to notebook
+D:\Nam 4 HK_I\Hoc May\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+[NbConvertApp] Writing 316875 bytes to notebooks\du_doan_gia_can_ho.ipynb
+   xong (215 giây)
+== du_doan_gia_thue ...
+written 20 cells
+[NbConvertApp] Converting notebook notebooks/du_doan_gia_thue.ipynb to notebook
+D:\Nam 4 HK_I\Hoc May\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+[NbConvertApp] Writing 253853 bytes to notebooks\du_doan_gia_thue.ipynb
+   xong (146 giây)
+== du_doan_gia_dat ...
+written 23 cells
+[NbConvertApp] Converting notebook notebooks/du_doan_gia_dat.ipynb to notebook
+D:\Nam 4 HK_I\Hoc May\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+[NbConvertApp] Writing 176170 bytes to notebooks\du_doan_gia_dat.ipynb
+   xong (142 giây)
+== du_doan_xu_huong_gia ...
+written 23 cells
+[NbConvertApp] Converting notebook notebooks/du_doan_xu_huong_gia.ipynb to notebook
+D:\Nam 4 HK_I\Hoc May\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+[NbConvertApp] Writing 188556 bytes to notebooks\du_doan_xu_huong_gia.ipynb
+   xong (39 giây)
+== build_site ...
+written 1500547 | listings: 194 | tokens: {'BEST': 'LightGBM Huber + chữ', 'N_PH': '194', 'N_ALL': '1.882', 'N_RAW': '2.301', 'NGAY': '26/11/2026', 'T_MAPE': '21,7', 'T_LO': '19,0', 'T_HI': '25,0', 'B_MAPE': '30,7', 'V1_MAPE': '28,7', 'T_MDAPE': '16,3', 'B_MDAPE': '23,4', 'V1_MDAPE': '18,4', 'T_W20': '58', 'B_W20': '43', 'WEB_MAPE': '25,6', 'TEST_N': '44', 'TEST_MAPE': '24,4', 'TEST_LO': '18,9', 'TEST_HI': '33,7', 'CH_N': '580', 'CH_DA': '79', 'CH_NGAY': '26/11/2026', 'CH_WEB': '14,6', 'CH_FULL': '12,6', 'DAT_N': '902', 'DAT_TDM': '346', 'DAT_WEB': '27,9', 'DAT_FULL': '26,1', 'N_MAP': '1.894', 'THUE_N': '737', 'PH_ALL_N': '221', 'PH_ALL_MAPE': '21,5', 'PH_ALL_LO': '18,7', 'PH_ALL_HI': '24,6'}
+   xong (10 giây)
+== tro_ly_y_dinh ...
+written 16 cells
+[NbConvertApp] Converting notebook notebooks/tro_ly_y_dinh.ipynb to notebook
+D:\Nam 4 HK_I\Hoc May\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+[NbConvertApp] Writing 228172 bytes to notebooks\tro_ly_y_dinh.ipynb
+   xong (35 giây)
+== build_site_lan_2 ...
+written 1500547 | listings: 194 | tokens: {'BEST': 'LightGBM Huber + chữ', 'N_PH': '194', 'N_ALL': '1.882', 'N_RAW': '2.301', 'NGAY': '26/11/2026', 'T_MAPE': '21,7', 'T_LO': '19,0', 'T_HI': '25,0', 'B_MAPE': '30,7', 'V1_MAPE': '28,7', 'T_MDAPE': '16,3', 'B_MDAPE': '23,4', 'V1_MDAPE': '18,4', 'T_W20': '58', 'B_W20': '43', 'WEB_MAPE': '25,6', 'TEST_N': '44', 'TEST_MAPE': '24,4', 'TEST_LO': '18,9', 'TEST_HI': '33,7', 'CH_N': '580', 'CH_DA': '79', 'CH_NGAY': '26/11/2026', 'CH_WEB': '14,6', 'CH_FULL': '12,6', 'DAT_N': '902', 'DAT_TDM': '346', 'DAT_WEB': '27,9', 'DAT_FULL': '26,1', 'N_MAP': '1.894', 'THUE_N': '737', 'PH_ALL_N': '221', 'PH_ALL_MAPE': '21,5', 'PH_ALL_LO': '18,7', 'PH_ALL_HI': '24,6'}
+   xong (6 giây)
+== cap_nhat_readme ...
+Đã cập nhật bảng kết quả trong README.md
+   xong (0 giây)
+== kiem_tra_mo_hinh ...
+ĐẠT       Đặc trưng giá khu vực không dùng giá của CHÍNH căn đó và các tin cùng nhóm khi học (leave-group-out)
+ĐẠT       Kiểm định chéo theo nhóm: không nhóm nào vừa ở tập học vừa ở tập kiểm tra
+ĐẠT       Gom tin gần trùng: cùng một căn đăng lại (mô tả giống) được gom; căn khác cùng dự án thì không (chế độ căn hộ)
+ĐẠT       Chỉ số đánh giá tính đúng trên ví dụ biết trước
+ĐẠT       Khoảng theo nhóm (Mondrian) phủ đúng ~80% ở CẢ nhóm dễ và nhóm khó
+ĐẠT       Dữ liệu sạch: không có tin cho thuê / giá vô lý; tập test không chung nhóm với tập train
+ĐẠT       Mô hình đã lưu nạp lại được và dự đoán ra số hợp lý
+ĐẠT       Khoảng 80% đã lưu cho nhà phố theo mức giá: nhà đắt có biên độ rộng hơn nhà rẻ
+ĐẠT       Kiểm định lùi xu hướng: không nhìn trước tương lai; Holt chỉ thắng 'không đổi' khi chuỗi có xu hướng thật
+ĐẠT       Dữ liệu gốc đọc lại được và đã ẩn danh: mỗi dòng JSONL là 1 bản ghi hợp lệ (kể cả khi tách dòng kiểu Unicode), không còn thông tin người đăng / số điện thoại
+ĐẠT       Số liệu trong notebook và README khớp kết quả đã lưu: markdown của MỌI notebook không còn số kết quả viết tay; số chính hiện đúng trong phần in ra của notebook chính và README
+ĐẠT       Phần A của notebook mở rộng: chọn siêu tham số bằng kiểm định chéo trên tập train, mô hình tốt nhất đúng là dòng có sai số kiểm định thấp nhất
+
+12/12 phép kiểm đạt
+   xong (26 giây)
+== kiem_tra_tro_ly ...
+ĐẠT       Hiểu đúng ý định: 56/56 câu (yêu cầu ≥ 95%)
+ĐẠT       Trích kích thước 5x20 → 100 m², ngang 5
+ĐẠT       Trích '1 trệt 2 lầu' → 3 tầng; 'cấp 4' → 1 tầng
+ĐẠT       Trích giá '3 tỷ 500' = 3,5 tỷ; '850 triệu' = 0,85 tỷ
+ĐẠT       Trích khoảng giá '2–3 tỷ' (gạch dài) và 'dưới 2,5 tỷ'
+ĐẠT       Trích lối vào: hxh → hẻm xe hơi, mặt tiền → 5, hẻm 6m → hẻm xe tải
+ĐẠT       Nhận đúng dự án dài trước dự án ngắn (Happy One Central ≠ Happy One)
+ĐẠT       'xe hơi' không bị hiểu là 'rẻ'
+ĐẠT       Giá nhà phố trợ lý trả về = mô hình web (predict)
+ĐẠT       Giá căn hộ trợ lý trả về = mô hình căn hộ (bảng dự án + Ridge)
+ĐẠT       Tìm nhà 'dưới 3 tỷ': mọi căn liệt kê đều < 3 tỷ
+ĐẠT       Không có căn khớp → vẫn gợi ý căn có giá gần nhất
+ĐẠT       Nhà ở xã hội dùng khoảng 80% rộng hơn căn hộ thương mại
+ĐẠT       Giá đất trợ lý trả về = mô hình đất nền web (đơn giá phường + Ridge)
+ĐẠT       Đất nền: mặt tiền đắt hơn hẻm, khoảng 80% bao quanh giá
+ĐẠT       Cho thuê: tiền thuê = giá × tỷ suất phường / 12, tỷ suất trong 1–12%/năm
+ĐẠT       Căn hộ cho tỷ suất cho thuê cao hơn nhà phố (đúng kết luận notebook)
+ĐẠT       Hỏi tiếp đất nền: 'nếu là mặt tiền thì sao' vẫn định giá đất, giá tăng
+ĐẠT       Bản đồ: mọi điểm nằm trong Bình Dương cũ, có đơn giá dương
+ĐẠT       Giải thích SHAP của mô hình đầy đủ hiển thị trong chi tiết tin
+ĐẠT       Bản đồ căn hộ: mỗi dự án đúng 1 chấm, đủ căn, căn ngoài TDM vẫn lưu được
+ĐẠT       Trình duyệt tính xác suất ý định giống Python (TF-IDF + Logistic Regression)
+ĐẠT       Tập kiểm tra viết riêng: trợ lý hiểu đúng ≥ 90% và hơn luật cũ
+ĐẠT       Câu ngoài phạm vi / mơ hồ: từ chối hoặc hỏi lại, không trả lời bừa
+ĐẠT       Xu hướng theo kỳ hạn: '3 tháng', 'nửa năm', '2 năm' đứng đầu bảng; 6 và 12 tháng giữ đúng số notebook; > 24 tháng không đưa số
+ĐẠT       Hỏi tiếp giữ ngữ cảnh: '80m² 1 trệt 1 lầu' → 'nếu là mặt tiền' → 'còn 120m²'
+ĐẠT       Hỏi tiếp sau tìm nhà: 'rẻ hơn thị trường thôi' giữ khoảng giá
+ĐẠT       Chế độ AI: công cụ định giá trả ĐÚNG số của mô hình (giống trợ lý ngoại tuyến)
+ĐẠT       Chế độ AI: lược đồ công cụ hợp lệ; tham số sai bị chặn trước khi chạy
+ĐẠT       Chế độ AI: khóa API không nằm trong file trang; câu trả lời của Claude được escape
+ĐẠT       Mọi phần tử mã trang gọi bằng $('id') đều có trong HTML (DOM giả của kiểm thử không bắt được lỗi này)
+ĐẠT       Chế độ AI: nhập khóa một lần – mở lại trang tự bật (ghi nhớ mặc định); tắt thì xóa sạch
+ĐẠT       Gemini: nhận đúng loại khóa; lược đồ công cụ hợp lệ với Gemini (không additionalProperties, công cụ không tham số bỏ parameters)
+ĐẠT       Gemini: mô hình mặc định là Flash ổn định mới nhất (bỏ preview, lite)
+ĐẠT       Groq: nhận khóa gsk_; mô hình mặc định gpt-oss-120b; bảng markdown hiển thị thành bảng
+ĐẠT       Khóa mặc định của máy (demo/khoa_ai.local.js): tự bật Groq; đã tắt thì không tự bật; khóa đã lưu được ưu tiên; file khóa không lên git
+ĐẠT       Chế độ AI: vòng lặp công cụ – Claude gọi định giá, trang chạy hàm thật, Claude trả lời; hội thoại nhớ ngữ cảnh
+ĐẠT       Chế độ AI: tham số sai thì trả lỗi cho Claude, không chạy công cụ; Haiku không gửi fallbacks
+ĐẠT       Chế độ AI: lỗi API (khóa sai) báo lỗi và KHÔNG làm hỏng lịch sử hội thoại
+ĐẠT       Chế độ AI: Claude từ chối thì bỏ cả lượt, trang dùng trợ lý ngoại tuyến
+ĐẠT       Gemini: bật bằng khóa – gọi models.list kiểm khóa, lọc mô hình trò chuyện, lưu; khóa sai thì giữ nguyên trạng thái cũ
+ĐẠT       Gemini: khóa liệt kê được mô hình nhưng bị từ chối gọi (403) – báo ngay khi bật, kèm nguyên nhân và thông báo gốc của Google
+ĐẠT       Gemini: vòng lặp công cụ – gửi đúng yêu cầu, chạy hàm thật, trả functionResponse kèm id, giữ nguyên thoughtSignature
+ĐẠT       Gemini: bị chặn vì an toàn thì bỏ lượt; lỗi 429 báo lỗi và giữ nguyên lịch sử
+ĐẠT       Groq: bật khóa (lọc mô hình trò chuyện, gửi thử), vòng lặp công cụ đúng chuẩn OpenAI, hết hạn mức thì chuyển mô hình
+ĐẠT       Groq: câu hỏi sau rút gọn kết quả công cụ cũ; tạo lời gọi công cụ sai thì gửi lại; khóa sai báo đúng lỗi, lịch sử giữ nguyên
+
+46/46 phép kiểm đạt
+   xong (1 giây)
+HOÀN TẤT: mọi notebook, trang demo và kiểm thử đã chạy lại.
+Ket thuc, ma loi = 0 
