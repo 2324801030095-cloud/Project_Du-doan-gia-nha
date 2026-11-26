@@ -2,15 +2,10 @@
 import { Building2, House, LandPlot, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import type { DanhMuc } from "@/lib/api";
-import { LOI_VAO, so, ty } from "@/lib/format";
-import { GiaiThich } from "./giai-thich";
+import { LOI_VAO } from "@/lib/format";
+import { KetQuaDinhGia, type KetQua } from "./ket-qua-dinh-gia";
 
 type Loai = "nha-pho" | "can-ho" | "dat";
-type KetQua = {
-  gia_ty: number; khoang_80_ty: [number, number]; khoang_50_ty?: [number, number]; don_gia_trieu_m2: number; mo_hinh: string;
-  thue_trieu_thang?: number; ty_suat_pt?: number; giai_thich?: { nhom: { nhom: string; log: number }[] } | null;
-  du_an_nhan_ra?: boolean; phuong_co_du_lieu?: boolean; don_gia_nen_phuong?: number; da_luu?: boolean;
-};
 
 const TAB: { k: Loai; ten: string; icon: React.ReactNode }[] = [
   { k: "nha-pho", ten: "Nhà phố", icon: <House size={16} /> },
@@ -70,9 +65,9 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-5">
-      <div className="the p-6 lg:col-span-3">
-        <div className="mb-5 flex gap-2 rounded-xl bg-navy-50 p-1" role="tablist">
+    <div className="space-y-6">
+      <div className="the p-6">
+        <div className="mb-5 flex max-w-xl gap-2 rounded-xl bg-navy-50 p-1" role="tablist">
           {TAB.map((t) => (
             <button key={t.k} role="tab" aria-selected={loai === t.k} onClick={() => { setLoai(t.k); setKq(null); setLoi(""); }}
               className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${loai === t.k ? "bg-white text-navy-900 shadow-sm" : "text-slate-500 hover:text-navy-800"}`}>
@@ -80,7 +75,7 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
             </button>
           ))}
         </div>
-        <form key={loai} onSubmit={gui} className="grid gap-x-4 gap-y-3 sm:grid-cols-2 xl:grid-cols-3">
+        <form key={loai} onSubmit={gui} className="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
           {loai === "nha-pho" && (
             <>
               <O ten="Diện tích đất (m²) *"><So name="dt_dat" req min={15} max={5000} def={80} /></O>
@@ -149,44 +144,14 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
           )}
           {/* nút luôn nằm trong tầm nhìn: dính đáy màn hình khi form dài hơn cửa sổ */}
           <div className="sticky bottom-0 z-10 -mx-6 -mb-6 mt-2 border-t border-navy-100 bg-white/95 px-6 py-4 backdrop-blur sm:col-span-full">
-            <button className="nut-vang w-full py-3 text-base" disabled={dang}>
+            <button className="nut-vang mx-auto flex w-full max-w-md py-3 text-base" disabled={dang}>
               {dang && <LoaderCircle size={18} className="animate-spin" />} Định giá
             </button>
           </div>
         </form>
       </div>
 
-      <div className="lg:col-span-2">
-        <div className="the p-6" aria-live="polite">
-          {loi && <p className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{loi}</p>}
-          {!kq && !loi && <p className="py-10 text-center text-slate-500">Nhập thông số và bấm <b>Định giá</b>.</p>}
-          {kq && (
-            <div className="space-y-5">
-              <div>
-                <p className="nhan">Giá ước lượng</p>
-                <p className="text-4xl font-bold text-navy-900">{ty(kq.gia_ty)}</p>
-                <p className="text-sm text-slate-500">{so(kq.don_gia_trieu_m2)} triệu/m² · {kq.mo_hinh}</p>
-              </div>
-              <div className="rounded-xl bg-navy-50 p-4">
-                <p className="text-sm text-slate-600">Khoảng 80%: <b className="text-navy-900">{ty(kq.khoang_80_ty[0])} – {ty(kq.khoang_80_ty[1])}</b></p>
-                {kq.khoang_50_ty && <p className="text-sm text-slate-600">Khoảng 50%: {ty(kq.khoang_50_ty[0])} – {ty(kq.khoang_50_ty[1])}</p>}
-              </div>
-              {kq.thue_trieu_thang !== undefined && (
-                <p className="text-sm text-slate-600">Cho thuê ước tính <b>{so(kq.thue_trieu_thang)} triệu/tháng</b> (tỷ suất {so(kq.ty_suat_pt)}%/năm).</p>
-              )}
-              {kq.du_an_nhan_ra === false && <p className="text-sm text-amber-700">Không nhận ra dự án: mô hình dùng mặt bằng giá của phường.</p>}
-              {kq.phuong_co_du_lieu === false && <p className="text-sm text-amber-700">Phường ít dữ liệu: dùng mặt bằng giá của quận.</p>}
-              {kq.giai_thich && (
-                <div>
-                  <p className="mb-3 font-semibold">Yếu tố làm giá cao / thấp</p>
-                  <GiaiThich nhom={kq.giai_thich.nhom} chuThich="So với căn trung bình trong dữ liệu (đóng góp theo đường đi trên cây của Random Forest)." />
-                </div>
-              )}
-              <p className="text-xs text-slate-400">{kq.da_luu ? "Đã lưu vào lịch sử định giá của bạn." : "Đăng nhập để lưu kết quả."} Đây là giá rao ước lượng, không phải giá giao dịch.</p>
-            </div>
-          )}
-        </div>
-      </div>
+      <KetQuaDinhGia kq={kq} loi={loi} dang={dang} />
     </div>
   );
 }

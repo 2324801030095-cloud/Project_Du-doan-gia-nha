@@ -48,6 +48,22 @@
   @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500;
 }
 
+/* Minh họa tiền ở khung kết quả định giá */
+@keyframes troi { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+@keyframes xoay { from { transform: rotateY(0) } to { transform: rotateY(360deg) } }
+@keyframes lac { 0%, 100% { transform: rotate(-3deg) } 50% { transform: rotate(3deg) } }
+@keyframes lap-lanh { 0%, 100% { opacity: 0.2 } 50% { opacity: 1 } }
+.xu-troi { animation: troi 3s ease-in-out infinite; transform-box: fill-box; }
+.xu-troi.tre { animation-delay: -1.5s; }
+.xu-xoay { animation: xoay 0.9s linear infinite; transform-box: fill-box; transform-origin: center; }
+.xu-xoay.cham { animation-duration: 1.4s; }
+.tien-lac { animation: lac 4s ease-in-out infinite; }
+.tien-lac.nhanh { animation-duration: 0.8s; }
+.lap-lanh { animation: lap-lanh 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .xu-troi, .xu-xoay, .tien-lac, .lap-lanh { animation: none; }
+}
+
 /* Leaflet dùng ảnh nền & z-index riêng */
 .leaflet-container {
   @apply rounded-2xl;

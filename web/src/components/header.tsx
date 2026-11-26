@@ -19,7 +19,7 @@ export async function Header() {
   const phien = await layPhien();
   const nguoi = phien ? { ten: phien.user.name, email: phien.user.email, admin: phien.user.role === "admin" } : null;
   return (
-    <header className="sticky top-0 z-[1000] border-b border-navy-100 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-[1000] border-b border-navy-100 bg-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 font-bold text-navy-900">
           <span className="grid size-9 place-items-center rounded-xl bg-navy-800 text-gold-400"><House size={18} /></span>
