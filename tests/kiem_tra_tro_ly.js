@@ -1,4 +1,4 @@
-// Kiểm thử tự động cho trợ lý hỏi đáp trên trang demo (web/index.html).
+// Kiểm thử tự động cho trợ lý hỏi đáp trên trang demo (demo/index.html).
 // Chạy từ thư mục gốc đề tài:  node tests/kiem_tra_tro_ly.js
 // 1) Hiểu đúng ý định với nhiều cách hỏi (có dấu, không dấu, viết tắt)  2) trích đúng thông tin
 // 3) con số trả lời khớp đúng mô hình  4) nhớ ngữ cảnh khi hỏi tiếp.
@@ -173,14 +173,14 @@ kiem("Chế độ AI: lược đồ công cụ hợp lệ; tham số sai bị ch
   return T.kiemThamSo(sc, { dien_tich_m2: 80, so_tang: 2, loi_vao: "mat_tien", phuong: "Phú Hòa" }) || "";
 });
 kiem("Chế độ AI: khóa API không nằm trong file trang; câu trả lời của Claude được escape", () => {
-  const html = require("fs").readFileSync(require("path").join(__dirname, "..", "web", "index.html"), "utf8");
+  const html = require("fs").readFileSync(require("path").join(__dirname, "..", "demo", "index.html"), "utf8");
   if (/sk-ant-[A-Za-z0-9_-]{10}/.test(html)) return "file trang chứa chuỗi giống khóa API";
   const h = T.aiMd("<img src=x onerror=alert(1)> **3,2 tỷ**\n- ý 1");
   return /<img/.test(h) || !/<b>3,2 tỷ<\/b>/.test(h) || !/<li>ý 1<\/li>/.test(h) ? h : "";
 });
 
 kiem("Mọi phần tử mã trang gọi bằng $('id') đều có trong HTML (DOM giả của kiểm thử không bắt được lỗi này)", () => {
-  const h = require("fs").readFileSync(require("path").join(__dirname, "..", "web", "index.html"), "utf8");
+  const h = require("fs").readFileSync(require("path").join(__dirname, "..", "demo", "index.html"), "utf8");
   const ids = new Set([...h.matchAll(/id="([^"$]+)"/g)].map((m) => m[1]));
   const thieu = [...new Set([...h.matchAll(/\$\("([a-z0-9_-]+)"\)/g)].map((m) => m[1]))].filter((x) => !ids.has(x));
   return thieu.length ? "thiếu id: " + thieu.join(", ") : "";
@@ -410,7 +410,7 @@ kiemAsync("Groq: câu hỏi sau rút gọn kết quả công cụ cũ; tạo l�
   } finally { T.AI.goi = null; Object.assign(T.AI, { key: "", nha: "claude", model: "claude-opus-5-5", ds: [], msgs: [] }); }
 });
 
-kiem("Khóa mặc định của máy (web/khoa_ai.local.js): tự bật Groq; đã tắt thì không tự bật; khóa đã lưu được ưu tiên; file khóa không lên git", () => {
+kiem("Khóa mặc định của máy (demo/khoa_ai.local.js): tự bật Groq; đã tắt thì không tự bật; khóa đã lưu được ưu tiên; file khóa không lên git", () => {
   const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
   const cu = [global.localStorage, globalThis.PHH_KHOA_MAC_DINH]; global.localStorage = kho(); globalThis.PHH_KHOA_MAC_DINH = "gsk_khoa-mac-dinh";
   try {
@@ -421,7 +421,7 @@ kiem("Khóa mặc định của máy (web/khoa_ai.local.js): tự bật Groq; đ
     T.AI.key = ""; global.localStorage.setItem("phh_ai_tat", "1");
     if (T.aiKhoaMacDinh() || T.AI.key) return "đã tắt mà vẫn tự bật";
     const gi = require("fs").readFileSync(require("path").join(__dirname, "..", ".gitignore"), "utf8");
-    return /^web\/khoa_ai\.local\.js$/m.test(gi) ? "" : "file khóa chưa nằm trong .gitignore";
+    return /^demo\/khoa_ai\.local\.js$/m.test(gi) ? "" : "file khóa chưa nằm trong .gitignore";
   } finally { [global.localStorage, globalThis.PHH_KHOA_MAC_DINH] = cu; Object.assign(T.AI, { key: "", nha: "claude", model: "claude-opus-5-5", ds: [], macDinh: false }); }
 });
 (async () => {

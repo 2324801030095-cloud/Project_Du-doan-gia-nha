@@ -19,4 +19,11 @@ catboost_info/
 .playwright-mcp/
 
 # khóa AI riêng của máy này – không đưa lên GitHub
-web/khoa_ai.local.js
+demo/khoa_ai.local.js
+
+# web app: biến môi trường (khóa, mật khẩu CSDL) và file sinh ra khi build
+.env
+.env.local
+web/.next/
+web/node_modules/
+

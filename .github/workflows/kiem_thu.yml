@@ -1,13 +1,13 @@
-# Chạy 2 bộ kiểm thử mỗi lần đẩy lên GitHub hoặc mở pull request.
-# Không chạy lại notebook (mất ~6 phút và cần dữ liệu thu thập): dùng mô hình và dữ liệu đã lưu trong repo.
-# Chạy lại toàn bộ trên máy: python scripts/chay_toan_bo.py
+# Chạy kiểm thử mỗi lần đẩy lên GitHub hoặc mở pull request.
+# Không chạy lại notebook (mất vài phút và cần dữ liệu thu thập): dùng mô hình và dữ liệu đã lưu trong repo.
+# Chạy lại toàn bộ trên máy: python scripts/chay_toan_bo.py ; kiểm thử web đầu-cuối: docker compose up -d && node tests/kiem_tra_web.mjs
 name: Kiểm thử
 on:
   push:
   pull_request:
   workflow_dispatch:
 jobs:
-  kiem-thu:
+  mo-hinh-va-api:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -22,5 +22,22 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Kiểm thử mô hình và dữ liệu (12 phép)
         run: python -X utf8 tests/kiem_tra_mo_hinh.py
-      - name: Kiểm thử trang demo và trợ lý (46 phép)
+      - name: Kiểm thử API mô hình (8 phép)
+        run: python -X utf8 tests/kiem_tra_api.py
+      - name: Kiểm thử bản tĩnh và trợ lý (46 phép)
         run: node tests/kiem_tra_tro_ly.js
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - run: corepack enable && pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm build

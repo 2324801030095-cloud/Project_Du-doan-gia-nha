@@ -22,7 +22,7 @@ GOC = pathlib.Path(__file__).resolve().parent.parent
 PY = sys.executable
 nb = lambda ten: [PY, "-m", "jupyter", "nbconvert", "--to", "notebook", "--execute", "--inplace",
                   "--ExecutePreprocessor.timeout=3600", f"notebooks/{ten}.ipynb"]
-TRANG = [PY, "-X", "utf8", "web/build/build_site.py"]
+TRANG = [PY, "-X", "utf8", "demo/build/build_site.py"]
 BUOC = [
     ("2324801030095", nb("2324801030095")),
     ("du_doan_gia_can_ho", nb("du_doan_gia_can_ho")),
@@ -34,6 +34,7 @@ BUOC = [
     ("build_site_lan_2", TRANG),
     ("cap_nhat_readme", [PY, "-X", "utf8", "scripts/chay_toan_bo.py", "--readme"]),     # bảng kết quả README lấy từ models/*.json
     ("kiem_tra_mo_hinh", [PY, "-X", "utf8", "tests/kiem_tra_mo_hinh.py"]),
+    ("kiem_tra_api", [PY, "-X", "utf8", "tests/kiem_tra_api.py"]),
     ("kiem_tra_tro_ly", ["node", "tests/kiem_tra_tro_ly.js"]),
 ]
 # notebook -> file sinh ra nó trong scripts/sinh_notebook/
@@ -98,4 +99,7 @@ if __name__ == "__main__":
     if "--thu-thap" in sys.argv:
         subprocess.run([PY, "-X", "utf8", "scripts/cap_nhat_dinh_ky.py", "--khong-chay-lai"], cwd=GOC)   # nguồn lỗi thì vẫn chạy tiếp với dữ liệu cũ
     chay(buoc)
+    # Web đang chạy bằng Docker: khởi động lại dịch vụ mô hình để nạp mô hình / dữ liệu vừa sinh (models/ được gắn vào container)
+    if shutil.which("docker") and subprocess.run(["docker", "compose", "ps", "--status", "running", "-q", "api"], cwd=GOC, capture_output=True, text=True).stdout.strip():
+        subprocess.run(["docker", "compose", "restart", "api"], cwd=GOC)
     print("HOÀN TẤT: mọi notebook, trang demo và kiểm thử đã chạy lại.")

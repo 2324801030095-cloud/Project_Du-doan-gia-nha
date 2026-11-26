@@ -1,7 +1,7 @@
-"""Dựng lại trang demo sau khi chạy lại 2 notebook:  python web/build/build_site.py
+"""Dựng lại trang demo sau khi chạy lại 2 notebook:  python demo/build/build_site.py
 Đọc: models/mo_hinh_gia_nha.json (mô hình Ridge rút gọn cho trình duyệt), models/danh_gia_mo_hinh.json,
      models/xu_huong_gia.json, dataset/processed/*_da_xu_ly.csv (+ các file dataset/raw/*_raw.csv để lấy tên đường/hướng có dấu).
-Ghi: web/index.html"""
+Ghi: demo/index.html (bản tĩnh chạy offline) và models/du_lieu_web.json (dữ liệu cho web/ và api/)"""
 import json
 import os
 import re
@@ -221,3 +221,13 @@ out = tpl.replace("<!--@@ICONS@@-->", "<!-- Icon: Lucide (ISC) -->\n" + sprite).
 assert "@@" not in out.replace("<!--@@", "").replace("/*@@", ""), re.findall(r"@@\w+@@", out)
 open(os.path.join(DEMO, "index.html"), "w", encoding="utf-8").write(out)
 print("written", len(out), "| listings:", len(L), "| tokens:", TOK)
+
+# ---- cùng dữ liệu đó cho ứng dụng web (web/ + api/): models/du_lieu_web.json ----
+du_lieu = {}
+for x in data:
+    m = re.match(r"const (\w+) = (.*);$", x, re.DOTALL)
+    if m:
+        du_lieu[m.group(1)] = json.loads(m.group(2))
+du_lieu["SO_LIEU"] = TOK                                # các con số tĩnh của trang (số căn, MAPE...)
+json.dump(du_lieu, open(J("models", "du_lieu_web.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+print("models/du_lieu_web.json:", sorted(du_lieu))

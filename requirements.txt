@@ -14,3 +14,7 @@ ipykernel==7.3.0
 nbformat==5.11.1
 nbconvert==7.17.2
 # Kiểm thử trợ lý trên trang demo cần Node.js (>= 18), không cài qua pip.
+# Dịch vụ mô hình (api/) và kiểm thử của nó
+fastapi==0.165.0
+uvicorn[standard]==0.54.0
+httpx==0.28.1

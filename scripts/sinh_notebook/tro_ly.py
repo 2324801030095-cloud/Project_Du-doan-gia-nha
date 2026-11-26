@@ -231,7 +231,7 @@ md(r"""
 
 md(r"""
 ## Bước 5: Lưu mô hình cho trang web
-`models/tro_ly_y_dinh.joblib` chứa bộ đặc trưng TF-IDF, mô hình Logistic Regression, chiến lược kết hợp, câu ví dụ cho từng ý định (dùng làm gợi ý khi hỏi lại), và vài câu mẫu kèm xác suất do Python tính, để kiểm thử tự động xác nhận trình duyệt tính **giống hệt** Python. Script `web/build/build_site.py` đọc file này và nhúng tham số vào trang.
+`models/tro_ly_y_dinh.joblib` chứa bộ đặc trưng TF-IDF, mô hình Logistic Regression, chiến lược kết hợp, câu ví dụ cho từng ý định (dùng làm gợi ý khi hỏi lại), và vài câu mẫu kèm xác suất do Python tính, để kiểm thử tự động xác nhận trình duyệt tính **giống hệt** Python. Script `demo/build/build_site.py` đọc file này và nhúng tham số vào trang.
 """)
 
 code(r"""

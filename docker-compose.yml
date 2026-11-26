@@ -1,0 +1,52 @@
+# Chạy cả hệ thống trên máy:  docker compose up -d --build   rồi mở http://localhost:3000
+# Biến bí mật (mật khẩu CSDL, khóa phiên, tài khoản admin, khóa Groq) đặt trong file .env cạnh file này (xem .env.example).
+name: gia-nha-phu-hoa
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: phuhoa
+      POSTGRES_USER: phuhoa
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?đặt POSTGRES_PASSWORD trong .env}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    ports: ["127.0.0.1:5433:5432"]   # chỉ mở cho máy này (để xem CSDL khi phát triển)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U phuhoa -d phuhoa"]
+      interval: 5s
+      retries: 20
+
+  api:
+    build: { context: ., dockerfile: api/Dockerfile }
+    restart: unless-stopped
+    volumes:   # dùng mô hình / dữ liệu mới nhất do notebook sinh ra (scripts/chay_toan_bo.py tự restart api sau khi chạy)
+      - ./models:/app/models:ro
+      - ./dataset/processed:/app/dataset/processed:ro
+    ports: ["127.0.0.1:8000:8000"]   # tài liệu API: http://localhost:8000/docs
+
+  migrate:
+    build: { context: ./web, target: migrate }
+    environment:
+      DATABASE_URL: postgres://phuhoa:${POSTGRES_PASSWORD}@db:5432/phuhoa
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    depends_on:
+      db: { condition: service_healthy }
+
+  web:
+    build: { context: ./web, target: run }
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://phuhoa:${POSTGRES_PASSWORD}@db:5432/phuhoa
+      MODEL_API_URL: http://api:8000
+      BETTER_AUTH_URL: ${PUBLIC_URL:-http://localhost:3000}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?đặt BETTER_AUTH_SECRET trong .env}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    ports: ["3000:3000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      api: { condition: service_healthy }
+
+volumes:
+  pgdata:

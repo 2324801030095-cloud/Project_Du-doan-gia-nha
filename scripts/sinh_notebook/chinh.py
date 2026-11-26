@@ -1199,7 +1199,7 @@ nx(f'''**Đọc kết quả ba phép kiểm:**
 md(r"""
 ## Bước 12: Lưu mô hình và hàm dự đoán
 - Huấn luyện lại mô hình đã chọn trên **toàn bộ** dữ liệu sạch → `models/mo_hinh_gia_nha.joblib` (kèm phân vị sai số để tính khoảng tin cậy).
-- `models/mo_hinh_gia_nha.json`: **mô hình rút gọn** (Ridge, 11 thông số người dùng nhập được) cho trang demo `web/index.html` tính ngay trên trình duyệt. Mô hình này huấn luyện lại trên dữ liệu Phú Hòa mới, các thông số được **chặn trên ở phân vị 97%** để mô hình tuyến tính không ngoại suy quá đà. Sai số kiểm định chéo của nó được ghi kèm để trang demo hiển thị trung thực.
+- `models/mo_hinh_gia_nha.json`: **mô hình rút gọn** (Ridge, 11 thông số người dùng nhập được) cho trang demo `demo/index.html` tính ngay trên trình duyệt. Mô hình này huấn luyện lại trên dữ liệu Phú Hòa mới, các thông số được **chặn trên ở phân vị 97%** để mô hình tuyến tính không ngoại suy quá đà. Sai số kiểm định chéo của nó được ghi kèm để trang demo hiển thị trung thực.
 - `dataset/processed/nha_da_xu_ly.csv`: dữ liệu sạch + giá ước lượng (notebook xu hướng dùng lại).
 """)
 

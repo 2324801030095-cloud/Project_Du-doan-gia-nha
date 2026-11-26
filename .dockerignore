@@ -1,0 +1,8 @@
+# Ngữ cảnh build của api/Dockerfile là thư mục gốc: chỉ cần src/, models/, dataset/processed/, api/
+**
+!src/**
+!models/**
+!dataset/processed/nha_da_xu_ly.csv
+!dataset/processed/can_ho_da_xu_ly.csv
+!api/**
+**/__pycache__
