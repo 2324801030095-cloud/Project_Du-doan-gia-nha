@@ -9,7 +9,7 @@ export default async function Page(props: PageProps<"/dinh-gia">) {
   const { loai } = (await props.searchParams) as { loai?: string };
   const [dm, phien] = await Promise.all([goiApi<DanhMuc>("/danh-muc"), layPhien()]);
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <header>
         <h1 className="text-3xl font-bold">Định giá bằng mô hình học máy</h1>
         <p className="mt-2 max-w-3xl text-slate-600">

@@ -18,9 +18,9 @@ const TAB: { k: Loai; ten: string; icon: React.ReactNode }[] = [
   { k: "dat", ten: "Đất", icon: <LandPlot size={16} /> },
 ];
 
-function O({ ten, children, goiY }: { ten: string; children: React.ReactNode; goiY?: string }) {
+function O({ ten, children, goiY, rong }: { ten: string; children: React.ReactNode; goiY?: string; rong?: boolean }) {
   return (
-    <label className="block">
+    <label className={rong ? "block sm:col-span-full" : "block"}>
       <span className="nhan">{ten}</span>
       {children}
       {goiY && <span className="mt-1 block text-xs text-slate-400">{goiY}</span>}
@@ -72,7 +72,7 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
   return (
     <div className="grid gap-6 lg:grid-cols-5">
       <div className="the p-6 lg:col-span-3">
-        <div className="mb-6 flex gap-2 rounded-xl bg-navy-50 p-1" role="tablist">
+        <div className="mb-5 flex gap-2 rounded-xl bg-navy-50 p-1" role="tablist">
           {TAB.map((t) => (
             <button key={t.k} role="tab" aria-selected={loai === t.k} onClick={() => { setLoai(t.k); setKq(null); setLoi(""); }}
               className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${loai === t.k ? "bg-white text-navy-900 shadow-sm" : "text-slate-500 hover:text-navy-800"}`}>
@@ -80,7 +80,7 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
             </button>
           ))}
         </div>
-        <form key={loai} onSubmit={gui} className="grid gap-4 sm:grid-cols-2">
+        <form key={loai} onSubmit={gui} className="grid gap-x-4 gap-y-3 sm:grid-cols-2 xl:grid-cols-3">
           {loai === "nha-pho" && (
             <>
               <O ten="Diện tích đất (m²) *"><So name="dt_dat" req min={15} max={5000} def={80} /></O>
@@ -101,9 +101,9 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
                 <input name="duong" list="duong-ph" className="o-nhap" placeholder="Nguyễn Thị Minh Khai" />
                 <datalist id="duong-ph">{danhMuc.duong_phu_hoa.map((d) => <option key={d} value={d} />)}</datalist>
               </O>
-              <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="mat_tien_duong" className="size-4" /> Nhà mặt tiền đường</label>
-              <O ten="Mô tả thêm (không bắt buộc)" goiY="Mô hình đọc từ khóa: sổ riêng, khu dân cư, nhà mới, hẻm xe hơi…">
-                <textarea name="mo_ta" rows={2} maxLength={4000} className="o-nhap" placeholder="1 trệt 1 lầu, khu dân cư, sổ hồng riêng" />
+              <label className="flex items-center gap-2 text-sm sm:col-span-full"><input type="checkbox" name="mat_tien_duong" className="size-4" /> Nhà mặt tiền đường</label>
+              <O rong ten="Mô tả thêm (không bắt buộc)" goiY="Mô hình đọc từ khóa: sổ riêng, khu dân cư, nhà mới, hẻm xe hơi…">
+                <textarea name="mo_ta" rows={1} maxLength={4000} className="o-nhap" placeholder="1 trệt 1 lầu, khu dân cư, sổ hồng riêng" />
               </O>
             </>
           )}
@@ -147,7 +147,8 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="so_rieng" className="size-4" /> Sổ riêng</label>
             </>
           )}
-          <div className="sm:col-span-2">
+          {/* nút luôn nằm trong tầm nhìn: dính đáy màn hình khi form dài hơn cửa sổ */}
+          <div className="sticky bottom-0 z-10 -mx-6 -mb-6 mt-2 border-t border-navy-100 bg-white/95 px-6 py-4 backdrop-blur sm:col-span-full">
             <button className="nut-vang w-full py-3 text-base" disabled={dang}>
               {dang && <LoaderCircle size={18} className="animate-spin" />} Định giá
             </button>
@@ -156,7 +157,7 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
       </div>
 
       <div className="lg:col-span-2">
-        <div className="the sticky top-24 p-6" aria-live="polite">
+        <div className="the p-6" aria-live="polite">
           {loi && <p className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{loi}</p>}
           {!kq && !loi && <p className="py-10 text-center text-slate-500">Nhập thông số và bấm <b>Định giá</b>.</p>}
           {kq && (
