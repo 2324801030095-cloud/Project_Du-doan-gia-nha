@@ -110,16 +110,25 @@ THUE = doc("models", "gia_thue_web.json") or {}
 DAT = doc("models", "mo_hinh_gia_dat.json") or {}
 GT = doc("models", "giai_thich_nha.json") or {}
 gt_can = GT.get("can", {})
-for o, (_, r) in zip(L, ph.iterrows()):           # L và ph cùng thứ tự
-    if "thue_uoc_luong_trieu" in r and pd.notna(r["thue_uoc_luong_trieu"]):
+# Giá thuê ước tính lấy từ kết quả riêng của notebook giá thuê (results/ty_suat_cho_thue.csv), nên chạy lại riêng
+# notebook nhà phố (scripts/chay_toan_bo.py --nha-pho) không làm mất giá thuê trên web.
+THUE_TIN = {}
+if os.path.exists(J("results", "ty_suat_cho_thue.csv")):
+    for _, t in pd.read_csv(J("results", "ty_suat_cho_thue.csv"), dtype={"id": str}).iterrows():
+        THUE_TIN[(t["loai"], str(t["id"]))] = (round(float(t["thue_trieu"]), 1), round(float(t["ty_suat_pt"]), 2))
+def gan_thue(o, r, loai):
+    if (loai, str(r["id"])) in THUE_TIN:
+        o["thue"], o["ys"] = THUE_TIN[(loai, str(r["id"]))]
+    elif "thue_uoc_luong_trieu" in r and pd.notna(r["thue_uoc_luong_trieu"]):
         o["thue"] = round(float(r["thue_uoc_luong_trieu"]), 1); o["ys"] = round(float(r["ty_suat_cho_thue_pt"]), 2)
+for o, (_, r) in zip(L, ph.iterrows()):           # L và ph cùng thứ tự
+    gan_thue(o, r, "Nhà phố")
     if str(r["id"]) in gt_can:
         o["gt"] = gt_can[str(r["id"])]
     o["lat"], o["lon"] = round(float(r["lat"]), 5), round(float(r["lon"]), 5)
 for o, (_, r) in zip(CH_LIST, tdm_ch.iterrows()):
     o["id"] = str(r["id"])
-    if "thue_uoc_luong_trieu" in r and pd.notna(r["thue_uoc_luong_trieu"]):
-        o["thue"] = round(float(r["thue_uoc_luong_trieu"]), 1); o["ys"] = round(float(r["ty_suat_cho_thue_pt"]), 2)
+    gan_thue(o, r, "Căn hộ")
 DAT_LIST = []
 if os.path.exists(J("results", "output_dat.csv")):
     raw_dat = pd.read_csv(J("dataset", "raw", "chotot_dat_raw.csv"))
