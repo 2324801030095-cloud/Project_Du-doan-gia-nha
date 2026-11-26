@@ -63,8 +63,7 @@ export function KetQuaDinhGia({ kq, loi, dang }: { kq: KetQua | null; loi: strin
       {loi && <p className="the border-rose-200 bg-rose-50 p-5 text-rose-700">{loi}</p>}
       {kq && (
         <div className="space-y-5">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6 text-white sm:p-8">
-            <div className="absolute -right-10 -top-10 size-48 rounded-full bg-gold-500/20 blur-2xl" aria-hidden />
+          <div className="relative overflow-hidden rounded-3xl bg-navy-800 p-6 text-white sm:p-8">
             <div className="relative flex flex-col items-center gap-6 sm:flex-row">
               <div className="rounded-2xl bg-white/95 p-2 shadow-lg"><MinhHoaTien className="h-28 w-40" /></div>
               <div className="flex-1 text-center sm:text-left">

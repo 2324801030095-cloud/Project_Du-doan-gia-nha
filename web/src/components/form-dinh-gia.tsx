@@ -67,7 +67,7 @@ export function FormDinhGia({ danhMuc, loaiBanDau }: { danhMuc: DanhMuc; loaiBan
   return (
     <div className="space-y-6">
       <div className="the p-6">
-        <div className="mb-5 flex max-w-xl gap-2 rounded-xl bg-navy-50 p-1" role="tablist">
+        <div className="mx-auto mb-5 flex max-w-xl gap-2 rounded-xl bg-navy-50 p-1" role="tablist">
           {TAB.map((t) => (
             <button key={t.k} role="tab" aria-selected={loai === t.k} onClick={() => { setLoai(t.k); setKq(null); setLoi(""); }}
               className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${loai === t.k ? "bg-white text-navy-900 shadow-sm" : "text-slate-500 hover:text-navy-800"}`}>
