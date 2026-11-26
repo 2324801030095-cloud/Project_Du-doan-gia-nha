@@ -2,6 +2,7 @@ import { BarChart3, Bot, Calculator, Map, ShieldCheck, TrendingUp } from "lucide
 import Image from "next/image";
 import Link from "next/link";
 import { TheTinRao } from "@/components/tin";
+import { anhNhaPho } from "@/lib/anh";
 import { goiApi, qs, type NhaPho, type TongQuan, type Trang } from "@/lib/api";
 import { so } from "@/lib/format";
 import { layPhien } from "@/lib/session";
@@ -72,7 +73,7 @@ export default async function Home() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {re.ket_qua.map((x) => (
             <TheTinRao key={x.id} x={{ loai: "nha_pho", id: x.id, tieuDe: x.t, gia: x.g, uoc: x.ai_full, lo: x.lo80, hi: x.hi80, cd: x.chan_doan, url: x.url,
-              href: `/nha-pho/${x.id}`, daLuu: luu.has(x.id), dangNhap: Boolean(phien), phu: [`${so(x.dt)} m²`, x.duong].filter(Boolean).join(" · ") }} />
+              anh: anhNhaPho(x.id, x.st, x.vt)[0], soAnh: 3, href: `/nha-pho/${x.id}`, daLuu: luu.has(x.id), dangNhap: Boolean(phien), phu: [`${so(x.dt)} m²`, x.duong].filter(Boolean).join(" · ") }} />
           ))}
         </div>
       </section>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BoLoc, PhanTrang, TheTinRao } from "@/components/tin";
+import { anhNhaPho } from "@/lib/anh";
 import { goiApi, qs, type NhaPho, type Trang } from "@/lib/api";
 import { so } from "@/lib/format";
 import { layPhien } from "@/lib/session";
@@ -35,7 +36,7 @@ export default async function Page(props: PageProps<"/nha-pho">) {
               key={x.id}
               x={{
                 loai: "nha_pho", id: x.id, tieuDe: x.t, gia: x.g, uoc: x.ai_full, lo: x.lo80, hi: x.hi80, cd: x.chan_doan, url: x.url,
-                href: `/nha-pho/${x.id}`, daLuu: luu.has(x.id), dangNhap: Boolean(phien),
+                anh: anhNhaPho(x.id, x.st, x.vt)[0], soAnh: 3, href: `/nha-pho/${x.id}`, daLuu: luu.has(x.id), dangNhap: Boolean(phien),
                 phu: [`${so(x.dt)} m²`, x.st && `${so(x.st, 0)} tầng`, x.duong, x.nguon].filter(Boolean).join(" · "),
               }}
             />

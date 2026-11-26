@@ -23,6 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <p className="flex gap-4">
               <Link href="/mo-hinh" className="hover:text-navy-800">Mô hình</Link>
               <Link href="/tro-ly" className="hover:text-navy-800">Trợ lý</Link>
+              <Link href="/nguon-anh" className="hover:text-navy-800">Nguồn ảnh</Link>
             </p>
           </div>
         </footer>

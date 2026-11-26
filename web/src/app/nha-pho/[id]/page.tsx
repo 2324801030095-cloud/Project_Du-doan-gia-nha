@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GiaiThich } from "@/components/giai-thich";
 import { BanDoNho } from "@/components/ban-do-nho";
+import { ThuVienAnh } from "@/components/thu-vien-anh";
+import { anhNhaPho } from "@/lib/anh";
 import { ChanDoan, KhoangGia } from "@/components/tin";
 import { NutYeuThich } from "@/components/nut-yeu-thich";
 import { goiApi, LoiApi, type NhaPho } from "@/lib/api";
@@ -48,6 +50,7 @@ export default async function Page(props: PageProps<"/nha-pho/[id]">) {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="the p-6 lg:col-span-2">
+          <div className="mb-6"><ThuVienAnh anh={anhNhaPho(x.id, x.st, x.vt)} tieuDe={x.t} /></div>
           <div className="grid gap-6 sm:grid-cols-3">
             <div><p className="nhan">Giá rao</p><p className="text-3xl font-bold text-navy-900">{ty(x.g)}</p><p className="text-sm text-slate-500">{so((x.g * 1000) / x.dt)} triệu/m²</p></div>
             <div><p className="nhan">Mô hình ước lượng</p><p className="text-3xl font-bold text-gold-600">{ty(x.ai_full)}</p><p className="text-sm text-slate-500">Random Forest, không học tin này</p></div>

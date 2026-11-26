@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BoLoc, PhanTrang, TheTinRao } from "@/components/tin";
+import { anhKhuVuc } from "@/lib/anh";
 import { goiApi, qs, type Dat, type Trang } from "@/lib/api";
 import { so } from "@/lib/format";
 import { layPhien } from "@/lib/session";
@@ -30,7 +31,7 @@ export default async function Page(props: PageProps<"/dat">) {
             key={x.id}
             x={{
               loai: "dat", id: x.id, tieuDe: `Đất ${so(x.dt)} m² – ${x.ph}`, gia: x.g, uoc: x.ai, lo: x.lo, hi: x.hi, cd: x.cd, url: x.url,
-              daLuu: luu.has(x.id), dangNhap: Boolean(phien),
+              anh: anhKhuVuc("dat", x.id), daLuu: luu.has(x.id), dangNhap: Boolean(phien),
               phu: [`${so(x.dt)} m²`, x.mt && `ngang ${so(x.mt)} m`, x.duong, `${so((x.g * 1000) / x.dt)} tr/m²`].filter(Boolean).join(" · "),
             }}
           />

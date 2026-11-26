@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BoLoc, PhanTrang, TheTinRao } from "@/components/tin";
+import { anhKhuVuc } from "@/lib/anh";
 import { goiApi, qs, type CanHo, type Trang } from "@/lib/api";
 import { so } from "@/lib/format";
 import { layPhien } from "@/lib/session";
@@ -30,7 +31,7 @@ export default async function Page(props: PageProps<"/can-ho">) {
             key={x.id}
             x={{
               loai: "can_ho", id: x.id, tieuDe: x.da ?? `Căn hộ ${so(x.dt)} m² – ${x.ph}`, gia: x.g, uoc: x.ai, lo: x.lo, hi: x.hi, cd: x.cd, url: x.url,
-              daLuu: luu.has(x.id), dangNhap: Boolean(phien),
+              anh: anhKhuVuc("can_ho", x.id), daLuu: luu.has(x.id), dangNhap: Boolean(phien),
               phu: [`${so(x.dt)} m²`, x.pn && `${x.pn} PN`, x.ph, x.thue && `thuê ≈ ${so(x.thue)} tr/tháng`].filter(Boolean).join(" · "),
             }}
           />

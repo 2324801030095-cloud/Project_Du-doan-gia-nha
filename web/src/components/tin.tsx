@@ -1,4 +1,5 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Images } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { MAU_CHAN_DOAN, so, ty } from "@/lib/format";
 import { NutYeuThich } from "./nut-yeu-thich";
@@ -26,13 +27,21 @@ export function KhoangGia({ lo, hi, uoc, rao }: { lo: number; hi: number; uoc: n
 export type TheTin = {
   loai: "nha_pho" | "can_ho" | "dat";
   id: string; tieuDe: string; phu: string; gia: number; uoc: number; lo: number; hi: number; cd: string; url: string; href?: string;
-  daLuu?: boolean; dangNhap: boolean;
+  daLuu?: boolean; dangNhap: boolean; anh?: string; soAnh?: number;
 };
 
 export function TheTinRao({ x }: { x: TheTin }) {
   const lech = (x.gia / x.uoc - 1) * 100;
   return (
-    <article className="the flex flex-col p-5 transition hover:shadow-md">
+    <article className="the flex flex-col overflow-hidden transition hover:shadow-md">
+      {x.anh && (
+        <div className="relative aspect-[16/10] bg-navy-50">
+          <Image src={x.anh} alt={`Ảnh minh họa – ${x.tieuDe}`} fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />
+          <span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] text-white">Ảnh minh họa</span>
+          {x.soAnh && x.soAnh > 1 && <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md bg-black/55 px-2 py-0.5 text-[11px] text-white"><Images size={12} />{x.soAnh}</span>}
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-5">
       <div className="flex items-start justify-between gap-3">
         <ChanDoan cd={x.cd} />
         <NutYeuThich loai={x.loai} maTin={x.id} daLuu={x.daLuu ?? false} dangNhap={x.dangNhap} />
@@ -52,6 +61,7 @@ export function TheTinRao({ x }: { x: TheTin }) {
         <a href={x.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-slate-500 hover:text-navy-800">
           Tin gốc <ExternalLink size={14} />
         </a>
+      </div>
       </div>
     </article>
   );
