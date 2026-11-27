@@ -21,7 +21,7 @@ services:
     build: { context: ., dockerfile: api/Dockerfile }
     restart: unless-stopped
     # API KHÔNG được restart: nó tự nạp bộ tệp mới khi scripts/chay_toan_bo.py công bố models/phien_ban.json (sau khi kiểm thử đạt),
-    # đọc từ models/cong_bo/<mã bộ>/; bộ mới lỗi thì giữ bộ đang phục vụ. Chưa công bố lần nào thì dùng thẳng tệp trong models/, dataset/processed/
+    # đọc từ models/cong_bo/<mã bộ>/; bộ mới lỗi thì giữ bộ đang phục vụ. Clone mới (chưa công bố trên máy này) -> bộ bàn giao models/ban_giao/ trong git; tệp làm việc không bao giờ được phục vụ trực tiếp
     volumes:
       - ./models:/app/models:ro
       - ./dataset/processed:/app/dataset/processed:ro

@@ -3,6 +3,8 @@ không đụng models/ thật và không ảnh hưởng API / web đang chạy.
   - công bố A -> API phục vụ A; đổi tệp nhưng chưa công bố -> vẫn A; công bố B -> /health và POST /dinh-gia đều là B
   - công bố bộ có tệp hỏng / bản kê lệch mã băm -> GIỮ B, /health báo loi_nap_moi_nhat; thiếu tệp bắt buộc -> không công bố được
   - không có phần mở rộng (căn hộ, trợ lý) -> API vẫn chạy, các endpoint đó trả 503
+  - không có bản kê: tệp làm việc KHÔNG được phục vụ (503, hoặc bộ bàn giao models/ban_giao/); PHH_UNG_VIEN=1 mới đọc tệp làm việc;
+    bản kê biến mất -> giữ bộ đang phục vụ / khởi động lại dùng bộ đã công bố gần nhất
   - scripts/chay_toan_bo.kiem_api_dang_chay phân biệt: API tắt (BỎ QUA) / lỗi HTTP, thiếu trường (LỖI) / đúng bộ (ĐẠT)
 Chạy từ thư mục gốc đề tài:  python tests/kiem_tra_cong_bo.py"""
 import http.server
@@ -25,6 +27,9 @@ TEP = ["models/mo_hinh_gia_nha.joblib", "models/du_lieu_web.json", "models/danh_
 for t in TEP:                                   # chỉ bộ tệp bài chính (nhà phố): không có căn hộ / trợ lý
     (TAM / t).parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(GOC / t, TAM / t)
+_w = json.loads((TAM / "models/du_lieu_web.json").read_text(encoding="utf-8"))
+_w["SO_LIEU"]["NGAY"] = "NGAY_GOC"              # ngày gốc cố định: các phép "sửa ngày" luôn đổi nội dung, dù tệp thật mang ngày nào
+(TAM / "models/du_lieu_web.json").write_text(json.dumps(_w, ensure_ascii=False), encoding="utf-8")
 os.environ["PHH_GOC"] = str(TAM)                # phải đặt TRƯỚC khi nạp api/dinh_gia.py
 sys.path[:0] = [str(GOC / "api"), str(GOC / "scripts")]
 import uvicorn  # noqa: E402
@@ -70,14 +75,57 @@ def tu_choi(ly_do):
     assert (TAM / DG.MANIFEST).read_bytes() == truoc, ly_do
 
 
-@kiem("Chưa công bố: API tự lập bản kê từ tệp hiện có; không có phần mở rộng thì căn hộ / trợ lý trả 503, không 500")
+def khoi_dong_lai():                             # như tiến trình API mới khởi động
+    DG._HIEN = None; DG._TT.update(moc=None, loi_nap=None, nguon=None)
+
+
+def ngay_tep_lam_viec():
+    return json.loads(WEB.read_text(encoding="utf-8"))["SO_LIEU"]["NGAY"]
+
+
+@kiem("Khởi động KHÔNG có bản kê, không có bộ bàn giao: 503; sửa tệp làm việc hợp lệ (NGAY = 01/01/2099) rồi gọi lại "
+      "GET /health và POST -> vẫn 503 (tệp làm việc không bao giờ được phục vụ); chỉ PHH_UNG_VIEN=1 tường minh mới đọc tệp làm việc")
 def _():
+    goc = WEB.read_bytes()
+    assert c.get("/health").status_code == 503 and c.post("/dinh-gia/nha-pho", json=NHA).status_code == 503
+    doi_ngay("01/01/2099"); time.sleep(0.05)
+    assert c.get("/health").status_code == 503 and c.post("/dinh-gia/nha-pho", json=NHA).status_code == 503
+    for gia_tri in ("0", "true", ""):                         # chỉ đúng chuỗi "1" mới bật chế độ ứng viên
+        os.environ["PHH_UNG_VIEN"] = gia_tri
+        assert c.get("/health").status_code == 503, gia_tri
+    os.environ["PHH_UNG_VIEN"] = "1"
+    try:
+        h = c.get("/health").json()
+        assert h["ngay_du_lieu"] == "01/01/2099" and h["nguon"].startswith("tệp làm việc"), h
+    finally:
+        del os.environ["PHH_UNG_VIEN"]
+    assert c.get("/health").status_code == 503                # tắt -> không giữ bộ ứng viên
+    WEB.write_bytes(goc)
+
+
+BG = {}
+
+
+@kiem("Clone mới (chỉ có bộ bàn giao models/ban_giao/ trong git): phục vụ bộ bàn giao; sửa tệp làm việc hợp lệ rồi gọi lại "
+      "GET /health và POST -> vẫn bộ bàn giao, ngày cũ; không có phần mở rộng thì căn hộ / trợ lý 503")
+def _():
+    BG.update(DG.cong_bo()); DG.tao_ban_giao()                # chuẩn bị bộ bàn giao như khi commit
+    (TAM / DG.MANIFEST).unlink(); shutil.rmtree(TAM / DG.THU_MUC_CONG_BO)
+    khoi_dong_lai()
     h = c.get("/health").json()
-    assert h["ok"] and set(h["tep"]) == set(TEP), h
-    assert c.post("/dinh-gia/nha-pho", json=NHA).json()["phien_ban"] == h["phien_ban"]
+    assert h["phien_ban"] == BG["id"] and h["nguon"].startswith("bộ bàn giao"), h
+    ngay = h["ngay_du_lieu"]
+    doi_ngay("01/01/2099"); time.sleep(0.05)
+    for _ in range(2):
+        h = c.get("/health").json()
+        assert h["phien_ban"] == BG["id"] and h["ngay_du_lieu"] == ngay != ngay_tep_lam_viec(), h
+        assert c.post("/dinh-gia/nha-pho", json=NHA).json()["phien_ban"] == BG["id"]
+    khoi_dong_lai()                                            # khởi động lại khi tệp làm việc đã đổi, chưa công bố
+    assert c.get("/health").json()["ngay_du_lieu"] == ngay
     assert c.post("/dinh-gia/can-ho", json={"dt_su_dung": 60}).status_code == 503
     assert c.post("/tro-ly/y-dinh", json={"cau": "xin chào"}).status_code == 503
     assert set(c.get("/danh-gia").json()) == {"nha_pho"}
+    WEB.write_bytes((TAM / DG.BAN_GIAO / "models/du_lieu_web.json").read_bytes())
 
 
 A = {}
@@ -175,7 +223,7 @@ def _():
 def _():
     goc = WEB.read_bytes()
     WEB.write_text("{hỏng", encoding="utf-8"); cong_bo(kiem=False)
-    DG._HIEN = None; DG._TT.update(moc=None, loi_nap=None)        # như tiến trình mới khởi động
+    khoi_dong_lai() # như tiến trình mới khởi động
     for _ in range(2):                                            # lần 2: không nạp lại, vẫn 503
         for ma in (c.get("/health"), c.get("/tong-quan"), c.get("/nha-pho"), c.get("/nha-pho/1"), c.get("/ban-do"),
                    c.get("/danh-gia"), c.get("/xu-huong"), c.get("/danh-muc"), c.post("/dinh-gia/nha-pho", json=NHA),
@@ -192,12 +240,34 @@ def _():
     assert (TAM / A["thu_muc"] / "models/mo_hinh_gia_nha.joblib").exists()
     goc = WEB.read_bytes()
     WEB.write_text("{đang ghi dở", encoding="utf-8")                  # pipeline đang chạy / đã lỗi giữa chừng
-    DG._HIEN = None; DG._TT.update(moc=None, loi_nap=None)            # API khởi động lại
+    khoi_dong_lai() # API khởi động lại
     dung_duoc(A["id"])
     WEB.write_bytes(goc); doi_ngay("03/03/2099"); B = cong_bo(); doi_ngay("04/04/2099"); C = cong_bo()
     con = {d.name for d in (TAM / DG.THU_MUC_CONG_BO).iterdir()}
     assert con == {B["id"], C["id"]}, con
     dung_duoc(C["id"])
+
+
+@kiem("Bản kê models/phien_ban.json biến mất: đang chạy -> giữ bộ đang phục vụ, /health báo; khởi động lại -> bộ ĐÃ công bố "
+      "gần nhất (không phải ứng viên công bố lỗi, không phải bộ bàn giao); công bố hợp lệ tiếp theo -> phục vụ bộ mới")
+def _():
+    doi_ngay("05/05/2099"); X = cong_bo()
+    dung_duoc(X["id"])
+    goc = WEB.read_bytes()
+    WEB.write_text("{hỏng", encoding="utf-8"); tu_choi("ứng viên hỏng")      # để lại thư mục ứng viên KHÔNG có dấu công bố
+    WEB.write_bytes(goc); doi_ngay("06/06/2099")                              # đầu ra mới hợp lệ nhưng chưa công bố
+    (TAM / DG.MANIFEST).unlink(); time.sleep(0.05)
+    h = c.get("/health").json()
+    assert h["phien_ban"] == X["id"] and "không còn" in (h["loi_nap_moi_nhat"] or ""), h
+    assert c.post("/dinh-gia/nha-pho", json=NHA).json()["phien_ban"] == X["id"]
+    khoi_dong_lai()
+    h = c.get("/health").json()
+    assert h["phien_ban"] == X["id"] and h["nguon"].startswith("bộ đã công bố") and h["ngay_du_lieu"] == "05/05/2099", h
+    dung_duoc(X["id"])
+    Y = cong_bo()                                                             # pipeline qua kiểm thử -> công bố
+    assert Y["id"] != X["id"]
+    dung_duoc(Y["id"])
+    assert c.get("/health").json()["ngay_du_lieu"] == "06/06/2099"
 
 
 @kiem("Thiếu tệp bắt buộc -> không công bố được, bản kê cũ giữ nguyên")

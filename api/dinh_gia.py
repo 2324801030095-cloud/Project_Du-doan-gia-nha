@@ -43,9 +43,13 @@ NHOM_GT = {
 # Lỗi (thiếu tệp, tệp hỏng, mã băm lệch vì đang ghi dở) -> GIỮ bộ cũ đang phục vụ và báo lỗi qua /health.
 # Công bố = CHÉP các tệp đã kiểm vào models/cong_bo/<mã bộ>/ rồi mới ghi bản kê trỏ tới đó: pipeline ghi đè tệp làm việc
 # (hoặc chạy lỗi giữa chừng) thì API khởi động lại vẫn nạp được bộ đã công bố. Giữ bộ hiện tại + bộ trước đó.
-# PHH_UNG_VIEN=1: bỏ qua bản kê, phục vụ thẳng tệp làm việc (kiểm thử bộ ỨNG VIÊN trước khi công bố).
+# Tệp làm việc (models/*.joblib, du_lieu_web.json..., do notebook ghi) KHÔNG BAO GIỜ được phục vụ trực tiếp, trừ khi bật
+# tường minh PHH_UNG_VIEN=1 (kiểm thử bộ ỨNG VIÊN trước khi công bố). Thiếu bản kê cục bộ (clone mới) -> bộ BÀN GIAO
+# models/ban_giao/ (có trong git, đã xác thực, pipeline không ghi vào; cập nhật bằng: python api/dinh_gia.py --ban-giao).
 MANIFEST = "models/phien_ban.json"
 THU_MUC_CONG_BO = "models/cong_bo"
+DAU_CONG_BO = "da_cong_bo.json"      # dấu trong models/cong_bo/<mã>/: bộ này ĐÃ được công bố (không phải ứng viên công bố lỗi)
+BAN_GIAO = "models/ban_giao"
 TEP_BAT_BUOC = ["models/mo_hinh_gia_nha.joblib", "models/du_lieu_web.json", "models/danh_gia_mo_hinh.json",
                 "dataset/processed/nha_da_xu_ly.csv"]                  # CSV nhà phố: API dùng để suy tọa độ theo đường / phường
 TEP_TUY_CHON = ["models/mo_hinh_gia_can_ho.joblib", "dataset/processed/can_ho_da_xu_ly.csv",
@@ -93,11 +97,41 @@ def cong_bo(goc=None, kiem=True):
     giu = {bk["id"]} | ({json.loads(cu.read_text(encoding="utf-8")).get("id")} if cu.exists() else set())
     tam = goc / (MANIFEST + ".tam")
     tam.write_text(json.dumps(bk, ensure_ascii=False, indent=1), encoding="utf-8")
+    (dich / DAU_CONG_BO).write_text(json.dumps(bk, ensure_ascii=False, indent=1), encoding="utf-8")
     os.replace(tam, cu)
     for d in (goc / THU_MUC_CONG_BO).iterdir():         # chỉ giữ bộ vừa công bố và bộ trước đó
         if d.name not in giu:
             shutil.rmtree(d, ignore_errors=True)
     return bk
+
+
+def tao_ban_giao(goc=None):
+    """Đưa bộ ĐANG công bố (models/phien_ban.json) thành bộ bàn giao models/ban_giao/ (commit vào git): clone mới chạy
+    docker compose / uvicorn là dùng được ngay. Nạp thử trước, thay thư mục nguyên tử; lỗi -> giữ bộ bàn giao cũ."""
+    goc = Path(goc or GOC)
+    bk = json.loads((goc / MANIFEST).read_text(encoding="utf-8"))
+    nguon, dich = goc / bk.get("thu_muc", ""), goc / BAN_GIAO
+    tam, cu = dich.with_name("ban_giao.tam"), dich.with_name("ban_giao.cu")
+    shutil.rmtree(tam, ignore_errors=True); shutil.rmtree(cu, ignore_errors=True)
+    for t, h in bk["tep"].items():
+        b = (nguon / t).read_bytes()
+        if _sha(b) != h:
+            raise LoiNapBo(f"{t}: bộ đang công bố không khớp mã băm")
+        (tam / t).parent.mkdir(parents=True, exist_ok=True)
+        (tam / t).write_bytes(b)
+    moi = {**bk, "thu_muc": BAN_GIAO}
+    try:
+        _nap_bo({**moi, "thu_muc": "models/ban_giao.tam"}, goc)
+    except LoiNapBo:
+        raise
+    except Exception as e:
+        raise LoiNapBo(f"bộ bàn giao không nạp được ({type(e).__name__}: {e})") from e
+    (tam / "phien_ban.json").write_text(json.dumps(moi, ensure_ascii=False, indent=1), encoding="utf-8")
+    if dich.exists():
+        os.replace(dich, cu)
+    os.replace(tam, dich)
+    shutil.rmtree(cu, ignore_errors=True)
+    return moi
 
 
 class LoiNapBo(Exception):
@@ -188,33 +222,80 @@ def _kiem_bo(bo):
         raise LoiNapBo(f"bộ tệp không dùng được (chạy thử lỗi {type(e).__name__}: {e})") from e
 
 
-_HIEN, _TT, _KHOA = None, {"moc": None, "loi_nap": None}, threading.Lock()
+_HIEN, _TT, _KHOA = None, {"moc": None, "loi_nap": None, "nguon": None}, threading.Lock()
+
+
+def _du_phong():
+    """Không có bản kê cục bộ (clone mới, hoặc models/phien_ban.json bị mất khi API khởi động): danh sách bản kê để thử,
+    theo thứ tự chắc chắn: các bộ ĐÃ công bố trên máy này (có dấu da_cong_bo.json, mới nhất trước), rồi bộ bàn giao trong git.
+    Bộ chỉ được chép vào models/cong_bo/ nhưng chưa công bố (công bố lỗi) không có dấu nên không bao giờ được chọn."""
+    ds = []
+    thu_muc = GOC / THU_MUC_CONG_BO
+    if thu_muc.exists():
+        for d in thu_muc.iterdir():
+            f = d / DAU_CONG_BO
+            if f.exists():
+                try:
+                    ds.append(("bộ đã công bố gần nhất " + d.name, json.loads(f.read_text(encoding="utf-8"))))
+                except ValueError:
+                    pass
+        ds.sort(key=lambda x: x[1].get("cong_bo_luc") or "", reverse=True)
+    f = GOC / BAN_GIAO / "phien_ban.json"
+    if f.exists():
+        try:
+            ds.append(("bộ bàn giao " + BAN_GIAO, json.loads(f.read_text(encoding="utf-8"))))
+        except ValueError:
+            pass
+    return ds
 
 
 def _moc_ban_ke():
+    if os.environ.get("PHH_UNG_VIEN") == "1":        # CHỈ khi bật tường minh: kiểm thử bộ ứng viên = tệp làm việc
+        return ("ung_vien",) + tuple((GOC / t).stat().st_mtime_ns if (GOC / t).exists() else 0 for t in TEP_BAT_BUOC + TEP_TUY_CHON)
     f = GOC / MANIFEST
-    if f.exists() and not os.environ.get("PHH_UNG_VIEN"):
+    if f.exists():
         return ("ban_ke", f.stat().st_mtime_ns)
-    return ("tu_lap",) + tuple((GOC / t).stat().st_mtime_ns if (GOC / t).exists() else 0 for t in TEP_BAT_BUOC)
+    return ("khong_ban_ke",)                         # tệp làm việc KHÔNG bao giờ được phục vụ khi thiếu bản kê
+
+
+def _ung_vien_nap(moc):
+    """Danh sách (nguồn, hàm lấy bản kê) theo trạng thái moc."""
+    if moc[0] == "ung_vien":
+        return [("tệp làm việc (PHH_UNG_VIEN=1)", tao_ban_ke)]
+    if moc[0] == "ban_ke":
+        return [(MANIFEST, lambda: json.loads((GOC / MANIFEST).read_text(encoding="utf-8")))]
+    return [(nguon, (lambda b=bk: b)) for nguon, bk in _du_phong()]
 
 
 def bo():
-    """Bộ tệp ĐANG phục vụ; nạp bộ mới khi bản kê đổi. Chưa từng công bố -> tự lập bản kê từ tệp hiện có (chế độ phát triển).
+    """Bộ tệp ĐANG phục vụ; chỉ chuyển bộ khi bản kê models/phien_ban.json đổi (= pipeline công bố sau khi kiểm thử đạt).
     Chưa có bộ hợp lệ nào -> LoiNapBo (mọi endpoint trả 503, không 500)."""
     global _HIEN
     moc = _moc_ban_ke()
-    if moc == _TT["moc"]:                            # bản kê này đã xử lý (thành công hay lỗi): không nạp lại
+    if moc == _TT["moc"]:                            # trạng thái này đã xử lý (thành công hay lỗi): không nạp lại
         if _HIEN is None:
             raise LoiNapBo(f"chưa có bộ tệp hợp lệ: {_TT['loi_nap']}")
         return _HIEN
     with _KHOA:
         if moc != _TT["moc"]:
-            try:
-                bk = json.loads((GOC / MANIFEST).read_text(encoding="utf-8")) if moc[0] == "ban_ke" else tao_ban_ke()
-                _HIEN = _nap_bo(bk)
-                _TT["loi_nap"] = None
-            except Exception as e:                  # GIỮ bộ đang phục vụ (nếu có)
-                _TT["loi_nap"] = f"{type(e).__name__}: {e}"
+            if _TT["moc"] and _TT["moc"][0] == "ung_vien":
+                _HIEN = None                         # bộ ứng viên (tệp làm việc) không bao giờ được giữ sang chế độ thường
+            if moc[0] == "khong_ban_ke" and _HIEN is not None and _TT["moc"][0] == "ban_ke":
+                # bản kê biến mất khi đang chạy: bộ đang phục vụ là bộ công bố hợp lệ cuối cùng -> giữ, báo lỗi
+                _TT["loi_nap"] = f"không còn {MANIFEST}; giữ bộ đang phục vụ {_HIEN['id']}"
+            else:
+                thu, loi = _ung_vien_nap(moc), []
+                if not thu:
+                    loi.append(f"không có {MANIFEST}, bộ đã công bố trong {THU_MUC_CONG_BO}/ hay bộ bàn giao {BAN_GIAO}/")
+                for nguon, lay in thu:
+                    try:
+                        moi = _nap_bo(lay())
+                    except Exception as e:          # GIỮ bộ đang phục vụ (nếu có)
+                        loi.append(f"{nguon}: {type(e).__name__}: {e}")
+                        continue
+                    _HIEN, _TT["nguon"], loi = moi, nguon, []
+                    break
+                _TT["loi_nap"] = "; ".join(loi) or None
             _TT["moc"] = moc
         if _HIEN is None:
             raise LoiNapBo(f"chưa có bộ tệp hợp lệ: {_TT['loi_nap']}")
@@ -371,9 +452,14 @@ def _y_dinh(goi, cau):
 if __name__ == "__main__":
     # python api/dinh_gia.py --cong-bo   -> ghi models/phien_ban.json cho bộ tệp hiện có (scripts/chay_toan_bo.py gọi)
     sys.stdout.reconfigure(encoding="utf-8")
-    if "--cong-bo" in sys.argv:
+    # python api/dinh_gia.py --ban-giao  -> chép bộ đang công bố thành bộ bàn giao models/ban_giao/ (rồi commit)
+    if {"--cong-bo", "--ban-giao"} & set(sys.argv):
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import dinh_gia as DG   # noqa: E402  (module thật, không phải __main__: main.py đăng ký phép chạy thử endpoint vào đây)
         import main  # noqa: E402,F401
-        b = DG.cong_bo()
-        print(f"Đã công bố bộ tệp {b['id']}: " + ", ".join(f"{t} {h[:12]}" for t, h in b["tep"].items()))
+        if "--cong-bo" in sys.argv:
+            b = DG.cong_bo()
+            print(f"Đã công bố bộ tệp {b['id']}: " + ", ".join(f"{t} {h[:12]}" for t, h in b["tep"].items()))
+        else:
+            b = DG.tao_ban_giao()
+            print(f"Bộ bàn giao {DG.BAN_GIAO}/ = bộ {b['id']} ({len(b['tep'])} tệp); commit thư mục này để clone mới chạy được.")

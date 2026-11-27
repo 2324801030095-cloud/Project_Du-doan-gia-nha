@@ -1,0 +1,221 @@
+{
+ "ten_mo_hinh": "LightGBM Huber + chữ",
+ "kiem_dinh_cheo": [
+  {
+   "Mô hình": "LightGBM Huber + chữ",
+   "MAPE (%)": 12.618,
+   "MAPE thấp (95%)": 11.414,
+   "MAPE cao (95%)": 14.016,
+   "MdAPE (%)": 8.908,
+   "Trong ±10% (%)": 55.39,
+   "Trong ±20% (%)": 81.348,
+   "MAE (tỷ)": 0.259,
+   "R²": 0.82,
+   "Số căn": 470.0
+  },
+  {
+   "Mô hình": "LightGBM",
+   "MAPE (%)": 13.709,
+   "MAPE thấp (95%)": 12.225,
+   "MAPE cao (95%)": 15.389,
+   "MdAPE (%)": 8.853,
+   "Trong ±10% (%)": 54.61,
+   "Trong ±20% (%)": 79.574,
+   "MAE (tỷ)": 0.272,
+   "R²": 0.81,
+   "Số căn": 470.0
+  },
+  {
+   "Mô hình": "Ridge",
+   "MAPE (%)": 14.592,
+   "MAPE thấp (95%)": 13.283,
+   "MAPE cao (95%)": 16.033,
+   "MdAPE (%)": 10.618,
+   "Trong ±10% (%)": 47.234,
+   "Trong ±20% (%)": 76.525,
+   "MAE (tỷ)": 0.302,
+   "R²": 0.75,
+   "Số căn": 470.0
+  },
+  {
+   "Mô hình": "Baseline (đơn giá dự án)",
+   "MAPE (%)": 16.074,
+   "MAPE thấp (95%)": 13.535,
+   "MAPE cao (95%)": 19.003,
+   "MdAPE (%)": 8.335,
+   "Trong ±10% (%)": 55.816,
+   "Trong ±20% (%)": 75.603,
+   "MAE (tỷ)": 0.301,
+   "R²": 0.732,
+   "Số căn": 470.0
+  }
+ ],
+ "kiem_dinh_cheo_tdm": [
+  {
+   "Mô hình": "LightGBM Huber + chữ",
+   "MAPE (%)": 14.861,
+   "MAPE thấp (95%)": 11.682,
+   "MAPE cao (95%)": 17.781,
+   "MdAPE (%)": 10.85,
+   "Trong ±10% (%)": 48.11,
+   "Trong ±20% (%)": 76.976,
+   "MAE (tỷ)": 0.24,
+   "R²": 0.827,
+   "Số căn": 97.0
+  },
+  {
+   "Mô hình": "LightGBM",
+   "MAPE (%)": 17.319,
+   "MAPE thấp (95%)": 13.674,
+   "MAPE cao (95%)": 20.61,
+   "MdAPE (%)": 12.354,
+   "Trong ±10% (%)": 40.893,
+   "Trong ±20% (%)": 70.103,
+   "MAE (tỷ)": 0.27,
+   "R²": 0.815,
+   "Số căn": 97.0
+  },
+  {
+   "Mô hình": "Ridge",
+   "MAPE (%)": 17.365,
+   "MAPE thấp (95%)": 14.34,
+   "MAPE cao (95%)": 20.622,
+   "MdAPE (%)": 12.483,
+   "Trong ±10% (%)": 42.955,
+   "Trong ±20% (%)": 68.729,
+   "MAE (tỷ)": 0.299,
+   "R²": 0.759,
+   "Số căn": 97.0
+  },
+  {
+   "Mô hình": "Baseline (đơn giá dự án)",
+   "MAPE (%)": 21.036,
+   "MAPE thấp (95%)": 14.551,
+   "MAPE cao (95%)": 27.208,
+   "MdAPE (%)": 10.333,
+   "Trong ±10% (%)": 49.485,
+   "Trong ±20% (%)": 68.041,
+   "MAE (tỷ)": 0.326,
+   "R²": 0.639,
+   "Số căn": 97.0
+  }
+ ],
+ "chon_mo_hinh": [
+  {
+   "Mô hình": "Ridge",
+   "Độ phức tạp (thứ tự)": 1.0,
+   "MAPE": 14.592,
+   "Chênh so với tốt nhất": 1.974,
+   "KTC thấp": 1.064,
+   "KTC cao": 2.86,
+   "Ngang mô hình tốt nhất": 0.0
+  },
+  {
+   "Mô hình": "LightGBM",
+   "Độ phức tạp (thứ tự)": 2.0,
+   "MAPE": 13.709,
+   "Chênh so với tốt nhất": 1.091,
+   "KTC thấp": 0.56,
+   "KTC cao": 1.716,
+   "Ngang mô hình tốt nhất": 0.0
+  },
+  {
+   "Mô hình": "LightGBM Huber + chữ",
+   "Độ phức tạp (thứ tự)": 3.0,
+   "MAPE": 12.618,
+   "Chênh so với tốt nhất": 0.0,
+   "KTC thấp": 0.0,
+   "KTC cao": 0.0,
+   "Ngang mô hình tốt nhất": 1.0
+  }
+ ],
+ "test": [
+  {
+   "Mô hình": "LightGBM Huber + chữ",
+   "MAPE (%)": 13.729,
+   "MAPE thấp (95%)": 11.2,
+   "MAPE cao (95%)": 16.625,
+   "MdAPE (%)": 8.918,
+   "Trong ±10% (%)": 54.545,
+   "Trong ±20% (%)": 78.182,
+   "MAE (tỷ)": 0.272,
+   "R²": 0.837,
+   "Số căn": 110.0
+  },
+  {
+   "Mô hình": "Phần A – Random Forest (300 cây)",
+   "MAPE (%)": 14.005,
+   "MAPE thấp (95%)": 11.728,
+   "MAPE cao (95%)": 16.71,
+   "MdAPE (%)": 10.494,
+   "Trong ±10% (%)": 47.273,
+   "Trong ±20% (%)": 71.818,
+   "MAE (tỷ)": 0.282,
+   "R²": 0.81,
+   "Số căn": 110.0
+  },
+  {
+   "Mô hình": "Baseline (đơn giá dự án)",
+   "MAPE (%)": 15.205,
+   "MAPE thấp (95%)": 12.75,
+   "MAPE cao (95%)": 17.901,
+   "MdAPE (%)": 11.377,
+   "Trong ±10% (%)": 44.545,
+   "Trong ±20% (%)": 70.0,
+   "MAE (tỷ)": 0.333,
+   "R²": 0.71,
+   "Số căn": 110.0
+  }
+ ],
+ "test_tdm": [
+  {
+   "Mô hình": "LightGBM Huber + chữ",
+   "MAPE (%)": 21.326,
+   "MAPE thấp (95%)": 13.689,
+   "MAPE cao (95%)": 31.411,
+   "MdAPE (%)": 15.798,
+   "Trong ±10% (%)": 36.842,
+   "Trong ±20% (%)": 63.158,
+   "MAE (tỷ)": 0.368,
+   "R²": 0.641,
+   "Số căn": 19.0
+  },
+  {
+   "Mô hình": "Phần A – Random Forest (300 cây)",
+   "MAPE (%)": 20.97,
+   "MAPE thấp (95%)": 13.067,
+   "MAPE cao (95%)": 32.21,
+   "MdAPE (%)": 13.966,
+   "Trong ±10% (%)": 31.579,
+   "Trong ±20% (%)": 57.895,
+   "MAE (tỷ)": 0.347,
+   "R²": 0.654,
+   "Số căn": 19.0
+  },
+  {
+   "Mô hình": "Baseline (đơn giá dự án)",
+   "MAPE (%)": 18.983,
+   "MAPE thấp (95%)": 12.287,
+   "MAPE cao (95%)": 26.858,
+   "MdAPE (%)": 17.347,
+   "Trong ±10% (%)": 36.842,
+   "Trong ±20% (%)": 57.895,
+   "MAE (tỷ)": 0.37,
+   "R²": 0.521,
+   "Số căn": 19.0
+  }
+ ],
+ "phan_vi_sai_so_log": {
+  "q10": -0.1902072691574265,
+  "q25": -0.09571495507603447,
+  "q75": 0.08188310848346944,
+  "q90": 0.19194112341846759
+ },
+ "mo_hinh_web_mape": 14.59,
+ "so_can": {
+  "tat_ca": 580,
+  "tdm": 116,
+  "phu_hoa": 18,
+  "du_an": 79
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "id": "bf39fb496d0c",
+ "tep": {
+  "models/mo_hinh_gia_nha.joblib": "562002abfc3d5ebe2650b03b6b13cdc5cf08a2335a6f341015d6f6ed07f2b723",
+  "models/du_lieu_web.json": "c9a285fa3191963575a0236b393167bee35a7a1e100d687a263edae795bf500a",
+  "models/danh_gia_mo_hinh.json": "13e48ee933e4348a4e2e8216a68c82068d19b052da361dce7fdc63a9d9081eb6",
+  "dataset/processed/nha_da_xu_ly.csv": "507aee5659839c0cec069b2c4040f63748b95bb0adbb24f09f58b20d0f863375",
+  "models/mo_hinh_gia_can_ho.joblib": "e80e42319aa6a96a02cc563cafd40089baf2a0a50b2d95af1a052b42c542932e",
+  "dataset/processed/can_ho_da_xu_ly.csv": "10f288befe06f00f7f4200610436693a4ee9aaafd48209c1c5cd6a8ff328286f",
+  "models/danh_gia_mo_hinh_can_ho.json": "d4f3a6178bdb7698cdf85f2075cdf5909c3cd2cceb4ba7895c4d2caf7b61a736",
+  "models/tro_ly_y_dinh.joblib": "94a21c9314f8d43027de691dc9a44fd2fda692fe1a3d38eea7fab0ea662add56"
+ },
+ "cong_bo_luc": "2026-11-28T01:57:52",
+ "thu_muc": "models/ban_giao"
+}

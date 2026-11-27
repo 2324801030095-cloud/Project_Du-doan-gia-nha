@@ -1,0 +1,2 @@
+# Bộ bàn giao của API: so mã băm SHA-256 từng byte -> không để git đổi xuống dòng (autocrlf) khi clone
+models/ban_giao/** -text

@@ -37,7 +37,8 @@ def health():
         B = DG.bo()
     except DG.LoiNapBo as e:                     # chưa có bộ hợp lệ nào
         return JSONResponse(status_code=503, content={"ok": False, "loi_nap_moi_nhat": str(e)})
-    return {**_health(B), "loi_nap_moi_nhat": DG.trang_thai()["loi_nap"]}
+    tt = DG.trang_thai()
+    return {**_health(B), "nguon": tt["nguon"], "loi_nap_moi_nhat": tt["loi_nap"]}
 
 
 def _health(B):
