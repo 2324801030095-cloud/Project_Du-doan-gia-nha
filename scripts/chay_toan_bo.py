@@ -4,7 +4,8 @@ Chạy từ thư mục gốc đề tài:
     python scripts/chay_toan_bo.py --thu-thap    # thu thập dữ liệu mới trước
     python scripts/chay_toan_bo.py --tu <tên>    # chạy tiếp từ một bước, ví dụ --tu du_doan_gia_thue
     python scripts/chay_toan_bo.py --xu-huong    # chỉ notebook xu hướng + dựng lại trang (dùng sau mỗi kỳ thu thập)
-    python scripts/chay_toan_bo.py --nha-pho     # chỉ bài chính: notebook nhà phố -> dữ liệu web/API -> README -> kiểm thử
+    python scripts/chay_toan_bo.py --nha-pho     # chỉ bài chính: notebook nhà phố -> dữ liệu cho API -> README -> kiểm thử
+                                                 # (chỉ cần dữ liệu nhà ở; không dựng trang HTML tĩnh demo/)
     python scripts/chay_toan_bo.py --readme      # chỉ ghi lại bảng "Kết quả chính" của README từ models/*.json
 Vì sao thứ tự này:
 - giá thuê ghi thêm 2 cột vào dataset/processed/{nha,can_ho}_da_xu_ly.csv -> phải chạy SAU nhà phố và căn hộ;
@@ -23,7 +24,8 @@ GOC = pathlib.Path(__file__).resolve().parent.parent
 PY = sys.executable
 nb = lambda ten: [PY, "-m", "jupyter", "nbconvert", "--to", "notebook", "--execute", "--inplace",
                   "--ExecutePreprocessor.timeout=3600", f"notebooks/{ten}.ipynb"]
-TRANG = [PY, "-X", "utf8", "demo/build/build_site.py"]
+TRANG = [PY, "-X", "utf8", "demo/build/build_site.py"]                      # dữ liệu web + trang HTML tĩnh (cần đủ phần mở rộng)
+DU_LIEU_WEB = [PY, "-X", "utf8", "demo/build/build_site.py", "--chi-du-lieu"]  # chỉ models/du_lieu_web.json cho API (đủ với bài chính)
 BUOC = [
     ("2324801030095", nb("2324801030095")),
     ("du_doan_gia_can_ho", nb("du_doan_gia_can_ho")),
@@ -32,6 +34,7 @@ BUOC = [
     ("build_site", TRANG),
     ("tro_ly_y_dinh", nb("tro_ly_y_dinh")),
     ("build_site_lan_2", TRANG),
+    ("xuat_du_lieu_web", DU_LIEU_WEB),
     ("cap_nhat_readme", [PY, "-X", "utf8", "scripts/chay_toan_bo.py", "--readme"]),     # bảng kết quả README lấy từ models/*.json
     ("kiem_tra_mo_hinh", [PY, "-X", "utf8", "tests/kiem_tra_mo_hinh.py"]),
     ("kiem_tra_api", [PY, "-X", "utf8", "tests/kiem_tra_api.py"]),
@@ -51,6 +54,23 @@ def chay(buoc):
         if subprocess.run(lenh, cwd=GOC).returncode != 0:
             sys.exit(f"DỪNG: bước '{ten}' lỗi. Sửa xong chạy tiếp bằng: python scripts/chay_toan_bo.py --tu {ten}")
         print(f"   xong ({time.time() - t:.0f} giây)", flush=True)
+
+
+def kiem_api_dang_chay(url="http://127.0.0.1:8000/health"):
+    """Nếu API mô hình đang chạy (docker compose): kiểm chứng nó ĐANG phục vụ đúng mô hình / dữ liệu vừa sinh.
+    API tự nạp lại khi file đổi (bộ nhớ đệm theo thời điểm sửa file); /health trả mã băm của file đang dùng để so với file trên đĩa."""
+    import hashlib
+    import urllib.request
+    try:
+        pb = json.loads(urllib.request.urlopen(url, timeout=10).read())["phien_ban"]
+    except Exception as e:
+        print(f"(API mô hình không chạy hoặc chưa có /health phiên bản: {type(e).__name__}) – bỏ qua bước kiểm chứng phiên bản")
+        return
+    tren_dia = {t: hashlib.sha256((GOC / "models" / t).read_bytes()).hexdigest()[:12] for t in pb}
+    lech = {t: (pb[t], tren_dia[t]) for t in pb if pb[t] != tren_dia[t]}
+    if lech:
+        sys.exit(f"DỪNG: API đang phục vụ bản cũ {lech} (API / trên đĩa). Kiểm tra volume models/ trong docker-compose.yml")
+    print("API mô hình đang phục vụ đúng bản vừa sinh:", tren_dia)
 
 
 def cap_nhat_readme():
@@ -95,7 +115,9 @@ if __name__ == "__main__":
     if not shutil.which("node"):
         sys.exit("Cần Node.js >= 18 (notebook trợ lý và kiểm thử trang dùng Node).")
     if "--nha-pho" in sys.argv:          # chỉ luồng bài chính: notebook nhà phố -> dữ liệu web/API -> README -> kiểm thử
-        chay([b for b in BUOC if b[0] in ("2324801030095", "build_site", "cap_nhat_readme", "kiem_tra_mo_hinh", "kiem_tra_api")])
+        # Chỉ cần đầu vào / đầu ra của bài chính: không dựng trang HTML tĩnh (cần kết quả căn hộ, xu hướng...).
+        chay([b for b in BUOC if b[0] in ("2324801030095", "xuat_du_lieu_web", "cap_nhat_readme", "kiem_tra_mo_hinh", "kiem_tra_api")])
+        kiem_api_dang_chay()
         sys.exit(0)
     if "--xu-huong" in sys.argv:
         chay([b for b in BUOC if b[0] in ("du_doan_xu_huong_gia", "build_site_lan_2")])
@@ -109,7 +131,5 @@ if __name__ == "__main__":
     if "--thu-thap" in sys.argv:
         subprocess.run([PY, "-X", "utf8", "scripts/cap_nhat_dinh_ky.py", "--khong-chay-lai"], cwd=GOC)   # nguồn lỗi thì vẫn chạy tiếp với dữ liệu cũ
     chay(buoc)
-    # Web đang chạy bằng Docker: khởi động lại dịch vụ mô hình để nạp mô hình / dữ liệu vừa sinh (models/ được gắn vào container)
-    if shutil.which("docker") and subprocess.run(["docker", "compose", "ps", "--status", "running", "-q", "api"], cwd=GOC, capture_output=True, text=True).stdout.strip():
-        subprocess.run(["docker", "compose", "restart", "api"], cwd=GOC)
+    kiem_api_dang_chay()
     print("HOÀN TẤT: mọi notebook, trang demo và kiểm thử đã chạy lại.")

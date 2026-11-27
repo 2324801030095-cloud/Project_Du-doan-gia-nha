@@ -5,7 +5,7 @@ import { goiApi, type TongQuan } from "@/lib/api";
 export const metadata: Metadata = { title: "Mô hình" };
 
 type Dong = Record<string, unknown> & { "Mô hình": string };
-type DanhGia = { nha_pho: Record<string, Dong[] | string | unknown>; can_ho: Record<string, unknown> };
+type DanhGia = { nha_pho: Record<string, Dong[] | string | unknown>; can_ho?: Record<string, unknown> };
 
 const COT = ["Mô hình", "MAPE (%)", "MAPE thấp (95%)", "MAPE cao (95%)", "MdAPE (%)", "Trong ±20% (%)", "R²", "Số căn"];
 const gon = (ds: unknown) => ((ds as Dong[]) ?? []).map((d) => Object.fromEntries(COT.filter((c) => c in d).map((c) => [c, d[c]])));
@@ -66,10 +66,12 @@ export default async function Page() {
         <p className="mb-3 text-sm text-slate-500">Chênh lệch sai số % trên cùng từng căn; khoảng tin cậy chứa 0 nghĩa là chưa có bằng chứng đối chứng tốt hơn.</p>
         <Bang dong={(n.chon_mo_hinh as Dong[]) ?? []} />
       </section>
-      <section className="the p-6">
-        <h2 className="mb-3 text-xl font-semibold">Mở rộng – căn hộ, tập test ({String(dg.can_ho.ten_mo_hinh)})</h2>
-        <Bang dong={gon(dg.can_ho.test)} />
-      </section>
+      {dg.can_ho && (
+        <section className="the p-6">
+          <h2 className="mb-3 text-xl font-semibold">Mở rộng – căn hộ, tập test ({String(dg.can_ho.ten_mo_hinh)})</h2>
+          <Bang dong={gon(dg.can_ho.test)} />
+        </section>
+      )}
       <section className="the p-6 text-sm text-slate-600">
         <h2 className="mb-2 text-xl font-semibold text-navy-900">Hạn chế cần biết</h2>
         <ul className="list-disc space-y-1 pl-5">

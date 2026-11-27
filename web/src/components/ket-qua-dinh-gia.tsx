@@ -8,7 +8,7 @@ import { KhoangGia } from "./tin";
 
 export type KetQua = {
   gia_ty: number; khoang_80_ty: [number, number]; khoang_50_ty?: [number, number]; don_gia_trieu_m2: number; mo_hinh: string;
-  thue_trieu_thang?: number; ty_suat_pt?: number; giai_thich?: { nhom: { nhom: string; log: number }[] } | null;
+  thue_trieu_thang?: number | null; ty_suat_pt?: number | null; giai_thich?: { nhom: { nhom: string; log: number }[] } | null;
   du_an_nhan_ra?: boolean; phuong_co_du_lieu?: boolean; don_gia_nen_phuong?: number; da_luu?: boolean;
 };
 
@@ -100,8 +100,8 @@ export function KetQuaDinhGia({ kq, loi, dang, doPhu }: { kq: KetQua | null; loi
                 </>
               )}
             </O>
-            <O icon={kq.thue_trieu_thang !== undefined ? <Banknote size={16} /> : <CalendarClock size={16} />} nhan={kq.thue_trieu_thang !== undefined ? "Cho thuê ước tính (mở rộng)" : "Dữ liệu"}>
-              {kq.thue_trieu_thang !== undefined ? (
+            <O icon={kq.thue_trieu_thang != null ? <Banknote size={16} /> : <CalendarClock size={16} />} nhan={kq.thue_trieu_thang != null ? "Cho thuê ước tính (mở rộng)" : "Dữ liệu"}>
+              {kq.thue_trieu_thang != null ? (
                 <>
                   <p className="text-xl font-bold text-navy-900">{so(kq.thue_trieu_thang)} triệu/tháng</p>
                   <p className="mt-2 text-xs text-slate-500">= giá ước tính × tỷ suất cho thuê trung vị {so(kq.ty_suat_pt)}%/năm (đo từ tin cho thuê thật cùng khu vực).</p>

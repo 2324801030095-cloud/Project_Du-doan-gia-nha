@@ -6,6 +6,7 @@
 Cách dựng hàng đặc trưng giống hệt hàm du_doan_gia / du_doan_gia_can_ho trong notebook."""
 import json
 import sys
+import hashlib
 from functools import lru_cache
 from pathlib import Path
 
@@ -34,13 +35,38 @@ def _json(ten):
     return json.loads((MODELS / ten).read_text(encoding="utf-8"))
 
 
-@lru_cache
+# Bộ nhớ đệm theo THỜI ĐIỂM SỬA FILE: notebook ghi lại mô hình / dữ liệu thì lần gọi kế tiếp tự nạp bản mới,
+# không cần khởi động lại API (trước đây lru_cache giữ bản cũ tới khi restart).
+def _moc(*ten):
+    return tuple((GOC / t).stat().st_mtime_ns if (GOC / t).exists() else 0 for t in ten)
+
+
+def phien_ban():
+    """Mã nhận diện bản mô hình / dữ liệu đang phục vụ: 12 ký tự đầu SHA-256 của từng file (đối chiếu với file trên đĩa)."""
+    return _phien_ban(_moc("models/mo_hinh_gia_nha.joblib", "models/du_lieu_web.json", "models/danh_gia_mo_hinh.json"))
+
+
+@lru_cache(maxsize=2)
+def _phien_ban(_):
+    return {t: hashlib.sha256((MODELS / t).read_bytes()).hexdigest()[:12] if (MODELS / t).exists() else None
+            for t in ("mo_hinh_gia_nha.joblib", "du_lieu_web.json", "danh_gia_mo_hinh.json")}
+
+
 def du_lieu_web():
+    return _du_lieu_web(_moc("models/du_lieu_web.json"))
+
+
+@lru_cache(maxsize=2)
+def _du_lieu_web(_):
     return _json("du_lieu_web.json")
 
 
-@lru_cache
 def _nha():
+    return _nha_nap(_moc("models/mo_hinh_gia_nha.joblib", "dataset/processed/nha_da_xu_ly.csv"))
+
+
+@lru_cache(maxsize=2)
+def _nha_nap(_):
     goi = joblib.load(MODELS / "mo_hinh_gia_nha.joblib")
     df = pd.read_csv(PROC / "nha_da_xu_ly.csv", low_memory=False)
     xy_duong = df[df["toa_do_rieng"] == 1].groupby(["quan", "duong"])[["lat", "lon"]].median()
@@ -48,8 +74,12 @@ def _nha():
     return goi, xy_duong, xy_phuong
 
 
-@lru_cache
 def _can_ho():
+    return _can_ho_nap(_moc("models/mo_hinh_gia_can_ho.joblib", "dataset/processed/can_ho_da_xu_ly.csv"))
+
+
+@lru_cache(maxsize=2)
+def _can_ho_nap(_):
     goi = joblib.load(MODELS / "mo_hinh_gia_can_ho.joblib")
     df = pd.read_csv(PROC / "can_ho_da_xu_ly.csv", low_memory=False)
     return goi, df, df.groupby("du_an")[["lat", "lon", "quan", "phuong"]].first()
@@ -82,8 +112,8 @@ def _dong_gop(goi_mh, can):
 
 
 def _ty_suat_nha(phuong):
-    th = du_lieu_web()["THUE"]
-    return (th.get("ty_suat_phuong_nha") or {}).get(phuong) or th["ty_suat_tv"]["nha_tdm"]
+    th = du_lieu_web().get("THUE") or {}
+    return (th.get("ty_suat_phuong_nha") or {}).get(phuong) or (th.get("ty_suat_tv") or {}).get("nha_tdm")
 
 
 def dinh_gia_nha(dt_dat, ngang=None, dai=None, so_tang=None, dt_san=None, phong_ngu=None, so_wc=None, mat_tien_duong=0,
@@ -111,7 +141,7 @@ def dinh_gia_nha(dt_dat, ngang=None, dai=None, so_tang=None, dt_san=None, phong_
     kq = {"gia_ty": round(gia, 3), "khoang_80_ty": _khoang(p, q), "khoang_50_ty": (round(float(np.exp(p + q["q25"])), 3), round(float(np.exp(p + q["q75"])), 3)),
           "don_gia_trieu_m2": round(gia * 1000 / dt_dat, 1), "mo_hinh": goi["ten"], "ngay_du_lieu": goi.get("ngay_du_lieu"), "giai_thich": None}
     ys = _ty_suat_nha(phuong)
-    kq["thue_trieu_thang"], kq["ty_suat_pt"] = round(gia * 1000 * ys / 100 / 12, 1), round(ys, 2)
+    kq["thue_trieu_thang"], kq["ty_suat_pt"] = (round(gia * 1000 * ys / 100 / 12, 1), round(ys, 2)) if ys else (None, None)
     nen, dg = _dong_gop(goi["model"], can)
     if dg is not None:
         nhom, da_dung = {}, set()
@@ -146,11 +176,11 @@ def dinh_gia_can_ho(dt_su_dung, du_an=None, phong_ngu=None, so_wc=None, tang=Non
     p = float(goi["model"].predict(can)[0])
     q = goi["khoang_theo_phan_khuc"]["nhom"].get("noxh" if nha_o_xa_hoi else "thuong_mai", goi["phan_vi_sai_so"])
     gia = float(np.exp(p))
-    th = du_lieu_web()["THUE"]
-    ys = (th.get("ty_suat_du_an") or {}).get(ma) or th["ty_suat_tv"]["can_ho"]
+    th = du_lieu_web().get("THUE") or {}
+    ys = (th.get("ty_suat_du_an") or {}).get(ma) or (th.get("ty_suat_tv") or {}).get("can_ho")
     return {"gia_ty": round(gia, 3), "khoang_80_ty": _khoang(p, q), "don_gia_trieu_m2": round(gia * 1000 / dt_su_dung, 1),
             "du_an_nhan_ra": ma in xy_du_an.index, "mo_hinh": goi["ten"],
-            "thue_trieu_thang": round(gia * 1000 * ys / 100 / 12, 1), "ty_suat_pt": round(ys, 2)}
+            "thue_trieu_thang": round(gia * 1000 * ys / 100 / 12, 1) if ys else None, "ty_suat_pt": round(ys, 2) if ys else None}
 
 
 def _chuan_hoa_cau(s):
@@ -163,8 +193,12 @@ def _chuan_hoa_cau(s):
     return re.sub(r"[^a-z0-9]+", " ", s).strip()
 
 
-@lru_cache
 def _tro_ly():
+    return _tro_ly_nap(_moc("models/tro_ly_y_dinh.joblib"))
+
+
+@lru_cache(maxsize=2)
+def _tro_ly_nap(_):
     return joblib.load(MODELS / "tro_ly_y_dinh.joblib")
 
 

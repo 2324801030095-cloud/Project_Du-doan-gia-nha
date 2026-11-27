@@ -355,13 +355,13 @@ Phân tích sai số ở bản nháp cho thấy phần lớn sai số rất lớ
 | Nhà ở xã hội | Giá do Nhà nước quy định, thị trường riêng |
 | Tiêu đề là bán **căn hộ chung cư** (không nhắc "nhà", "mặt tiền") | Căn hộ đăng nhầm mục nhà; định giá ở notebook căn hộ |
 | Giá mồi: "2 tỷ xxx", "giá 1,5 - 2 tỷ" | Số giá trên tin thấp hơn giá thật |
-| Tiêu đề "bán đất **tặng** nhà / dãy trọ / ki-ốt", hoặc "bán đất" mà không có thông tin căn nhà | Người bán chủ yếu bán đất (nhà chỉ tặng kèm, thường để xây mới): giá là giá đất, không phải giá căn nhà mà đề tài định giá. Tin "bán đất" nhưng mô tả có nhà (trệt, lầu, phòng ngủ) vẫn giữ |
+| Tin "bán đất" mà công trình kèm theo **không phải nhà để ở** (dãy trọ, ki-ốt, kho), hoặc nói rõ **để xây mới**, hoặc **không có thông tin căn nhà** | Đề tài định giá nhà ở. Tin "bán đất tặng nhà" mà mô tả một căn nhà ở được (số tầng, sàn, trệt/lầu, phòng ngủ, nhà cấp 4) vẫn **giữ**, vì đối tượng bán thực tế là nhà + đất |
 | Diện tích thổ cư < 50% diện tích đất | Phần lớn là đất nông nghiệp, đơn giá thấp hơn hẳn |
 | Đơn giá lệch hơn **3 lần** so với trung vị 15 căn gần nhất | Gần như chắc chắn là lỗi nhập (sai đơn vị, nhầm diện tích) |
 
 Đây là bước **xử lý ngoại lai** của bài thực hành tiền xử lý (TH4). Khác ở chỗ ngoại lai được so với **các căn lân cận** thay vì với toàn bộ dữ liệu (như phương pháp IQR/boxplot), vì đơn giá ở lõi Thủ Dầu Một và ở Bàu Bàng chênh nhau vài lần mà đều là giá thật. Hai bước dùng kỹ thuật nâng cao được đóng gói thành hàm trong `src/mo_hinh_gia.py`, Phần A chỉ gọi hàm và dùng kết quả: `lech_don_gia_khu_vuc` (tìm 15 căn gần nhất) và `nhom_gan_trung` (gom tin gần trùng, ngay sau đây). Chúng phải chạy **trước** khi chia train/test nên không thể dời xuống dưới; cách hoạt động được giải thích trong bảng kỹ thuật ở Phần B (Bước 8).
 
-**Lưu ý trung thực:** quy tắc "đơn giá lệch > 3 lần khu vực" dùng **giá** của chính tin đó, và được áp trước khi chia train/test, nên các tin bất thường bị loại khỏi cả tập test. Điều này có thể làm sai số đo được đẹp hơn một chút so với khi gặp tin thật ngoài thị trường. Bước 11 (phép kiểm 2) học và chấm lại với 4 ngưỡng, kể cả **không lọc**: sai số gần như không đổi (bảng ở phép kiểm 2), nên ảnh hưởng này nhỏ.
+**Lưu ý trung thực:** quy tắc "đơn giá lệch > 3 lần khu vực" dùng **giá** của chính tin đó, và được áp trước khi chia train/test, nên các tin bất thường bị loại khỏi cả tập test. Điều này có thể làm sai số đo được đẹp hơn một chút so với khi gặp tin thật ngoài thị trường. Bước 11 (phép kiểm 2) học lại với 4 ngưỡng, kể cả **không lọc**, và chấm trên **các tin được giữ ở mọi ngưỡng**: phép thử này cho biết đổi ngưỡng ảnh hưởng thế nào trên phần dữ liệu chung, còn sai số trên **chính các tin bị lọc** thì chưa được đo. Vì vậy kết quả của đề tài áp dụng cho **tin rao đã qua làm sạch**; muốn đánh giá trên tin mới bất kỳ ngoài thị trường cần một tập giữ riêng gồm cả các mức giá bất thường đã xác minh.
 """)
 
 code(r"""
@@ -378,11 +378,16 @@ tieu_de_kd = df["tieu_de"].fillna("").map(khong_dau)
 danh_dau(tieu_de_kd.str.contains(r"can ho|chung cu|\bcan (?:happy|c sky|the )") & ~tieu_de_kd.str.contains(r"\bnha\b|mat tien|mini|day tro"),
          "Căn hộ chung cư đăng nhầm mục nhà")
 danh_dau(v.str.contains(r"\d\s*(?:ty|t)\s*x{2,}|gia[^\n\d]{0,12}\d+(?:[.,]\d+)?\s*(?:ty)?\s*-\s*\d+(?:[.,]\d+)?\s*ty\b"), "Giá mồi / không rõ ràng")
-# Đề tài định giá NHÀ (nhà + đất). Tin mà người bán chủ yếu bán đất thì giá là giá đất, không phải giá căn nhà:
-# "bán đất tặng nhà / tặng dãy trọ / tặng ki-ốt" (nhà chỉ tặng kèm, thường để xây mới) hoặc tin "bán đất" không có thông tin căn nhà.
-danh_dau(tieu_de_kd.str.contains(r"dat tang|tang (?:nha|day tro|ki ?-?ot|kiot|kho)\b"), "Tin chủ yếu bán đất (nhà chỉ tặng kèm)")
-danh_dau(tieu_de_kd.str.contains(r"\bban (?:gap )?(?:lo |nen )?dat\b") & df[["so_tang", "dt_san", "phong_ngu"]].isna().all(axis=1)
-         & ~v.str.contains(r"\btret\b|\blau\b|phong ngu|\bpn\b"), "Tin bán đất, không có thông tin căn nhà")
+# Đề tài định giá NHÀ Ở (nhà + đất). Tin có tiêu đề "bán đất" (kể cả "bán đất tặng nhà") vẫn GIỮ nếu tin mô tả một căn nhà
+# ở được (có số tầng, diện tích sàn, hoặc nhắc trệt / lầu / phòng ngủ / phòng khách / cấp 4). Chỉ LOẠI khi:
+#   (1) công trình kèm theo không phải nhà để ở (dãy trọ, phòng trọ, ki-ốt, kho) -> giá là giá đất + công trình kinh doanh;
+#   (2) tin nói rõ mua đất để xây mới / đập bỏ công trình;
+#   (3) tin không có bất kỳ thông tin nào về căn nhà.
+ban_dat = tieu_de_kd.str.contains(r"\bban (?:gap )?(?:lo |nen )?dat\b|\bdat tang\b")
+co_nha = df[["so_tang", "dt_san", "phong_ngu"]].notna().any(axis=1) | (tieu_de_kd + " " + v).str.contains(r"\btret\b|\blau\b|phong ngu|phong khach|\bpn\b|cap 4|nha vuon")
+danh_dau(ban_dat & tieu_de_kd.str.contains(r"\btang (?:\d+ )?(?:day tro|phong tro|ki ?-?ot|kiot|kho)\b"), "Bán đất kèm dãy trọ / ki-ốt (không phải nhà để ở)")
+danh_dau(ban_dat & v.str.contains(r"\bxay (?:biet thu|moi|chdv|can ho dich vu)\b|\bdap bo\b|\bpha do\b"), "Bán đất để xây mới")
+danh_dau(ban_dat & ~co_nha, "Tin bán đất không có thông tin căn nhà")
 danh_dau(df["t_dt_tho_cu"] / df["dt_dat"] < 0.5, "Thổ cư < 50% diện tích")
 df["lech_log"] = lech_don_gia_khu_vuc(df, k=15)      # |log đơn giá − log trung vị đơn giá 15 căn gần nhất| (cách tính: Phần B)
 danh_dau(df["lech_log"] > np.log(3), "Đơn giá lệch > 3 lần khu vực")
@@ -586,7 +591,7 @@ Mọi mô hình dưới đây đều nằm trong bài giảng hoặc bài thực
 | **Mạng nơ-ron nhiều lớp (MLP)** | Bài giảng 4 | Các nơ-ron sigmoid/ReLU xếp thành lớp ẩn, học trọng số bằng **gradient descent + lan truyền ngược (backpropagation)** |
 | Random Forest | Thực hành TH10 | Trung bình của nhiều cây, mỗi cây học trên một mẫu bootstrap và một phần đặc trưng → giảm phương sai của cây đơn |
 
-**Đặc trưng:** thông số căn nhà (log diện tích, ngang, dài, số tầng, diện tích sàn, phòng ngủ, WC, mặt tiền, cấp lối vào, độ rộng hẻm, sổ chung, nội thất), vị trí (vĩ độ, kinh độ, khoảng cách tới trung tâm) và 21 từ khóa đọc từ mô tả (Bước 3). Mục tiêu là **log(giá)**, vì với giá nhà sai số tính theo % mới có ý nghĩa (Bước 5). Ô thiếu được điền bằng trung vị **của tập train** (như bài thực hành tiền xử lý TH4). KNN, SVR và MLP dựa trên khoảng cách / gradient nên cần **chuẩn hóa** đặc trưng (StandardScaler) trước.
+**Đặc trưng:** thông số căn nhà (log diện tích, ngang, dài, số tầng, diện tích sàn, phòng ngủ, WC, mặt tiền, cấp lối vào, độ rộng hẻm, sổ chung, nội thất), vị trí (vĩ độ, kinh độ, khoảng cách tới trung tâm) và 21 từ khóa đọc từ mô tả (Bước 3). Mô hình **huấn luyện trên log(giá)** (giá lệch phải, Bước 5); khi đánh giá, dự đoán được đổi về tỷ đồng rồi mới tính MAPE, MAE. Ô thiếu được điền bằng trung vị **của tập train** (như bài thực hành tiền xử lý TH4). KNN, SVR và MLP dựa trên khoảng cách / gradient nên cần **chuẩn hóa** đặc trưng (StandardScaler) trước.
 
 **Cây quyết định cho bài toán hồi quy.** Bài giảng trình bày ID3 cho bài toán phân lớp: ở mỗi nút chọn thuộc tính có **information gain** lớn nhất, tức làm **entropy** của nhãn giảm nhiều nhất. Với giá (một số liên tục), ý tưởng giữ nguyên nhưng độ "lẫn lộn" của một nút đo bằng **phương sai** (sai số bình phương) của giá trong nút thay cho entropy: cây chọn ngưỡng chia làm phương sai giảm nhiều nhất, và mỗi lá dự đoán giá trung bình của các căn trong lá.
 
@@ -716,7 +721,7 @@ Tập test vẫn chỉ dùng một lần, ở Bước 9.
 
 | Kỹ thuật | Nói ngắn gọn | Vì sao cần |
 |---|---|---|
-| Học trên log(giá) | Mô hình dự đoán log của giá rồi đổi ngược bằng `exp` | Giá lệch phải; sai số được đo theo % chứ không theo tỷ đồng |
+| Học trên log(giá) | Mô hình huấn luyện trên log của giá; dự đoán đổi về tỷ đồng bằng `exp` rồi mới tính MAPE, MAE | Giá lệch phải; trên thang log, chênh lệch giữa căn rẻ và căn đắt được đối xử theo tỷ lệ |
 | Giá khu vực (`GiaLangGieng`, chỉ trong mô hình đối chứng) | Với mỗi căn, lấy đơn giá trung bình của 12 căn gần nhất / cùng phường / cùng đường **trong tập học** | Đưa "vị trí" vào mô hình bằng con số có nghĩa. Mỗi căn không được dùng giá của chính nó, nên không lộ đáp án |
 | Gradient boosting (LightGBM, mô hình đối chứng) | Nhiều cây quyết định nhỏ học nối tiếp, cây sau sửa lỗi cây trước | Kỹ thuật mạnh ngoài bài giảng, dùng để kiểm tra mô hình của môn học có thua xa không |
 | Ngoại lai theo khu vực (`lech_don_gia_khu_vuc`, dùng ở Bước 4.4) | Với mỗi căn, tìm 15 căn gần nhất bằng `BallTree` (cây chia không gian, khoảng cách trên mặt cầu – haversine), so log đơn giá của căn với trung vị của 15 căn đó | Đơn giá thật chênh vài lần giữa các vùng, nên ngoại lai phải so với hàng xóm chứ không với toàn bộ dữ liệu như IQR |
@@ -870,7 +875,7 @@ nx(f'''**Đọc kết quả** (chênh lệch có khoảng tin cậy không chứ
 md(r"""
 
 ## Bước 9: Kiểm tra lần cuối trên tập test
-Tập test chưa được dùng ở bất kỳ bước nào (kể cả Phần A). Đây là **lần duy nhất** nó được dùng: chấm cùng lúc mô hình cuối (tốt nhất của Phần A), mô hình đối chứng, baseline và cách làm phiên bản 1. Vì chỉ có vài chục căn Phú Hòa, con số trên test **dao động mạnh** (xem khoảng tin cậy). Đây là **kết quả chính** của đề tài vì là bằng chứng sạch nhất; con số kiểm định chéo ở Bước 8 dùng để bổ trợ.
+Tập test được **giữ riêng khỏi bước huấn luyện và chọn mô hình** (kể cả Phần A), sau khi áp dụng quy tắc làm sạch ở Bước 4 (quy tắc lọc đơn giá dùng giá của mọi tin, trước khi chia tập). Đây là **lần duy nhất** nó được dùng để chấm: chấm cùng lúc mô hình cuối (tốt nhất của Phần A), mô hình đối chứng, baseline và cách làm phiên bản 1. Vì chỉ có vài chục căn Phú Hòa, con số trên test **dao động mạnh** (xem khoảng tin cậy). Đây là **kết quả chính** của đề tài vì là bằng chứng sạch nhất; con số kiểm định chéo ở Bước 8 dùng để bổ trợ.
 """)
 
 code(r"""
@@ -938,7 +943,7 @@ nx(f'''**Con số nên trình bày:** MAPE trên tập test kèm khoảng tin c�
 
 **So sánh trên tập test.** Ở Phú Hòa ({int(bang_test_ph.loc[ten_tot_nhat, "Số căn"])} căn): mô hình cuối ({ten_tot_nhat}) {mp(bang_test_ph, ten_tot_nhat)}%, đối chứng {mp(bang_test_ph, A_)}%, phiên bản 1 {mp(bang_test_ph, V1_)}%, baseline {mp(bang_test_ph, B0_)}% – {"khoảng tin cậy của cả bốn chồng nhau, nên tập test Phú Hòa **không phân hạng được** các mô hình" if tat_ca_chong else "có mô hình khác biệt rõ với mô hình được chọn (khoảng tin cậy không chồng nhau)"}. Trên toàn Thủ Dầu Một ({int(bang_test_tdm.loc[ten_tot_nhat, "Số căn"])} căn): mô hình cuối {mp(bang_test_tdm, ten_tot_nhat)}%, đối chứng {mp(bang_test_tdm, A_)}%, baseline {mp(bang_test_tdm, B0_)}%, phiên bản 1 {mp(bang_test_tdm, V1_)}%.
 
-**Kết luận trung thực:** mô hình cuối {"thắng rõ baseline trên toàn vùng" if thang_bl else "chưa thắng rõ baseline trên toàn vùng"}; so với mô hình đối chứng thì {"hai mô hình **ngang nhau** trên tập test (khoảng tin cậy chồng nhau): kỹ thuật ngoài bài giảng **không cho lợi ích chứng minh được** trên dữ liệu chưa thấy" if AB_chong else "khác biệt có ý nghĩa (khoảng tin cậy không chồng nhau)"}. Sai số cỡ {"–".join(dict.fromkeys(vn(v, 0) for v in sorted([bang_test_ph.loc[ten_tot_nhat, "MAPE (%)"], bang_test_tdm.loc[ten_tot_nhat, "MAPE (%)"]])))}% là của **giá rao bán**: cùng một căn có thể được các môi giới rao với giá khác nhau, người bán còn để "phần thương lượng". Phần sai số này nằm ở chính dữ liệu, mô hình không thể loại bỏ.''')
+**Kết luận trung thực:** mô hình cuối {"thắng rõ baseline trên toàn vùng" if thang_bl else "chưa thắng rõ baseline trên toàn vùng"}; so với mô hình đối chứng thì {"hai mô hình **ngang nhau** trên tập test (khoảng tin cậy chồng nhau): kỹ thuật ngoài bài giảng **không cho lợi ích chứng minh được** trên dữ liệu chưa thấy" if AB_chong else "khác biệt có ý nghĩa (khoảng tin cậy không chồng nhau)"}. Sai số cỡ {"–".join(dict.fromkeys(vn(v, 0) for v in sorted([bang_test_ph.loc[ten_tot_nhat, "MAPE (%)"], bang_test_tdm.loc[ten_tot_nhat, "MAPE (%)"]])))}% là của **giá rao bán**: cùng một căn có thể được các môi giới rao với giá khác nhau, người bán còn để "phần thương lượng". Đề tài **chưa đo** được bao nhiêu phần sai số đến từ chính giá rao và bao nhiêu từ mô hình (cần giá giao dịch thật để tách).''')
 """)
 
 md(r"""
@@ -1145,7 +1150,7 @@ display(TC["phuong"])
 """)
 
 md(r"""
-**2. Độ nhạy theo ngưỡng lọc "đơn giá lệch quá xa khu vực".** Quy tắc này có thể loại nhầm căn cao cấp hay vị trí hiếm có đơn giá cao thật. Ta học lại mô hình với 4 ngưỡng (giữ nguyên các quy tắc lọc khác), rồi chấm **trên cùng một tập căn**: những căn được giữ lại ở **mọi** ngưỡng. Chấm trên cùng tập thì so sánh mới công bằng; nếu chấm trên tập của từng ngưỡng, ngưỡng lỏng sẽ "bị phạt" chỉ vì phải đoán cả các tin giá bất thường.
+**2. Độ nhạy theo ngưỡng lọc "đơn giá lệch quá xa khu vực".** Quy tắc này có thể loại nhầm căn cao cấp hay vị trí hiếm có đơn giá cao thật. Ta học lại mô hình với 4 ngưỡng (giữ nguyên các quy tắc lọc khác), rồi chấm **trên cùng một tập căn**: những căn được giữ lại ở **mọi** ngưỡng. Chấm trên cùng tập thì so sánh mới công bằng; nếu chấm trên tập của từng ngưỡng, ngưỡng lỏng sẽ "bị phạt" chỉ vì phải đoán cả các tin giá bất thường. **Giới hạn:** phép thử chỉ cho biết đổi ngưỡng ảnh hưởng thế nào trên phần dữ liệu chung; sai số trên chính các tin bị lọc chưa được đo.
 """)
 
 code(r"""
@@ -1436,7 +1441,7 @@ md(r"""
 - Đặc trưng "giá các căn gần nhất cùng loại lối vào": không giảm sai số; mô hình vốn không lệch có hệ thống với nhà mặt tiền (Bước 9).
 
 **Hạn chế còn lại (cần nêu khi trình bày; phần có số liệu ở ô cuối)**
-- Mô hình ước lượng **mặt bằng giá rao**, không phải giá giao dịch: vẫn là **giá rao bán**, chưa phải giá giao dịch công chứng (dữ liệu này không công khai). Phần lớn sai số (con số ở ô kết luận cuối) đến từ độ "ảo" của giá rao.
+- Mô hình ước lượng **mặt bằng giá rao**, không phải giá giao dịch: vẫn là **giá rao bán**, chưa phải giá giao dịch công chứng (dữ liệu này không công khai). Một phần sai số có thể đến từ chính giá rao (cùng căn nhiều giá, phần thương lượng), nhưng đề tài chưa đo được tỷ lệ này.
 - Vị trí chỉ chính xác tới **tuyến đường hoặc phường** với phần lớn tin; muốn tốt hơn cần số nhà hoặc tọa độ do người đăng ghim.
 - Không có thông tin chất lượng xây dựng thật (vật liệu, tuổi nhà); chỉ đọc được gián tiếp qua mô tả.
 - **Căn hộ chung cư** không nằm trong mô hình này: xem notebook `du_doan_gia_can_ho.ipynb` (cùng quy trình đánh giá, đặc trưng riêng: dự án, tầng, pháp lý, nhà ở xã hội).
@@ -1451,7 +1456,7 @@ ape_all = np.abs(ph_all_["gia_uoc_luong_ty"] / ph_all_["gia_ty"] - 1).to_numpy()
 lo_all, hi_all = ktc_bootstrap(ape_all, ph_all_["nhom"].to_numpy())
 phu_all = ((ph_all_["gia_ty"] >= ph_all_["khoang80_thap"]) & (ph_all_["gia_ty"] <= ph_all_["khoang80_cao"])).mean() * 100
 TOM_TAT = pd.DataFrame({
-    "Cách đo": ["KẾT QUẢ CHÍNH – Tập test giữ riêng: căn Phú Hòa chưa dùng ở bất kỳ bước nào",
+    "Cách đo": ["KẾT QUẢ CHÍNH – Tập test: căn Phú Hòa giữ riêng khỏi huấn luyện và chọn mô hình (sau làm sạch)",
                 "Bổ trợ – Kiểm định chéo lặp theo nhóm: căn Phú Hòa trong tập train",
                 "Bổ trợ – Dự đoán chéo theo nhóm trên TOÀN BỘ căn Phú Hòa (Bước 11)"],
     "Số căn": [int(te_["Số căn"]), int(cv_["Số căn"]), len(ph_all_)],
@@ -1460,7 +1465,7 @@ TOM_TAT = pd.DataFrame({
 }).set_index("Cách đo")
 display(TOM_TAT)
 print(f"Độ phủ khoảng 80% trên toàn bộ {len(ph_all_)} căn Phú Hòa: {phu_all:.1f}%")
-print("Cách đọc: tập test là KẾT QUẢ CHÍNH vì là bằng chứng sạch nhất (căn chưa từng dùng ở bất kỳ bước nào), nhưng chỉ vài chục căn nên khoảng tin cậy rộng. "
+print("Cách đọc: tập test là KẾT QUẢ CHÍNH vì là bằng chứng sạch nhất (căn được giữ riêng khỏi huấn luyện và chọn mô hình, sau khi làm sạch), nhưng chỉ vài chục căn nên khoảng tin cậy rộng. "
       "Dòng cuối dùng mọi căn Phú Hòa, mỗi căn được dự đoán bởi mô hình không học căn đó và các tin gần trùng, nên khoảng tin cậy hẹp hơn nhiều; "
       "nhưng các căn của tập train đã tham gia bước CHỌN mô hình, nên nó có thể lạc quan nhẹ và chỉ dùng để bổ trợ, không thay thế tập test. Ba con số nhất quán với nhau "
       "thì mới kết luận sai số ở Phú Hòa vào khoảng giữa các giá trị này.")

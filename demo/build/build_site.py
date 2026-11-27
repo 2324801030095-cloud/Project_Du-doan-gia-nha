@@ -15,7 +15,11 @@ J = lambda *p: os.path.join(ROOT, *p)
 tpl = open(os.path.join(S, "template.html"), encoding="utf-8").read()
 MODEL = json.load(open(J("models", "mo_hinh_gia_nha.json"), encoding="utf-8"))
 DG = json.load(open(J("models", "danh_gia_mo_hinh.json"), encoding="utf-8"))
-TREND = json.load(open(J("models", "xu_huong_gia.json"), encoding="utf-8"))
+# Bắt buộc: kết quả notebook nhà phố. Tùy chọn (phần mở rộng): căn hộ, xu hướng, giá thuê, đất (lưu trữ), trợ lý.
+# Thiếu phần nào thì phần đó để trống -> chạy được khi chỉ có đầu vào / đầu ra của bài chính (scripts/chay_toan_bo.py --nha-pho).
+CHI_DU_LIEU = "--chi-du-lieu" in sys.argv        # chỉ xuất models/du_lieu_web.json cho API, không dựng trang HTML tĩnh
+doc = lambda *p: json.load(open(J(*p), encoding="utf-8")) if os.path.exists(J(*p)) else None
+TREND = doc("models", "xu_huong_gia.json") or {}
 df = pd.read_csv(J("dataset", "processed", "nha_da_xu_ly.csv"), dtype={"id": str})
 
 # ---- thông tin hiển thị có dấu, lấy từ dữ liệu gốc ----
@@ -78,11 +82,19 @@ TOK = {"BEST": best, "N_PH": str(len(ph)), "N_ALL": vn(len(df), 0), "N_RAW": vn(
        "T_MDAPE": vn(cvp[best]["MdAPE (%)"]), "B_MDAPE": vn(bl["MdAPE (%)"]), "V1_MDAPE": vn(v1["MdAPE (%)"]),
        "T_W20": vn(cvp[best]["Trong ±20% (%)"], 0), "B_W20": vn(bl["Trong ±20% (%)"], 0), "WEB_MAPE": vn(MODEL["cv_mape"]),
        "TEST_N": str(int(te["Số căn"])), "TEST_MAPE": vn(te["MAPE (%)"]), "TEST_LO": vn(te["MAPE thấp (95%)"]), "TEST_HI": vn(te["MAPE cao (95%)"])}
-# ---- căn hộ chung cư (notebook du_doan_gia_can_ho.ipynb) ----
-CH = json.load(open(J("models", "mo_hinh_gia_can_ho.json"), encoding="utf-8"))
-CH_DG = json.load(open(J("models", "danh_gia_mo_hinh_can_ho.json"), encoding="utf-8"))
-chd = pd.read_csv(J("dataset", "processed", "can_ho_da_xu_ly.csv"), dtype={"id": str})
-raw_ch = pd.read_csv(J("dataset", "raw", "chotot_can_ho_raw.csv"))
+# ---- căn hộ chung cư (notebook du_doan_gia_can_ho.ipynb – phần mở rộng, tùy chọn) ----
+CO_CH = all(os.path.exists(J(*f)) for f in [("models", "mo_hinh_gia_can_ho.json"), ("models", "danh_gia_mo_hinh_can_ho.json"),
+                                            ("dataset", "processed", "can_ho_da_xu_ly.csv"), ("dataset", "raw", "chotot_can_ho_raw.csv")])
+if CO_CH:
+    CH, CH_DG = doc("models", "mo_hinh_gia_can_ho.json"), doc("models", "danh_gia_mo_hinh_can_ho.json")
+    chd = pd.read_csv(J("dataset", "processed", "can_ho_da_xu_ly.csv"), dtype={"id": str})
+    raw_ch = pd.read_csv(J("dataset", "raw", "chotot_can_ho_raw.csv"))
+else:
+    CH, CH_DG = {"phuong": {}}, {"so_can": {"tat_ca": 0, "du_an": 0}}
+    chd = pd.DataFrame(columns=["id", "quan", "phuong", "du_an", "du_an_goc", "dt_dat", "phong_ngu", "gia_ty", "gia_uoc_luong_ty",
+                                "khoang80_thap", "khoang80_cao", "chan_doan", "url", "lat", "lon", "muc_toa_do", "tieu_de"])
+    raw_ch = pd.DataFrame(columns=["phuong", "ngay_thu_thap"])
+    print("Không có kết quả notebook căn hộ: bỏ qua phần căn hộ.")
 sys.path.insert(0, J("src"))
 from mo_hinh_gia import ten_phuong as _tp
 
@@ -100,12 +112,12 @@ CH_LIST = [{"da": nv(r["du_an_goc"]) or (r["du_an"].title() if isinstance(r["du_
 data += ["const CH_MODEL = " + json.dumps(CH, ensure_ascii=False) + ";", "const CH_PHUONG = " + json.dumps(CH_PHUONG, ensure_ascii=False) + ";",
          "const CH_LIST = " + json.dumps(CH_LIST, ensure_ascii=False) + ";",
          f"const TONG_NHA = {len(df)};   // số căn nhà phố trong dữ liệu huấn luyện (trợ lý dùng khi trả lời)"]
-TOK.update({"CH_N": vn(CH_DG["so_can"]["tat_ca"], 0), "CH_DA": str(CH_DG["so_can"]["du_an"]),
-            "CH_NGAY": pd.to_datetime(raw_ch["ngay_thu_thap"].iloc[0]).strftime("%d/%m/%Y"),
-            "CH_WEB": vn(CH["cv_mape"]), "CH_FULL": vn(CH["mo_hinh_day_du_mape"])})
+if CO_CH:
+    TOK.update({"CH_N": vn(CH_DG["so_can"]["tat_ca"], 0), "CH_DA": str(CH_DG["so_can"]["du_an"]),
+                "CH_NGAY": pd.to_datetime(raw_ch["ngay_thu_thap"].iloc[0]).strftime("%d/%m/%Y"),
+                "CH_WEB": vn(CH["cv_mape"]), "CH_FULL": vn(CH["mo_hinh_day_du_mape"])})
 
 # ---- giá thuê, đất nền, giải thích mô hình, bản đồ (notebook du_doan_gia_thue / du_doan_gia_dat) ----
-doc = lambda *p: json.load(open(J(*p), encoding="utf-8")) if os.path.exists(J(*p)) else None
 THUE = doc("models", "gia_thue_web.json") or {}
 DAT = doc("models", "mo_hinh_gia_dat.json") or {}
 GT = doc("models", "giai_thich_nha.json") or {}
@@ -226,10 +238,11 @@ for n in used:
     inner = re.search(r"<svg[^>]*>(.*)</svg>", open(p, encoding="utf-8").read(), re.DOTALL).group(1)
     syms.append(f'<symbol id="i-{n}" viewBox="0 0 24 24">' + re.sub(r"\s*\n\s*", "", inner).replace(" />", "/>") + "</symbol>")
 sprite = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' + "".join(syms) + "</svg>"
-out = tpl.replace("<!--@@ICONS@@-->", "<!-- Icon: Lucide (ISC) -->\n" + sprite).replace("/*@@DATA@@*/", "\n".join(data))
-assert "@@" not in out.replace("<!--@@", "").replace("/*@@", ""), re.findall(r"@@\w+@@", out)
-open(os.path.join(DEMO, "index.html"), "w", encoding="utf-8").write(out)
-print("written", len(out), "| listings:", len(L), "| tokens:", TOK)
+if not CHI_DU_LIEU:
+    out = tpl.replace("<!--@@ICONS@@-->", "<!-- Icon: Lucide (ISC) -->\n" + sprite).replace("/*@@DATA@@*/", "\n".join(data))
+    assert "@@" not in out.replace("<!--@@", "").replace("/*@@", ""), re.findall(r"@@\w+@@", out)
+    open(os.path.join(DEMO, "index.html"), "w", encoding="utf-8").write(out)
+    print("written", len(out), "| listings:", len(L), "| tokens:", TOK)
 
 # ---- cùng dữ liệu đó cho ứng dụng web (web/ + api/): models/du_lieu_web.json ----
 du_lieu = {}

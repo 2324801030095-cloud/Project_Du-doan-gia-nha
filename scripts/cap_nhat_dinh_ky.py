@@ -28,9 +28,9 @@ LS.mkdir(parents=True, exist_ok=True)
 NGUON = {"chotot": ("chotot", "chotot_binh_duong_raw.csv"),              # tham số cho src/thu_thap.py
          "alonhadat": ("alonhadat", "alonhadat_tdm_raw.csv"),
          "chotot_can_ho": ("chotot --can-ho", "chotot_can_ho_raw.csv"),
-         "alonhadat_can_ho": ("alonhadat --can-ho", "alonhadat_can_ho_tdm_raw.csv"),
-         "chotot_dat": ("chotot --dat", "chotot_dat_raw.csv"),
-         "alonhadat_dat": ("alonhadat --dat", "alonhadat_dat_tdm_raw.csv")}
+         "alonhadat_can_ho": ("alonhadat --can-ho", "alonhadat_can_ho_tdm_raw.csv")}
+# Đất nền đã bỏ khỏi đề tài (chỉ định giá nhà ở): không thu thập đất định kỳ nữa. Dữ liệu đất cũ giữ ở dataset/raw, dataset/history
+# để truy xuất; muốn thu lại thì chạy tay: python src/thu_thap.py chotot --dat / alonhadat --dat
 
 import time
 

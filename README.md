@@ -104,11 +104,11 @@ GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử m�
 | | Nhà phố – Phú Hòa (bài chính) | Căn hộ (mở rộng) |
 |---|---|---|
 | Mô hình | Random Forest (300 cây) | LightGBM Huber + chữ |
-| Tập test giữ riêng | 44 căn | 110 căn |
-| MAPE mô hình trên test | 27,8% (KTC 95% 21,6–38,3) | 13,7% |
-| MAE mô hình trên test | 1,67 tỷ đồng | 0,27 tỷ đồng |
-| Mốc so sánh trên cùng tập test | Baseline (đơn giá phường): MAPE 34,7%, MAE 2,02 tỷ | Baseline (đơn giá dự án): MAPE 15,2%, MAE 0,33 tỷ |
-| Kiểm định chéo trên tập train (mô hình / mốc) | 23,8% / 29,4% | 12,6% / 16,1% |
-| Khoảng giá 80%: độ phủ đo trên test | 30/44 căn (68%) | – |
+| Tập test giữ riêng | 43 căn | 110 căn |
+| MAPE mô hình trên test | 25,1% (KTC 95% 18,8–35,4) | 13,7% |
+| MAE mô hình trên test | 1,75 tỷ đồng | 0,27 tỷ đồng |
+| Mốc so sánh trên cùng tập test | Baseline (đơn giá phường): MAPE 25,9%, MAE 1,69 tỷ | Baseline (đơn giá dự án): MAPE 15,2%, MAE 0,33 tỷ |
+| Kiểm định chéo trên tập train (mô hình / mốc) | 24,1% / 31,5% | 12,6% / 16,1% |
+| Khoảng giá 80%: độ phủ đo trên test | 32/43 căn (74%) | – |
 
 **Nhà phố – mô hình cuối:** mô hình tốt nhất trong các mô hình của môn học (Phần A, chọn bằng kiểm định chéo), dùng đúng đặc trưng của Phần A. Phần B chỉ so nó với một mô hình đối chứng ngoài bài giảng (LightGBM + giá khu vực) và đo độ tin cậy (kiểm định chéo lặp, bootstrap, khoảng giá 80%).

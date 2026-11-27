@@ -66,7 +66,13 @@ S["du_lieu"] = {"tong": len(d), "tdm": int(d["tdm"].sum()), "ph": len(ph), "so_n
                 "dt_ph": {k: round(float(v), 1) for k, v in ph["dt_dat"].describe(percentiles=[.5])[["min", "50%", "max"]].items()}}
 loai = pd.read_csv(GOC / "dataset" / "processed" / "tin_bi_loai.csv")
 S["bi_loai"] = loai["ly_do_loai"].value_counts().to_dict()
-S["bi_loai_dat"] = loai[loai["ly_do_loai"].str.startswith("Tin chủ yếu bán đất") | loai["ly_do_loai"].str.startswith("Tin bán đất")][["nguon", "tieu_de", "gia_ty"]].head(12).to_dict("records")
+la_dat = loai["ly_do_loai"].str.contains("bán đất|Bán đất|Bán đất để xây mới", regex=True)
+S["bi_loai_dat"] = loai[la_dat][["nguon", "tieu_de", "gia_ty", "ly_do_loai"]].to_dict("records")
+# tin tiêu đề "bán đất…" nhưng được GIỮ vì mô tả một căn nhà ở được
+sys.path.insert(0, str(GOC / "src"))
+from mo_hinh_gia import khong_dau  # noqa: E402
+td = d["tieu_de"].fillna("").map(khong_dau)
+S["giu_dat"] = d[td.str.contains(r"\bban (?:gap )?(?:lo |nen )?dat\b|\bdat tang\b", regex=True)][["nguon", "tieu_de", "gia_ty", "so_tang", "phong_ngu"]].to_dict("records")
 S["nhan_tay"] = {"so_cap": len(pd.read_csv(GOC / "dataset" / "labeled" / "cap_tin_gan_trung.csv"))}
 
 # ---- danh sách file (số dòng, cột, KB) ----

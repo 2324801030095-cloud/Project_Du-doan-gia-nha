@@ -19,7 +19,8 @@ def _web():
 
 @app.get("/health")
 def health():
-    return {"ok": True, "ngay_du_lieu": _web()["SO_LIEU"]["NGAY"]}
+    """ngay_du_lieu + phien_ban (mã băm mô hình / dữ liệu ĐANG phục vụ) để kiểm chứng API đã nạp bản mới nhất."""
+    return {"ok": True, "ngay_du_lieu": _web()["SO_LIEU"]["NGAY"], "phien_ban": DG.phien_ban()}
 
 
 @app.get("/tong-quan")
@@ -36,8 +37,9 @@ def tong_quan():
 @app.get("/danh-gia")
 def danh_gia():
     """Bảng đánh giá của notebook nhà phố (bài chính) và căn hộ (mở rộng): kiểm định chéo, tập test, chọn mô hình."""
+    # căn hộ là phần mở rộng: chỉ trả nếu notebook căn hộ đã chạy
     return {k: json.loads((DG.MODELS / f"danh_gia_mo_hinh{s}.json").read_text(encoding="utf-8"))
-            for k, s in (("nha_pho", ""), ("can_ho", "_can_ho"))}
+            for k, s in (("nha_pho", ""), ("can_ho", "_can_ho")) if (DG.MODELS / f"danh_gia_mo_hinh{s}.json").exists()}
 
 
 # ---------------- danh sách tin ----------------
@@ -113,7 +115,7 @@ def xu_huong():
 def danh_muc():
     """Danh mục cho các ô chọn của form: dự án và phường (căn hộ), tuyến đường Phú Hòa."""
     w = _web()
-    return {"du_an": [{k: d[k] for k in ("ma", "ten", "so_tin", "quan", "phuong")} for d in w["CH_MODEL"]["du_an"]],
+    return {"du_an": [{k: d[k] for k in ("ma", "ten", "so_tin", "quan", "phuong")} for d in w["CH_MODEL"].get("du_an", [])],
             "phuong_can_ho": w["CH_PHUONG"],
             "duong_phu_hoa": ["Nguyễn Thị Minh Khai", "Lê Hồng Phong", "Phú Lợi", "Nguyễn Thái Bình", "30/4", "Đại lộ Bình Dương", "Trần Văn Ơn", "Huỳnh Thị Hiếu"]}
 
@@ -156,6 +158,8 @@ def dinh_gia_nha_pho(x: NhaPho):
 
 @app.post("/dinh-gia/can-ho")
 def dinh_gia_can_ho(x: CanHo):
+    if not (DG.MODELS / "mo_hinh_gia_can_ho.joblib").exists():
+        raise HTTPException(503, "Chưa có mô hình căn hộ (phần mở rộng): chạy notebook du_doan_gia_can_ho")
     return DG.dinh_gia_can_ho(**x.model_dump())
 
 

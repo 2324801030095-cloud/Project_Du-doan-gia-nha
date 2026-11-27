@@ -17,4 +17,5 @@ nbconvert==7.17.2
 # Dịch vụ mô hình (api/) và kiểm thử của nó
 fastapi==0.165.0
 uvicorn[standard]==0.54.0
-httpx==0.28.1
+starlette==1.10.0                         # ghim cùng FastAPI: TestClient của bản này dùng httpx2
+httpx2==2.16.2                            # cho TestClient trong tests/kiem_tra_api.py
