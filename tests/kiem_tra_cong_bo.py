@@ -367,6 +367,31 @@ def _():
     assert c.get("/health").json()["ngay_du_lieu"] == "06/06/2099"
 
 
+@kiem("HỒI QUY 3 – công bố A -> B -> B (chạy lại cùng nội dung): vẫn còn CẢ hai bộ và hai dấu, B phục vụ bình thường; "
+      "B hỏng + bản kê hỏng hoặc mất, khởi động lạnh -> GET /health và POST dự đoán đều dùng A")
+def _():
+    goc_web = WEB.read_bytes()
+    doi_ngay("01/05/2099"); A = cong_bo()
+    doi_ngay("04/05/2099"); B = cong_bo(); B2 = cong_bo()                  # lần 2: cùng nội dung, không tạo bộ mới
+    assert B2["id"] == B["id"] != A["id"]
+    for ma in (A["id"], B["id"]):
+        assert (TAM / DG.THU_MUC_CONG_BO / ma / DG.DAU_CONG_BO).exists(), f"mất bộ / dấu {ma}"
+    dung_duoc(B["id"])
+    assert phien_ban_sau_khoi_dong()[:2] == (B["id"], B["id"])
+    hong = TAM / DG.THU_MUC_CONG_BO / B["id"] / "models/du_lieu_web.json"   # B không nạp được nữa (lệch mã băm)
+    goc_b = hong.read_bytes()
+    hong.write_text("{}", encoding="utf-8")
+    try:
+        (TAM / DG.MANIFEST).write_text("{hỏng", encoding="utf-8")
+        hb, post, h = phien_ban_sau_khoi_dong()
+        assert (hb, post) == (A["id"], A["id"]) and h["ngay_du_lieu"] == "01/05/2099", h
+        hb, post, h = phien_ban_sau_khoi_dong(xoa_ban_ke=True)
+        assert (hb, post) == (A["id"], A["id"]) and h["ngay_du_lieu"] == "01/05/2099", h
+    finally:
+        hong.write_bytes(goc_b)
+    WEB.write_bytes(goc_web); cong_bo()
+
+
 @kiem("Thiếu tệp bắt buộc -> không công bố được, bản kê cũ giữ nguyên")
 def _():
     truoc = (TAM / DG.MANIFEST).read_text(encoding="utf-8")

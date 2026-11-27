@@ -102,7 +102,8 @@ def cong_bo(goc=None, kiem=True):
     except OSError as e:
         raise LoiNapBo(f"bản kê đã trỏ tới bộ {bk['id']} nhưng chưa ghi được dấu phục hồi ({e}); "
                        "chạy lại: python api/dinh_gia.py --cong-bo") from e
-    giu = {bk["id"]} | ({dau[0]["id"]} if dau else set())   # giữ bộ vừa công bố + bộ công bố trước đó
+    # giữ bộ vừa công bố + bộ đã công bố gần nhất CÓ MÃ KHÁC (công bố lại cùng bộ không được xóa bộ dự phòng)
+    giu = {bk["id"]} | {next((d["id"] for d in dau if d["id"] != bk["id"]), bk["id"])}
     for d in (goc / THU_MUC_CONG_BO).iterdir():
         if d.name not in giu:
             shutil.rmtree(d, ignore_errors=True)
