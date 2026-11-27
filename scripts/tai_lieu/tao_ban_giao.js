@@ -65,7 +65,8 @@ const HOI = (q, a) => new Paragraph({ spacing: { after: 140 }, children: [new Te
 
 // Nội dung tài liệu bàn giao. Mọi con số lấy từ D (so_lieu_ban_giao.json) – cùng một lần chạy, không gõ tay.
 // Được nạp bởi tao_ban_giao.js (cung cấp các hàm H1, H2, P, B, N, CODE, LUU_Y, TB, HOI, add, Paragraph, TextRun...).
-const s = (x, d = 1) => (x == null || Number.isNaN(Number(x)) ? "–" : Number(x).toLocaleString("vi-VN", { minimumFractionDigits: d, maximumFractionDigits: d }));
+// làm tròn giống Python (README, notebook) để cùng một số hiển thị như nhau ở mọi nơi
+const s = (x, d = 1) => (x == null || Number.isNaN(Number(x)) ? "–" : (Math.round(Number(x) * 10 ** d) / 10 ** d).toLocaleString("vi-VN", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const s0 = (x) => s(x, 0);
 const DG = D.danh_gia, SL = D.so_lieu_web, MH = D.mo_hinh, DL = D.du_lieu, NB = D.nb;
 const dong = (bang, ten) => bang.find((r) => r["Mô hình"] === ten);
@@ -111,7 +112,7 @@ add(H1("1. Tóm tắt – bốn câu hỏi của giảng viên"),
     ["Toàn Thủ Dầu Một", s0(tT["Số căn"]), `${s(tT["MAPE (%)"])}% / ${s(tT["MAE (tỷ)"], 2)} tỷ`, `${s(bT["MAPE (%)"])}% / ${s(bT["MAE (tỷ)"], 2)} tỷ`, `${s(tT["MAPE thấp (95%)"])}–${s(tT["MAPE cao (95%)"])}%`],
   ], [0.2, 0.1, 0.25, 0.25, 0.2]),
   P(`Bằng chứng bổ trợ (kiểm định chéo lặp trên tập train, ${s0(cvPH["Số căn"])} căn Phú Hòa): Random Forest ${s(cvPH["MAPE (%)"])}% so với mốc ${s(cvBPH["MAPE (%)"])}%. Con số kiểm định chéo **không** đặt cạnh con số test trong cùng một so sánh, vì hai cách đo dùng tập căn khác nhau.`),
-  LUU_Y(`**Kết luận trung thực:** ${thangT ? "trên toàn Thủ Dầu Một, Random Forest tốt hơn mốc rõ ràng (khoảng tin cậy không chồng nhau)." : "trên toàn Thủ Dầu Một, khoảng tin cậy của Random Forest và mốc còn chồng nhau."} Ở riêng Phú Hòa trên tập test này, Random Forest ${thangPH ? "có MAPE thấp hơn" : "có MAPE cao hơn"} mốc${(tPH["MAE (tỷ)"] < bPH["MAE (tỷ)"]) !== thangPH ? (thangPH ? " nhưng MAE cao hơn" : " nhưng MAE thấp hơn") + ` (MAE ${s(tPH["MAE (tỷ)"], 2)} so với ${s(bPH["MAE (tỷ)"], 2)} tỷ: hai thước đo xếp hạng ngược nhau)` : ""}${chongPH ? ", nhưng khoảng tin cậy chồng nhau: 44 căn test quá ít để khẳng định mô hình hơn mốc ở riêng Phú Hòa" : ""}. Ở lần chạy ngày 26/11/2026 (trước khi rà quy tắc lọc tin đất), cùng phép đo cho Random Forest 26,4% và mốc 26,1%: thứ hạng đổi theo cách chia tập, đúng như khoảng tin cậy rộng cho thấy. Kiểm định chéo (nhiều căn hơn) lần nào cũng xếp Random Forest trên mốc. **Phạm vi kết luận:** tin rao nhà ở **đã qua làm sạch** (mục 3.6).`));
+  LUU_Y(`**Kết luận trung thực:** ${thangT ? "trên toàn Thủ Dầu Một, Random Forest tốt hơn mốc rõ ràng (khoảng tin cậy không chồng nhau)." : "trên toàn Thủ Dầu Một, khoảng tin cậy của Random Forest và mốc còn chồng nhau."} Ở riêng Phú Hòa trên tập test này, Random Forest ${thangPH ? "có MAPE thấp hơn" : "có MAPE cao hơn"} mốc${(tPH["MAE (tỷ)"] < bPH["MAE (tỷ)"]) !== thangPH ? (thangPH ? " nhưng MAE cao hơn" : " nhưng MAE thấp hơn") + ` (MAE ${s(tPH["MAE (tỷ)"], 2)} so với ${s(bPH["MAE (tỷ)"], 2)} tỷ: hai thước đo xếp hạng ngược nhau)` : ""}${chongPH ? `; khoảng tin cậy chồng nhau: ${s0(tPH["Số căn"])} căn test quá ít để khẳng định mô hình hơn mốc ở riêng Phú Hòa` : ""}. Ở lần chạy ngày 26/11/2026 (trước khi rà quy tắc lọc tin đất), cùng phép đo cho Random Forest 26,4% và mốc 26,1%: thứ hạng đổi theo cách chia tập, đúng như khoảng tin cậy rộng cho thấy. Kiểm định chéo (nhiều căn hơn) lần nào cũng xếp Random Forest trên mốc. **Phạm vi kết luận:** tin rao nhà ở **đã qua làm sạch** (mục 3.6).`));
 
 // ================= 2. Phạm vi =================
 add(H1("2. Phạm vi và cách hiểu con số"),

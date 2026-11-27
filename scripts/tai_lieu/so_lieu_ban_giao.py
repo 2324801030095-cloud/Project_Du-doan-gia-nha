@@ -72,7 +72,7 @@ S["bi_loai_dat"] = loai[la_dat][["nguon", "tieu_de", "gia_ty", "ly_do_loai"]].to
 sys.path.insert(0, str(GOC / "src"))
 from mo_hinh_gia import khong_dau  # noqa: E402
 td = d["tieu_de"].fillna("").map(khong_dau)
-S["giu_dat"] = d[td.str.contains(r"\bban (?:gap )?(?:lo |nen )?dat\b|\bdat tang\b", regex=True)][["nguon", "tieu_de", "gia_ty", "so_tang", "phong_ngu"]].to_dict("records")
+S["giu_dat"] = d[td.str.contains(r"\bban (?:gap )?(?:lo |nen )?dat\b|\bdat tang\b", regex=True)][["nguon", "tieu_de", "gia_ty", "so_tang", "phong_ngu"]].astype(object).where(lambda x: x.notna(), None).to_dict("records")
 S["nhan_tay"] = {"so_cap": len(pd.read_csv(GOC / "dataset" / "labeled" / "cap_tin_gan_trung.csv"))}
 
 # ---- danh sách file (số dòng, cột, KB) ----
@@ -117,5 +117,5 @@ S["kiem_thu"] = {
 }
 S["moi_truong"] = {"python": sys.version.split()[0], "node": subprocess.run(["node", "--version"], capture_output=True, text=True).stdout.strip(),
                    "commit": subprocess.run(["git", "log", "-1", "--format=%h"], cwd=GOC, capture_output=True, text=True).stdout.strip()}
-json.dump(S, open(Path(__file__).parent / "so_lieu_ban_giao.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=str)
+json.dump(S, open(Path(__file__).parent / "so_lieu_ban_giao.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=str, allow_nan=False)  # NaN không hợp lệ trong JSON
 print("ok", {k: S["kiem_thu"][k] for k in S["kiem_thu"]}, S["nb"]["phu_ph"])
