@@ -28,8 +28,11 @@ c = pd.read_csv(J("dataset", "raw", "chotot_binh_duong_raw.csv"), dtype={"id": s
 a = pd.read_csv(J("dataset", "raw", "alonhadat_tdm_raw.csv"), dtype={"id": str}).set_index("id")
 HUONG_CT = {1: "Đông", 2: "Tây", 3: "Nam", 4: "Bắc", 5: "Đông Bắc", 6: "Đông Nam", 7: "Tây Bắc", 8: "Tây Nam"}
 def nv(v):
+    """NaN / None -> None (JSON hợp lệ cho web), giá trị khác giữ nguyên."""
     return None if v is None or (isinstance(v, float) and np.isnan(v)) else v
 def hien_thi(r):
+    """Thông tin phụ để HIỂN THỊ một tin (đường, hướng, pháp lý, ngày cập nhật, hiện trạng đường) lấy từ dữ liệu thô
+    của đúng nguồn tin (guland / Chợ Tốt / alonhadat). Không dùng cho mô hình."""
     i, n = r["id"], r["nguon"]
     if n == "guland" and i in g.index:
         x = g.loc[i]; return dict(duong=nv(x["duong"]), huong=nv(x["huong"]), so=nv(x["loai_so"]), cn=nv(x["cap_nhat"]), hd=nv(x["hien_trang_duong"]))
@@ -129,6 +132,9 @@ if os.path.exists(J("results", "ty_suat_cho_thue.csv")):
     for _, t in pd.read_csv(J("results", "ty_suat_cho_thue.csv"), dtype={"id": str}).iterrows():
         THUE_TIN[(t["loai"], str(t["id"]))] = (round(float(t["thue_trieu"]), 1), round(float(t["ty_suat_pt"]), 2))
 def gan_thue(o, r, loai):
+    """Gắn tiền thuê ước tính (triệu/tháng, khóa 'thue') và tỷ suất cho thuê (%/năm, khóa 'ys') vào tin web `o`:
+    ưu tiên results/ty_suat_cho_thue.csv (notebook giá thuê); không có thì lấy cột trong CSV đã xử lý nếu còn.
+    Chế độ --nha-pho có thể không có cả hai -> tin không có giá thuê (web hiển thị '–')."""
     if (loai, str(r["id"])) in THUE_TIN:
         o["thue"], o["ys"] = THUE_TIN[(loai, str(r["id"]))]
     elif "thue_uoc_luong_trieu" in r and pd.notna(r["thue_uoc_luong_trieu"]):
@@ -157,6 +163,7 @@ if os.path.exists(J("results", "output_dat.csv")):
 # điểm cho bản đồ: [lat, lon, đơn giá, loại, giá, nhãn, url]; chỉ tin có tọa độ riêng hoặc theo tuyến đường (tâm phường thì không chính xác)
 PTS = []
 def them(d, loai, gia_col, don_gia, nhan, chinh_xac):
+    """Thêm điểm bản đồ [lat, lon, đơn giá triệu/m², loại, giá tỷ, tiêu đề, link] cho các dòng có tọa độ đủ tin cậy."""
     for _, r in d[chinh_xac].iterrows():
         PTS.append([round(float(r["lat"]), 5), round(float(r["lon"]), 5), round(float(don_gia(r)), 1), loai, round(float(r[gia_col]), 3), str(nhan(r))[:70], r["url"]])
 cx = lambda d: d["muc_toa_do"].astype(str).str[:1].isin(["1", "2"]) & d["lat"].notna()
@@ -164,6 +171,8 @@ them(df, "nha", "gia_ty", lambda r: r["gia_ty"] * 1000 / r["dt_dat"], lambda r: 
 # Căn hộ: 1 chấm cho mỗi dự án / tòa (tọa độ trung vị các tin của dự án), kèm danh sách căn trong tòa.
 # Căn không rõ dự án đứng riêng 1 chấm. Tin chỉ có tọa độ tâm phường thì không vẽ (vị trí không chính xác).
 def can_ho_web(r):
+    """Một tin căn hộ -> dict gọn cho web (khóa ngắn để JSON nhẹ: g = giá rao tỷ, ai = giá mô hình tỷ,
+    lo/hi = khoảng 80%, cd = chẩn đoán, thue = triệu/tháng, ys = %/năm)."""
     so = lambda k, d=2: None if pd.isna(r.get(k)) else round(float(r[k]), d)
     return {"id": str(r["id"]), "da": nv(r["du_an_goc"]) or (r["du_an"].title() if isinstance(r["du_an"], str) else None),
             "ph": ten_ph.get(r["phuong"], str(r["phuong"]).title()), "t": str(r["tieu_de"])[:90], "dt": float(r["dt_dat"]),

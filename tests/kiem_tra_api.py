@@ -25,6 +25,7 @@ KQ = []           # (tên, "ĐẠT" | "KHÔNG ĐẠT" | "BỎ QUA", chi tiết)
 def kiem(ten, mo_rong=False):
     """mo_rong=True: phép kiểm của phần mở rộng -> bỏ qua ở chế độ --nha-pho."""
     def boc(f):
+        """Chạy hàm kiểm f ngay khi khai báo và ghi kết quả (ĐẠT / KHÔNG ĐẠT kèm lỗi, hoặc BỎ QUA cho phần mở rộng ở chế độ --nha-pho)."""
         if mo_rong and NHA_PHO:
             KQ.append((ten, "BỎ QUA", "phần mở rộng, không thuộc chế độ --nha-pho")); return f
         try:

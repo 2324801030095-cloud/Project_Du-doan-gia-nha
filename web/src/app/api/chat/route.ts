@@ -72,6 +72,7 @@ const CONG_CU = [
   { type: "function", function: { name: "xu_huong_gia", description: "Tín hiệu và kịch bản xu hướng giá theo kỳ hạn.", parameters: { type: "object", properties: {} } } },
 ];
 
+/** Thực thi công cụ mô hình ngôn ngữ yêu cầu bằng cách gọi API mô hình của đề tài; kết quả gửi lại cho mô hình ngôn ngữ. */
 async function chayCongCu(ten: string, thamSo: Record<string, unknown>): Promise<unknown> {
   const post = (duong: string) => goiApi(duong, { method: "POST", body: JSON.stringify(thamSo) });
   switch (ten) {
@@ -98,6 +99,7 @@ async function chayCongCu(ten: string, thamSo: Record<string, unknown>): Promise
 
 type TinNhan = { role: "system" | "user" | "assistant" | "tool"; content: string | null; tool_calls?: { id: string; function: { name: string; arguments: string } }[]; tool_call_id?: string };
 
+/** Gọi Groq (chuẩn OpenAI) với danh sách công cụ; mô hình đầu hết hạn mức (429) thì thử mô hình kế tiếp. */
 async function goiGroq(khoa: string, tinNhan: TinNhan[]) {
   for (const model of MO_HINH) {
     const r = await fetch(GROQ, {
@@ -146,6 +148,7 @@ function quaTanSuat(req: Request) {
   return ds.length > 20;
 }
 
+/** Một lượt hỏi: tối đa 5 vòng mô hình ngôn ngữ <-> công cụ; lỗi / không có khóa -> trả lời bằng mô hình ý định ngoại tuyến. */
 export async function POST(req: Request) {
   if (quaTanSuat(req)) return NextResponse.json({ loi: "Bạn hỏi quá nhanh, thử lại sau ít giây." }, { status: 429 });
   const p = Yeu.safeParse(await req.json().catch(() => null));

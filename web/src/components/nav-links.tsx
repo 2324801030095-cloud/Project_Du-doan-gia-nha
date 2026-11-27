@@ -1,4 +1,5 @@
 "use client";
+// Liên kết menu chính; trên màn hình nhỏ thu thành nút mở / đóng menu.
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

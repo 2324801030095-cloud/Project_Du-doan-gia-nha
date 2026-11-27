@@ -1,3 +1,5 @@
+// Chi tiết một tin nhà phố: giá rao so với giá mô hình + khoảng 80%, giải thích theo nhóm yếu tố,
+// bản đồ vị trí gần đúng, giá thuê ước tính (nếu có). Tin đã gỡ ở kỳ mới nhất -> 404.
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";

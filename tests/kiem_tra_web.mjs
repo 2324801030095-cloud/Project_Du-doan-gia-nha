@@ -9,6 +9,7 @@ const KQ = [];
 async function kiem(ten, f) {
   try { await f(); KQ.push([ten, true, ""]); } catch (e) { KQ.push([ten, false, e.message]); }
 }
+// ok(điều kiện, thông báo): điều kiện sai -> ném lỗi, phép kiểm đang chạy ghi KHÔNG ĐẠT
 const ok = (dk, msg) => { if (!dk) throw new Error(msg); };
 
 // Phiên = cookie trả về từ Better Auth

@@ -1,3 +1,5 @@
+// Trang xu hướng (phần mở rộng): tín hiệu và kịch bản biên độ giá theo kỳ hạn từ /xu-huong.
+// Đây là kịch bản có điều kiện, CHƯA phải dự báo đã kiểm định lùi (cần đủ kỳ dữ liệu).
 import type { Metadata } from "next";
 import { Bang } from "@/components/bang";
 import { BieuDoKichBan } from "@/components/bieu-do-xu-huong";

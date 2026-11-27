@@ -1,4 +1,5 @@
 "use client";
+// Bản đồ Leaflet (chỉ chạy trên trình duyệt; được nạp động bởi ban-do-nho.tsx với ssr: false).
 import "leaflet/dist/leaflet.css";
 import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
 

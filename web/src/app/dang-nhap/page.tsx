@@ -1,3 +1,4 @@
+// Trang đăng nhập; ?tiep=/duong-dan là trang quay lại sau khi đăng nhập (chỉ nhận đường dẫn nội bộ).
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";

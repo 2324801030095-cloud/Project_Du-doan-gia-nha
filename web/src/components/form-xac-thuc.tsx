@@ -1,4 +1,5 @@
 "use client";
+// Form đăng nhập / đăng ký dùng Better Auth phía trình duyệt; lỗi máy chủ được dịch sang tiếng Việt.
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,6 +9,7 @@ import { signIn, signUp } from "@/lib/auth-client";
 // Chỉ cho chuyển hướng tới đường dẫn nội bộ (chống open redirect qua ?tiep=)
 const anToan = (u: string | null) => (u && u.startsWith("/") && !u.startsWith("//") ? u : "/tai-khoan");
 
+/** kieu = dang-nhap | dang-ky. Thành công -> chuyển tới ?tiep (đã kiểm là đường dẫn nội bộ) rồi làm mới phiên. */
 export function FormXacThuc({ kieu }: { kieu: "dang-nhap" | "dang-ky" }) {
   const router = useRouter();
   const tiep = anToan(useSearchParams().get("tiep"));

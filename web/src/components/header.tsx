@@ -1,9 +1,11 @@
+// Thanh menu trên cùng (thành phần máy chủ: đọc phiên để hiện menu người dùng hoặc nút đăng nhập).
 import { House } from "lucide-react";
 import Link from "next/link";
 import { layPhien } from "@/lib/session";
 import { MenuNguoiDung } from "./menu-nguoi-dung";
 import { NavLinks } from "./nav-links";
 
+/** Các mục menu chính (dùng chung cho menu máy tính và điện thoại). */
 export const MUC_MENU = [
   { href: "/dinh-gia", ten: "Định giá" },
   { href: "/nha-pho", ten: "Nhà phố" },

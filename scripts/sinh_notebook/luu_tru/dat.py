@@ -80,6 +80,7 @@ md(r"""
 """)
 
 code(r"""
+# (Notebook LƯU TRỮ – đất nền đã bỏ khỏi bài chính.) Đọc số đầu tiên trong chuỗi (dấu phẩy thập phân -> chấm); không có số -> NaN.
 def so(x):
     if pd.isna(x):
         return np.nan
@@ -238,6 +239,7 @@ Chia tập test 20% theo nhóm (riêng cho Thủ Dầu Một, nơi cần định
 """)
 
 code(r"""
+# Đặc trưng của lô đất và chia train / test THEO NHÓM tin gần trùng trên các lô Thủ Dầu Một (test 20%).
 DAC_TRUNG = ["log_dt", "ngang", "dai", "mat_tien_duong", "cap_loi_vao", "hem_rong", "nen_du_an", "tho_cu_toan_bo", "so_rieng", "so_chung",
              "t_goc", "t_no_hau", "t_kinh_doanh", "t_ban_gap", "t_trung_tam", "lat", "lon", "kc_trung_tam_km"]
 tdm_idx = df.index[df["tdm"] == 1]
@@ -276,6 +278,7 @@ Kiểm định chéo 5-fold lặp 3 lần chia theo nhóm trên tập train; đ�
 """)
 
 code(r"""
+# Các mô hình so sánh cho đất: baseline đơn giá phường, Ridge, LightGBM, LightGBM + mô hình chữ (đều học log đơn giá).
 lgb = lambda: LGBMRegressor(n_estimators=600, learning_rate=0.03, num_leaves=15, min_child_samples=12, subsample=0.8, subsample_freq=1,
                             colsample_bytree=0.7, verbose=-1, random_state=0, n_jobs=1)
 MH = {"Baseline (đơn giá phường)": lambda: BaselineDonGiaPhuong(),
@@ -366,6 +369,7 @@ Trang web không chạy được LightGBM, nên dùng mô hình rút gọn cùng
 """)
 
 code(r"""
+# Mô hình rút gọn cho bản tĩnh (DatWeb: đơn giá phường + Ridge 7 thông số, chạy được bằng JavaScript) và lưu mô hình.
 import joblib
 WEB = ["log_dt", "ngang", "cap_loi_vao", "hem_rong", "nen_du_an", "tho_cu_toan_bo", "so_rieng"]
 M_CO = 5.0

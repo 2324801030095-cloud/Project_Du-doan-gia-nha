@@ -3,12 +3,14 @@ import "server-only";
 // Gọi dịch vụ mô hình (FastAPI, thư mục api/). Chỉ chạy phía máy chủ: trình duyệt không gọi thẳng API mô hình.
 const API = process.env.MODEL_API_URL ?? "http://localhost:8000";
 
+/** Lỗi do API mô hình trả về: status = mã HTTP (422 dữ liệu sai, 503 chưa có bộ mô hình hợp lệ...). */
 export class LoiApi extends Error {
   constructor(public status: number, message: string) {
     super(message);
   }
 }
 
+/** Gọi API mô hình (không cache) và trả JSON; mã lỗi -> LoiApi với thông điệp `detail` của FastAPI. */
 export async function goiApi<T>(duong: string, init?: RequestInit): Promise<T> {
   const r = await fetch(API + duong, { ...init, cache: "no-store", headers: { "content-type": "application/json", ...init?.headers } });
   if (!r.ok) {
@@ -22,6 +24,7 @@ export async function goiApi<T>(duong: string, init?: RequestInit): Promise<T> {
   return r.json() as Promise<T>;
 }
 
+/** Dựng chuỗi truy vấn ?a=1&b=2; bỏ giá trị rỗng, mảng thành nhiều tham số cùng tên. */
 export const qs = (o: Record<string, string | number | undefined | null | string[]>) => {
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries(o)) {
@@ -34,15 +37,21 @@ export const qs = (o: Record<string, string | number | undefined | null | string
 
 // ---------- kiểu dữ liệu trả về ----------
 export type ChanDoan = "Rẻ hơn thị trường" | "Hợp lý" | "Cao hơn thị trường";
+/** Một tin nhà phố (khóa ngắn cho JSON nhẹ). ĐƠN VỊ: g = giá rao (tỷ đồng); dt = diện tích đất (m²);
+ *  mt = mặt tiền; st = số tầng; san = diện tích sàn (m²); pn / wc = phòng ngủ / WC; vt = cấp lối vào 1–5; hr = hẻm rộng (m);
+ *  ai_full = giá mô hình (tỷ); lo80 / hi80 = khoảng 80% (tỷ); thue = triệu đồng/tháng; ys = tỷ suất cho thuê %/năm;
+ *  _lech = g / ai_full − 1 (âm = rao rẻ hơn giá mô hình). */
 export type NhaPho = {
   id: string; t: string; g: number; dt: number; mt: number | null; st: number | null; san: number | null; pn: number | null; wc: number | null;
   vt: number | null; hr: number | null; url: string; nguon: string; ai_full: number; lo80: number; hi80: number; chan_doan: ChanDoan;
   duong: string | null; huong: string | null; so: string | null; cn: string | null; hd: string | null; lat: number | null; lon: number | null;
   thue: number | null; ys: number | null; gt: Record<string, number> | null; _lech: number;
 };
+/** Một tin căn hộ (mở rộng): g / ai / lo / hi tính bằng tỷ đồng, dt = diện tích sử dụng (m²), diff = lệch giá rao so với giá mô hình. */
 export type CanHo = { id: string; da: string | null; ph: string; dt: number; pn: number | null; g: number; ai: number; lo: number; hi: number; diff: number; cd: ChanDoan; url: string; thue: number | null; ys: number | null };
 export type Trang<T> = { tong: number; trang: number; so_dong: number; ket_qua: T[] };
 export type GiaiThich = { nen_ty: number; nhom: { nhom: string; log: number; phan_tram: number }[] };
+/** Kết quả POST /dinh-gia/nha-pho: giá và khoảng tính bằng tỷ đồng, đơn giá triệu/m², thuê triệu/tháng. */
 export type KetQuaNha = {
   gia_ty: number; khoang_80_ty: [number, number]; khoang_50_ty: [number, number]; don_gia_trieu_m2: number; mo_hinh: string;
   ngay_du_lieu: string; giai_thich: GiaiThich | null; thue_trieu_thang: number; ty_suat_pt: number;

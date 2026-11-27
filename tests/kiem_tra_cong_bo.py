@@ -46,7 +46,9 @@ WEB = TAM / "models/du_lieu_web.json"
 
 
 def kiem(ten):
+    """Đăng ký một phép kiểm: hàm được chạy ngay, kết quả (tên, đạt?, lỗi) ghi vào KQ để in tổng kết."""
     def boc(f):
+        """Chạy hàm kiểm f và ghi kết quả (không dừng khi một phép lỗi, để thấy được mọi phép)."""
         try:
             f(); KQ.append((ten, True, ""))
         except Exception as e:
@@ -56,6 +58,7 @@ def kiem(ten):
 
 
 def doi_ngay(ngay):                              # sửa một trường của du_lieu_web.json -> nội dung (và mã băm) khác
+    """Đổi SO_LIEU.NGAY trong du_lieu_web.json làm việc của bản sao tạm -> nội dung và mã băm của bộ đổi (bộ 'mới')."""
     w = json.loads(WEB.read_text(encoding="utf-8")); w["SO_LIEU"]["NGAY"] = ngay
     WEB.write_text(json.dumps(w, ensure_ascii=False), encoding="utf-8")
 
@@ -76,10 +79,12 @@ def tu_choi(ly_do):
 
 
 def khoi_dong_lai():                             # như tiến trình API mới khởi động
+    """Mô phỏng API khởi động lại: xóa bộ đang phục vụ và trạng thái nạp trong bộ nhớ (tệp trên đĩa giữ nguyên)."""
     DG._HIEN = None; DG._TT.update(moc=None, loi_nap=None, nguon=None)
 
 
 def ngay_tep_lam_viec():
+    """NGAY hiện tại trong du_lieu_web.json làm việc (để so với ngày API đang phục vụ)."""
     return json.loads(WEB.read_text(encoding="utf-8"))["SO_LIEU"]["NGAY"]
 
 
@@ -181,6 +186,7 @@ def dung_duoc(ma):
 
 
 def sua_web(f):                                  # JSON vẫn ĐÚNG cú pháp nhưng sai cấu trúc
+    """Sửa du_lieu_web.json làm việc bằng hàm f(w): JSON vẫn đúng cú pháp nhưng có thể sai cấu trúc."""
     w = json.loads(WEB.read_text(encoding="utf-8")); f(w)
     WEB.write_text(json.dumps(w, ensure_ascii=False), encoding="utf-8")
 
@@ -231,16 +237,20 @@ def phien_ban_sau_khoi_dong(xoa_ban_ke=False):
 class LoiGhi:
     """Mô phỏng lỗi ghi (PermissionError) ở os.replace có đích kết thúc bằng `duoi`; các os.replace khác chạy bình thường."""
     def __init__(self, duoi):
+        """duoi: phần cuối của đường dẫn đích sẽ bị làm lỗi (ví dụ 'phien_ban.json' hoặc 'da_cong_bo.json')."""
         self.duoi, self.goc = duoi, os.replace
 
     def __enter__(self):
+        """Thay os.replace bằng bản giả: đích khớp `duoi` -> PermissionError, đích khác -> chạy thật."""
         def gia(a, b, *k, **kw):
+            """os.replace giả: lỗi quyền ghi nếu đích khớp `duoi`, ngược lại gọi os.replace thật."""
             if str(b).endswith(self.duoi):
                 raise PermissionError(13, "mô phỏng: tệp đang bị khóa", str(b))
             return self.goc(a, b, *k, **kw)
         os.replace = gia
 
     def __exit__(self, *a):
+        """Trả lại os.replace thật (luôn chạy, kể cả khi phép kiểm lỗi)."""
         os.replace = self.goc
 
 
@@ -406,12 +416,16 @@ def _():
 
 
 def cong_trong():
+    """Một cổng TCP đang trống trên máy (để chạy API thật / máy chủ giả không đụng cổng của web đang chạy)."""
     s = socket.socket(); s.bind(("127.0.0.1", 0)); p = s.getsockname()[1]; s.close(); return p
 
 
 def may_chu_gia(ma, than):                       # máy chủ HTTP giả trả cố định (ma, than) cho mọi yêu cầu
+    """Máy chủ HTTP giả luôn trả (mã HTTP, JSON) cố định cho mọi yêu cầu – để kiểm pipeline phân loại API lỗi."""
     class H(http.server.BaseHTTPRequestHandler):
+        """Bộ xử lý yêu cầu của máy chủ giả: GET và POST đều trả cùng (mã, JSON)."""
         def _tra(self):
+            """Gửi phản hồi cố định (mã HTTP + JSON) cho yêu cầu hiện tại."""
             b = json.dumps(than).encode(); self.send_response(ma); self.send_header("content-length", str(len(b)))
             self.end_headers(); self.wfile.write(b)
         do_GET = do_POST = _tra

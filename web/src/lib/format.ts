@@ -2,16 +2,20 @@
 export const so = (x: number | null | undefined, d = 1) =>
   x === null || x === undefined || Number.isNaN(x) ? "–" : x.toLocaleString("vi-VN", { maximumFractionDigits: d, minimumFractionDigits: 0 });
 
+/** Giá tỷ đồng: dưới 10 tỷ hiện tối đa 2 chữ số thập phân, từ 10 tỷ tối đa 1 chữ số. */
 export const ty = (x: number | null | undefined) => (x === null || x === undefined ? "–" : `${so(x, x >= 10 ? 1 : 2)} tỷ`);
 
+/** Phần trăm có dấu (+ / −) dùng cho mức tăng / giảm giá. */
 export const phanTram = (x: number, d = 0) => `${x >= 0 ? "+" : "−"}${so(Math.abs(x), d)}%`;
 
+/** Màu nhãn chẩn đoán (so giá rao với khoảng 80% của mô hình). */
 export const MAU_CHAN_DOAN: Record<string, string> = {
   "Rẻ hơn thị trường": "bg-emerald-100 text-emerald-800 ring-emerald-600/20",
   "Hợp lý": "bg-slate-100 text-slate-700 ring-slate-500/20",
   "Cao hơn thị trường": "bg-rose-100 text-rose-800 ring-rose-600/20",
 };
 
+/** Mã cấp lối vào 1–5 dùng trong mô hình (cap_loi_vao) và nhãn hiển thị tương ứng. */
 export const LOI_VAO: Record<number, string> = {
   1: "Hẻm nhỏ (xe máy)",
   2: "Hẻm xe hơi",

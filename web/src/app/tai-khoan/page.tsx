@@ -1,3 +1,4 @@
+// Trang tài khoản (cần đăng nhập): tin đã lưu (bảng so sánh) và lịch sử định giá của chính người dùng.
 import { desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";

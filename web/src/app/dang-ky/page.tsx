@@ -1,3 +1,4 @@
+// Trang đăng ký tài khoản (email + mật khẩu >= 8 ký tự); đã đăng nhập thì chuyển sang trang tài khoản.
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";

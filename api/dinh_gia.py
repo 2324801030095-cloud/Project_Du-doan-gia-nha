@@ -1,9 +1,15 @@
-"""Định giá bằng các mô hình đã huấn luyện trong notebook (models/*.joblib, models/*.json).
+"""Lõi suy luận của API: nạp BỘ TỆP đã công bố (mô hình + dữ liệu do notebook sinh) và định giá.
 
-- Nhà phố: Random Forest (mô hình cuối, Phần A) + khoảng 80% theo nhóm + giải thích đóng góp theo đường đi trên cây.
-- Căn hộ: mô hình đầy đủ của notebook căn hộ (.joblib) + khoảng 80% theo phân khúc.
-- Giá thuê: giá × tỷ suất cho thuê trung vị (phường / dự án) trong models/gia_thue_web.json.
-Cách dựng hàng đặc trưng giống hệt hàm du_doan_gia / du_doan_gia_can_ho trong notebook."""
+- Nhà phố (bài chính): Random Forest của notebook 2324801030095 + khoảng giá 80% theo nhóm mức giá
+  + giải thích đóng góp theo đường đi trên cây (Saabas).
+- Căn hộ (mở rộng): mô hình của notebook căn hộ + khoảng 80% theo phân khúc (thương mại / nhà ở xã hội).
+- Giá thuê ước tính: giá × tỷ suất cho thuê trung vị (phường / dự án) lấy từ THUE trong models/du_lieu_web.json.
+- Trợ lý: phân loại ý định câu hỏi (TF-IDF + Logistic Regression).
+
+ĐƠN VỊ (dễ nhầm): mô hình dự đoán log(giá rao, TỶ đồng). Mọi kết quả trả ra đã đổi về tỷ đồng bằng exp();
+don_gia_trieu_m2 = triệu đồng / m² đất; thue_trieu_thang = triệu đồng / tháng; ty_suat_pt = % / năm.
+Đây là GIÁ RAO BÁN ước tính, không phải giá giao dịch.
+Cách dựng hàng đặc trưng giống hệt hàm du_doan_gia / du_doan_gia_can_ho trong notebook (lệch là mô hình đoán sai)."""
 import datetime as dt
 import hashlib
 import io
@@ -111,6 +117,7 @@ def cong_bo(goc=None, kiem=True):
 
 
 def _ghi_nguyen_tu(f, du_lieu):
+    """Ghi JSON NGUYÊN TỬ: viết ra tệp tạm rồi os.replace đè lên đích (đọc cùng lúc không bao giờ thấy tệp viết dở)."""
     tam = f.with_name(f.name + ".tam")
     tam.write_text(json.dumps(du_lieu, ensure_ascii=False, indent=1), encoding="utf-8")
     os.replace(tam, f)
@@ -162,10 +169,17 @@ def tao_ban_giao(goc=None):
 
 
 class LoiNapBo(Exception):
+    """Lỗi nạp / công bố bộ tệp (thiếu tệp, sai mã băm, sai cấu trúc, chưa có phần mở rộng).
+    main.py đổi lỗi này thành HTTP 503 (dịch vụ tạm chưa dùng được), không phải 500 (lỗi lập trình)."""
     pass
 
 
 def _nap_bo(bk, goc=None):
+    """Nạp một bộ tệp theo bản kê `bk` thành dict dùng trong bộ nhớ (chưa thay bộ đang phục vụ).
+
+    bk['thu_muc'] là thư mục chứa bản chép của bộ (models/cong_bo/<mã> hoặc models/ban_giao); bản kê kiểu cũ
+    không có trường này thì đọc ở thư mục gốc. Mỗi tệp đọc đúng 1 lần, so SHA-256 với bản kê rồi mới giải mã,
+    cuối cùng _kiem_bo chạy thử mọi đường xử lý. Lỗi bất kỳ -> ngoại lệ, người gọi giữ bộ cũ."""
     tep = bk.get("tep") or {}
     nen = Path(goc or GOC) / bk.get("thu_muc", "")        # bản kê cũ (không có thu_muc) -> đọc tệp làm việc
     for t in TEP_BAT_BUOC:
@@ -173,6 +187,7 @@ def _nap_bo(bk, goc=None):
             raise LoiNapBo(f"bản kê thiếu tệp bắt buộc {t}")
 
     def doc(t):
+        """Đọc bytes của tệp t trong bộ và kiểm mã băm (lệch = tệp đã đổi / đang ghi dở sau khi công bố)."""
         f = nen / t
         if not f.exists():
             raise LoiNapBo(f"{t}: không có trên đĩa")
@@ -207,16 +222,21 @@ KIEM_BO = []          # main.py đăng ký hàm chạy thử các endpoint dữ 
 
 
 def _can(dk, ten):
+    """Điều kiện cấu trúc: sai -> LoiNapBo kèm mô tả chỗ sai."""
     if not dk:
         raise LoiNapBo(f"bộ tệp sai cấu trúc: {ten}")
 
 
 def _kieu(d, khoa, kieu, noi):
+    """Kiểm d[khoa] tồn tại và đúng kiểu; trả về giá trị đó."""
     _can(isinstance(d, dict) and khoa in d and isinstance(d[khoa], kieu), f"{noi}['{khoa}'] thiếu hoặc không phải {kieu}")
     return d[khoa]
 
 
 def _kiem_bo(bo):
+    """Kiểm bộ ỨNG VIÊN trước khi phục vụ: khóa + kiểu của mọi phần endpoint đọc (du_lieu_web.json,
+    danh_gia_mo_hinh.json, gói mô hình nhà), rồi CHẠY THỬ định giá nhà (và căn hộ / trợ lý nếu bộ có) cùng các hàm
+    endpoint do main.py đăng ký trong KIEM_BO. Phần mở rộng (CH_*, TREND, THUE) được phép rỗng nhưng phải đúng kiểu."""
     w, dg, goi = bo["web"], bo["danh_gia"], bo["nha"][0]
     so = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
     for k, kieu in (("SO_LIEU", dict), ("MODEL", dict), ("MODEL_TABLE", list), ("GT_META", dict), ("LISTINGS", list),
@@ -264,6 +284,10 @@ def _du_phong():
 
 
 def _moc_ban_ke():
+    """'Mốc' cho biết lúc nào cần nạp lại: đổi mốc = có thể có bộ mới.
+    - ('ung_vien', mtime...) chỉ khi PHH_UNG_VIEN=1 (kiểm thử): theo thời điểm sửa của tệp làm việc;
+    - ('ban_ke', mtime) khi có models/phien_ban.json: chỉ đổi khi pipeline công bố;
+    - ('khong_ban_ke',) khi không có bản kê: dùng nguồn phục hồi, tệp làm việc KHÔNG được đọc."""
     if os.environ.get("PHH_UNG_VIEN") == "1":        # CHỈ khi bật tường minh: kiểm thử bộ ứng viên = tệp làm việc
         return ("ung_vien",) + tuple((GOC / t).stat().st_mtime_ns if (GOC / t).exists() else 0 for t in TEP_BAT_BUOC + TEP_TUY_CHON)
     f = GOC / MANIFEST
@@ -324,14 +348,17 @@ def bo():
 
 
 def trang_thai():
+    """Bản sao trạng thái nạp cho /health: nguồn bộ đang phục vụ và lỗi nạp gần nhất (None = không lỗi)."""
     return dict(_TT)
 
 
 def du_lieu_web():
+    """Dữ liệu web (models/du_lieu_web.json) của bộ đang phục vụ."""
     return bo()["web"]
 
 
 def _khoang(p, q):
+    """Khoảng giá (tỷ) từ dự đoán log p và các phân vị sai số log q: [exp(p+q10), exp(p+q90)] = khoảng 80%."""
     return round(float(np.exp(p + q["q10"])), 3), round(float(np.exp(p + q["q90"])), 3)
 
 
@@ -358,17 +385,28 @@ def _dong_gop(goi_mh, can):
 
 
 def _ty_suat_nha(B, phuong):
+    """Tỷ suất cho thuê (%/năm) của nhà phố ở phường; không có số liệu phường thì dùng trung vị Thủ Dầu Một."""
     th = B["web"].get("THUE") or {}
     return (th.get("ty_suat_phuong_nha") or {}).get(phuong) or (th.get("ty_suat_tv") or {}).get("nha_tdm")
 
 
 def dinh_gia_nha(**kw):
+    """Định giá một căn nhà phố bằng bộ đang phục vụ; kết quả kèm phien_ban (mã bộ) để đối chiếu với /health."""
     B = bo()
     return {**_dinh_gia_nha(B, **kw), "phien_ban": B["id"]}
 
 
 def _dinh_gia_nha(B, dt_dat, ngang=None, dai=None, so_tang=None, dt_san=None, phong_ngu=None, so_wc=None, mat_tien_duong=0,
                   cap_loi_vao=None, hem_rong=None, duong=None, phuong="phu hoa", quan="thu dau mot", lat=None, lon=None, mo_ta=""):
+    """Định giá nhà phố trên bộ B cụ thể (cũng dùng để chạy thử bộ ứng viên).
+
+    Đầu vào: dt_dat = diện tích ĐẤT (m²) – bắt buộc; ngang/dai (m); so_tang; dt_san = tổng diện tích sàn (m²);
+    phong_ngu, so_wc; mat_tien_duong 0/1; cap_loi_vao 1 (hẻm nhỏ) … 5 (mặt tiền đường lớn); hem_rong (m);
+    duong/phuong/quan dạng chữ (tự bỏ dấu); lat/lon nếu biết; mo_ta = mô tả tự do (trích 21 từ khóa).
+    Thiếu tọa độ -> lấy trung vị tọa độ theo tên đường, rồi theo phường, cuối cùng là Phú Hòa.
+    Thông số để trống (None) được mô hình điền giá trị trung vị đã học, không phải 0.
+    Trả về: gia_ty (tỷ đồng), khoang_80_ty, khoang_50_ty, don_gia_trieu_m2, thue_trieu_thang, ty_suat_pt,
+    giai_thich (nền + đóng góp % theo nhóm yếu tố; tổng log cộng lại đúng bằng dự đoán)."""
     goi, xy_duong, xy_phuong = B["nha"]
     if lat is None or lon is None:
         k = (quan, khong_dau(duong)) if duong else None
@@ -406,6 +444,7 @@ def _dinh_gia_nha(B, dt_dat, ngang=None, dai=None, so_tang=None, dt_san=None, ph
 
 def dinh_gia_can_ho(dt_su_dung, du_an=None, phong_ngu=None, so_wc=None, tang=None, so_hong=None, noi_that_cap=None,
                     nha_o_xa_hoi=0, quan="thu dau mot", phuong="phu hoa", mo_ta=""):
+    """Định giá căn hộ (phần mở rộng) bằng bộ đang phục vụ; bộ không có mô hình căn hộ -> LoiNapBo (503)."""
     B = bo()
     if B["can_ho"] is None:
         raise LoiNapBo("chưa có mô hình căn hộ (phần mở rộng)")
@@ -414,6 +453,9 @@ def dinh_gia_can_ho(dt_su_dung, du_an=None, phong_ngu=None, so_wc=None, tang=Non
 
 def _dinh_gia_can_ho(B, dt_su_dung, du_an=None, phong_ngu=None, so_wc=None, tang=None, so_hong=None, noi_that_cap=None,
                      nha_o_xa_hoi=0, quan="thu dau mot", phuong="phu hoa", mo_ta=""):
+    """Định giá căn hộ trên bộ B. dt_su_dung = diện tích sử dụng (m², ghi vào cột dt_dat cho khớp notebook);
+    du_an nhận ra được thì lấy tọa độ / phường của dự án; nha_o_xa_hoi=1 dùng khoảng sai số của phân khúc nhà ở xã hội.
+    Giá trả về là tỷ đồng (exp của log giá)."""
     goi, df, xy_du_an = B["can_ho"]
     ma = ten_du_an(du_an) if du_an else None
     if ma in xy_du_an.index:
@@ -445,6 +487,8 @@ def _dinh_gia_can_ho(B, dt_su_dung, du_an=None, phong_ngu=None, so_wc=None, tang
 
 def _chuan_hoa_cau(s):
     # giống chuan_hoa của notebook trợ lý: bỏ dấu, chữ thường, mọi số thành "0", chỉ giữ chữ/số
+    """Chuẩn hóa câu hỏi GIỐNG HỆT notebook trợ lý (khác đi là mô hình TF-IDF nhận từ lạ): bỏ dấu, chữ thường,
+    mọi số thành 0, chỉ giữ chữ và số."""
     import re
     import unicodedata
     s = str(s).replace("đ", "d").replace("Đ", "d")
@@ -462,6 +506,8 @@ def y_dinh(cau):
 
 
 def _y_dinh(goi, cau):
+    """Ý định của câu hỏi với gói mô hình trợ lý: lớp có xác suất cao nhất, 'chac_chan' khi vượt ngưỡng của notebook,
+    kèm 3 ứng viên đầu."""
     X = goi["dac_trung"].transform([_chuan_hoa_cau(cau)])
     p = goi["mo_hinh"].predict_proba(X)[0]
     lop = goi["mo_hinh"].classes_

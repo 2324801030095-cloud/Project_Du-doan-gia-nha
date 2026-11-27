@@ -93,6 +93,7 @@ So sánh 3 mô hình phân loại bằng **kiểm định chéo phân tầng 5-f
 """)
 
 code(r"""
+# Đặc trưng chữ: TF-IDF n-gram KÝ TỰ (chịu được gõ sai, viết tắt) + (tùy chọn) TF-IDF từ / cụm 2 từ; các mô hình phân loại để so sánh.
 def dac_trung(co_tu=True):
     phan = [("ky_tu", TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4), sublinear_tf=True, min_df=2))]
     if co_tu:
@@ -192,6 +193,7 @@ Mô hình được huấn luyện lại trên **toàn bộ** tập huấn luyệ
 """)
 
 code(r"""
+# Học mô hình cuối (Logistic Regression) trên tập train và chấm tập kiểm tra; so với luật từ khóa cũ và cách kết hợp luật + mô hình.
 DT = dac_trung(CO_TU).fit(train["van"])
 LR = LogisticRegression(C=20, max_iter=3000).fit(DT.transform(train["van"]), train["y_dinh"])
 P_TE = LR.predict_proba(DT.transform(test["van"]))
@@ -213,6 +215,7 @@ if not CHI_LUAT:
 """)
 
 code(r"""
+# Ma trận nhầm lẫn của cách làm cuối trên tập kiểm tra + danh sách câu bị phân loại sai để xem lỗi thường gặp.
 cuoi = list(du.values())[-1]
 ma_tran = confusion_matrix(nhan(list(that_te)), nhan(cuoi), labels=list(LOP))
 plt.figure(figsize=(11, 9))
@@ -235,6 +238,7 @@ md(r"""
 """)
 
 code(r"""
+# Lưu mô hình trợ lý (models/tro_ly_y_dinh.joblib) cho API, kèm câu ví dụ và xác suất mẫu để kiểm tra bản JavaScript khớp Python.
 import joblib
 vi_du = train.groupby("y_dinh")["cau_hoi"].first().to_dict()
 vi_du.update({"dinh_gia": "Nhà 1 trệt 1 lầu 80m² hẻm xe hơi giá bao nhiêu?", "tim": "Tìm nhà dưới 3 tỷ rẻ hơn thị trường",

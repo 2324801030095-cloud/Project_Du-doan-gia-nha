@@ -1,3 +1,5 @@
+# pnpm 10+ đòi khai báo rõ gói nào được chạy script cài đặt (postinstall); thiếu thì báo ERR_PNPM_IGNORED_BUILDS.
+# Ở đây KHÔNG cho chạy script của các gói dưới (pnpm build web vẫn thành công).
 allowBuilds:
   sharp: false
   unrs-resolver: false

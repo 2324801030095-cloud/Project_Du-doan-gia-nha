@@ -1,4 +1,6 @@
 "use client";
+// Khung kết quả định giá: giá ước lượng (tỷ), khoảng 80% / 50%, đơn giá, giá thuê, giải thích yếu tố.
+// Giá là GIÁ RAO ước tính, không phải giá giao dịch.
 import { Banknote, CalendarClock, ChartNoAxesColumn, Info, Ruler } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { so, ty } from "@/lib/format";

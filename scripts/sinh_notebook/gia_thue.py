@@ -257,6 +257,7 @@ md(r"""
 """)
 
 code(r"""
+# So độ khó: sai số dự đoán giá thuê vs giá bán (đọc từ JSON của notebook căn hộ / nhà phố, không gõ tay).
 ban_ch = json.load(open(MODEL_DIR / "mo_hinh_gia_can_ho.json", encoding="utf-8"))["mo_hinh_day_du_mape"]
 dg_nha = json.load(open(MODEL_DIR / "danh_gia_mo_hinh.json", encoding="utf-8"))
 ban_nha = next(m["MAPE (%)"] for m in dg_nha["kiem_dinh_cheo_tdm"] if m["Mô hình"] == dg_nha["ten_mo_hinh"])
@@ -275,6 +276,8 @@ Huấn luyện lại mô hình giá thuê đã chọn trên **toàn bộ** tin c
 """)
 
 code(r"""
+# Học mô hình giá thuê tốt nhất trên toàn bộ tin cho thuê, rồi dự đoán tiền thuê cho từng căn ĐANG RAO BÁN
+# -> tỷ suất cho thuê (%/năm) = tiền thuê × 12 / giá bán. Kết quả ghi thêm cột vào dataset/processed/*_da_xu_ly.csv.
 m_ch = KQ_CH["MH"][KQ_CH["ten"]]().fit(ch, ch["y"])
 m_nha = KQ_NHA["MH"][KQ_NHA["ten"]]().fit(nha, nha["y"])
 
@@ -303,6 +306,8 @@ md(r"""
 """)
 
 code(r"""
+# Kiểm chứng chéo: tỷ suất tính THẲNG từ dữ liệu (giá thuê / giá bán trung vị theo dự án, dự án >= 5 tin mỗi loại)
+# so với tỷ suất từ mô hình; tương quan cao = mô hình giá thuê đáng tin ở mức dự án.
 thue_m2 = ch.groupby("du_an").agg(n_thue=("y", "size"), thue_m2=("gia_ty", lambda s: np.median(s / ch.loc[s.index, "dt_dat"])))
 ban_m2 = ban_ch.groupby("du_an").agg(n_ban=("y", "size"), ban_m2=("don_gia", "median"), ty_suat_mo_hinh=("ty_suat_pt", "median"))
 kc = thue_m2.join(ban_m2, how="inner").query("n_thue >= 5 and n_ban >= 5")

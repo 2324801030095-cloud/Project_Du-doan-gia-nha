@@ -1,3 +1,4 @@
+// ESLint cho web: bộ luật Core Web Vitals + TypeScript của Next.js (chạy: pnpm lint; CI chạy mỗi lần đẩy code).
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
@@ -5,9 +6,8 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+  // Ghi đè danh sách bỏ qua mặc định của eslint-config-next (giữ nguyên các mục mặc định):
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",

@@ -106,6 +106,8 @@ S["tin_that"] = [{"tieu_de": str(t_.loc[i, "tieu_de"])[:70], "dt": float(t_.loc[
 
 # ---- kiểm thử: chạy thật NGAY LÚC NÀY (không dùng kết quả cũ); trạng thái theo MÃ THOÁT, không theo chữ in ra ----
 def chay(lenh):
+    """Chạy một bộ kiểm thử và phân loại theo MÃ THOÁT (không theo chữ in ra): mã 0 + có dòng tổng kết -> PASS;
+    còn lại -> FAIL kèm các phép KHÔNG ĐẠT hoặc đuôi stderr."""
     r = subprocess.run(lenh, cwd=GOC, capture_output=True, text=True, encoding="utf-8", errors="replace")
     tom_tat = (re.findall(r"(\d+/\d+ phép kiểm đạt(?:, \d+ bỏ qua)?)", r.stdout) or [None])[-1]
     if r.returncode == 0 and tom_tat:
@@ -116,6 +118,7 @@ def chay(lenh):
 
 
 def web_dang_chay(url="http://localhost:3000"):
+    """None nếu web trả lời ở `url`; ngược lại là lý do (kiểm thử web khi đó ghi SKIPPED, không tính là đạt)."""
     import urllib.request
     try:
         urllib.request.urlopen(url, timeout=10); return None

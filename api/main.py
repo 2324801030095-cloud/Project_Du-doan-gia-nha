@@ -14,6 +14,7 @@ app = FastAPI(title="API định giá nhà Phú Hòa", version="1.0",
 
 
 def _web():
+    """Dữ liệu web (models/du_lieu_web.json) của bộ đang phục vụ; chưa có bộ hợp lệ -> LoiNapBo -> 503."""
     return DG.bo()["web"]
 
 
@@ -26,6 +27,7 @@ def _kiem_endpoint(B):
 
 @app.exception_handler(DG.LoiNapBo)
 def _loi_nap(_: Request, e: DG.LoiNapBo):
+    """Mọi LoiNapBo (chưa có bộ hợp lệ, thiếu phần mở rộng) -> HTTP 503 kèm lý do, thay cho 500."""
     return JSONResponse(status_code=503, content={"detail": str(e)})
 
 
@@ -42,6 +44,7 @@ def health():
 
 
 def _health(B):
+    """Thông tin bộ tệp B: mã bộ (phien_ban), mã băm rút gọn từng tệp, thời điểm công bố / nạp, tên mô hình, ngày dữ liệu."""
     return {"ok": True, "phien_ban": B["id"], "tep": B["tep"], "cong_bo_luc": B["cong_bo_luc"], "nap_luc": B["nap_luc"] if "nap_luc" in B else None,
             "mo_hinh": B["nha"][0]["ten"], "ngay_du_lieu": B["web"]["SO_LIEU"]["NGAY"]}
 
@@ -53,6 +56,7 @@ def tong_quan():
 
 
 def _tong_quan(B):
+    """Số liệu tóm tắt lấy từ bộ B (dùng chung cho endpoint và cho bước chạy thử bộ ứng viên)."""
     w, dg = B["web"], B["danh_gia"]
     return {"so_lieu": w["SO_LIEU"], "do_phu_test_80": dg.get("do_phu_test_80"), "chat_luong_du_lieu": dg.get("chat_luong_du_lieu"), "bang_mo_hinh": [dict(zip(["mo_hinh", "mae_ty", "mape", "r2"], r)) for r in w["MODEL_TABLE"]],
             "giai_thich": w["GT_META"], "web_model": {k: w["MODEL"][k] for k in ("model", "cv_mape", "mo_hinh_day_du", "mo_hinh_day_du_mape_cv_phu_hoa")},
@@ -73,6 +77,10 @@ CHAN_DOAN = Literal["Rẻ hơn thị trường", "Hợp lý", "Cao hơn thị tr
 
 
 def _loc(ds, khoa_gia, khoa_dt, gia_min, gia_max, dt_min, dt_max, chan_doan, khoa_cd, tu_khoa, khoa_chu, sap_xep, trang, so_dong):
+    """Lọc + sắp xếp + phân trang danh sách tin.
+    khoa_gia / khoa_dt: tên trường giá (tỷ đồng) và diện tích (m²) trong từng tin; chan_doan: 'Rẻ hơn thị trường' /
+    'Hợp lý' / 'Cao hơn thị trường' (so giá rao với khoảng 80% của mô hình); tu_khoa tìm không phân biệt hoa thường
+    trong các trường khoa_chu; sap_xep 're_nhat' = lệch âm nhiều nhất (giá rao thấp nhất so với giá mô hình) trước."""
     ra = [x for x in ds
           if (gia_min is None or x[khoa_gia] >= gia_min) and (gia_max is None or x[khoa_gia] <= gia_max)
           and (dt_min is None or x[khoa_dt] >= dt_min) and (dt_max is None or x[khoa_dt] <= dt_max)
@@ -88,6 +96,8 @@ def _loc(ds, khoa_gia, khoa_dt, gia_min, gia_max, dt_min, dt_max, chan_doan, kho
 
 
 def _nha_ds(w=None):
+    """Danh sách tin nhà phố còn rao ở kỳ thu thập mới nhất. Trường g = giá rao (tỷ), dt = diện tích đất (m²),
+    ai_full = giá mô hình (tỷ); _lech = g / ai_full - 1 (âm = rao rẻ hơn giá mô hình) dùng để sắp xếp."""
     return [{**x, "id": str(x["id"]), "_lech": x["g"] / x["ai_full"] - 1} for x in (w or _web())["LISTINGS"]]
 
 
@@ -104,6 +114,7 @@ def nha_pho(gia_min: float | None = None, gia_max: float | None = None, dt_min: 
 
 @app.get("/nha-pho/{ma}")
 def nha_pho_chi_tiet(ma: str):
+    """Một tin nhà phố theo mã; tin đã gỡ ở kỳ mới nhất -> 404."""
     x = next((x for x in _nha_ds() if x["id"] == ma), None)
     if x is None:
         raise HTTPException(404, "Không có tin này (có thể đã gỡ ở kỳ thu thập mới nhất)")
@@ -118,6 +129,7 @@ def nha_pho_theo_ma(ma: list[str] = Query(default=[])):
 
 
 def _can_ho_ds(w):
+    """Danh sách tin căn hộ (mở rộng); diff = độ lệch giá rao so với giá mô hình, dùng để sắp xếp như nhà phố."""
     return [{**x, "_lech": x["diff"]} for x in w["CH_LIST"]]
 
 
@@ -125,6 +137,7 @@ def _can_ho_ds(w):
 def can_ho(gia_min: float | None = None, gia_max: float | None = None, dt_min: float | None = None, dt_max: float | None = None,
            chan_doan: CHAN_DOAN | None = None, q: str | None = None, sap_xep: SAP_XEP = "re_nhat",
            trang: int = Query(1, ge=1), so_dong: int = Query(12, ge=1, le=200)):
+    """Tin căn hộ (phần mở rộng) với cùng bộ lọc như /nha-pho; bộ chỉ có bài chính thì danh sách rỗng."""
     return _loc(_can_ho_ds(_web()), "g", "dt", gia_min, gia_max, dt_min, dt_max, chan_doan, "cd", q, ("da", "ph"), sap_xep, trang, so_dong)
 
 
@@ -135,11 +148,13 @@ def ban_do():
 
 
 def _ban_do(w):
+    """Điểm bản đồ (bỏ điểm đất nền của phiên bản cũ) + tòa căn hộ (bỏ danh sách căn chi tiết cho nhẹ)."""
     return {"diem": [d for d in w["MAP_PTS"] if d[3] != "dat"], "toa_can_ho": [{k: v for k, v in t.items() if k != "can"} for t in w["CH_TOA"]]}
 
 
 @app.get("/xu-huong")
 def xu_huong():
+    """Chỉ số giá theo kỳ thu thập và dự báo (phần mở rộng; rỗng nếu chưa chạy notebook xu hướng)."""
     return _web()["TREND"]
 
 
@@ -150,6 +165,7 @@ def danh_muc():
 
 
 def _danh_muc(w):
+    """Danh mục cho ô chọn của form từ bộ dữ liệu web w."""
     return {"du_an": [{k: d[k] for k in ("ma", "ten", "so_tin", "quan", "phuong")} for d in w["CH_MODEL"].get("du_an", [])],
             "phuong_can_ho": w["CH_PHUONG"],
             "duong_phu_hoa": ["Nguyễn Thị Minh Khai", "Lê Hồng Phong", "Phú Lợi", "Nguyễn Thái Bình", "30/4", "Đại lộ Bình Dương", "Trần Văn Ơn", "Huỳnh Thị Hiếu"]}
@@ -157,6 +173,8 @@ def _danh_muc(w):
 
 # ---------------- định giá ----------------
 class NhaPho(BaseModel):
+    """Đầu vào định giá nhà phố. Diện tích m², chiều dài m; giới hạn để chặn số vô lý (lỗi 422).
+    Trường để trống = không biết: mô hình điền trung vị đã học, không coi là 0."""
     dt_dat: float = Field(gt=10, le=5000, description="Diện tích đất (m²)")
     ngang: float | None = Field(None, gt=0, le=200)
     dai: float | None = Field(None, gt=0, le=500)
@@ -173,6 +191,7 @@ class NhaPho(BaseModel):
 
 
 class CanHo(BaseModel):
+    """Đầu vào định giá căn hộ (mở rộng): dt_su_dung = diện tích sử dụng (m²); nha_o_xa_hoi 0/1."""
     dt_su_dung: float = Field(gt=15, le=500)
     du_an: str | None = Field(None, max_length=120)
     phong_ngu: float | None = Field(None, ge=0, le=6)
@@ -193,10 +212,12 @@ def dinh_gia_nha_pho(x: NhaPho):
 
 @app.post("/dinh-gia/can-ho")
 def dinh_gia_can_ho(x: CanHo):
+    """Định giá căn hộ (mở rộng); bộ không có mô hình căn hộ -> 503."""
     return DG.dinh_gia_can_ho(**x.model_dump())
 
 
 class Cau(BaseModel):
+    """Câu hỏi gửi trợ lý (1–500 ký tự)."""
     cau: str = Field(min_length=1, max_length=500)
 
 

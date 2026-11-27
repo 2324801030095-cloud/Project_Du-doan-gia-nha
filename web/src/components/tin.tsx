@@ -1,9 +1,11 @@
+// Thành phần hiển thị tin rao: nhãn chẩn đoán, thanh khoảng 80%, thẻ tin trong danh sách.
 import { ExternalLink, Images } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { MAU_CHAN_DOAN, so, ty } from "@/lib/format";
 import { NutYeuThich } from "./nut-yeu-thich";
 
+/** Nhãn chẩn đoán giá rao: Rẻ hơn thị trường / Hợp lý / Cao hơn thị trường. */
 export function ChanDoan({ cd }: { cd: string }) {
   return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${MAU_CHAN_DOAN[cd] ?? ""}`}>{cd}</span>;
 }
@@ -24,6 +26,7 @@ export function KhoangGia({ lo, hi, uoc, rao }: { lo: number; hi: number; uoc: n
   );
 }
 
+/** Dữ liệu một thẻ tin: gia = giá rao, uoc = giá mô hình, lo / hi = khoảng 80% (đều tỷ đồng); cd = chẩn đoán. */
 export type TheTin = {
   loai: "nha_pho" | "can_ho";
   id: string; tieuDe: string; phu: string; gia: number; uoc: number; lo: number; hi: number; cd: string; url: string; href?: string;

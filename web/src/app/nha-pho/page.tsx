@@ -1,3 +1,5 @@
+// Danh sách tin nhà phố Phú Hòa còn rao ở kỳ thu thập mới nhất; bộ lọc nằm trên URL nên chia sẻ / quay lại được.
+// g = giá rao (tỷ), ai_full = giá mô hình (tỷ), chẩn đoán so giá rao với khoảng 80% của mô hình.
 import type { Metadata } from "next";
 import { BoLoc, PhanTrang, TheTinRao } from "@/components/tin";
 import { anhNhaPho } from "@/lib/anh";

@@ -25,6 +25,8 @@ function runs(text, base = {}) {
   if (i < text.length) out.push(new TextRun({ text: text.slice(i), ...base }));
   return out;
 }
+// Các hàm dựng khối Word ngắn gọn: P đoạn văn, H1/H2/H3 tiêu đề, B gạch đầu dòng, N danh sách số, CODE khối lệnh,
+// LUU_Y khung lưu ý, TB bảng (chiều rộng cột theo tỷ lệ). Chữ dùng **đậm** và `mã` như markdown (hàm runs).
 const P = (t, o = {}) => new Paragraph({ children: runs(t), spacing: { after: 120 }, ...o });
 const H1 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(t)] });
 const H2 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(t)] });
@@ -69,6 +71,7 @@ const HOI = (q, a) => new Paragraph({ spacing: { after: 140 }, children: [new Te
 const s = (x, d = 1) => (x == null || Number.isNaN(Number(x)) ? "–" : Number(Number(x).toFixed(d)).toLocaleString("vi-VN", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const s0 = (x) => s(x, 0);
 const DG = D.danh_gia, SL = D.so_lieu_web, MH = D.mo_hinh, DL = D.du_lieu, NB = D.nb;
+// Dòng của mô hình `ten` trong một bảng đánh giá (models/danh_gia_mo_hinh.json)
 const dong = (bang, ten) => bang.find((r) => r["Mô hình"] === ten);
 const ten = DG.ten_mo_hinh;
 const BL = "Baseline (đơn giá phường)", DC = DG.test_phu_hoa.map((r) => r["Mô hình"]).find((m) => m.startsWith("Đối chứng")),
@@ -80,6 +83,7 @@ const pVal = (x) => (x ? (x.match(/p = ([\d.]+)/) || [])[1] : null);
 const CL = DG.chat_luong_du_lieu;
 const ngay = SL.NGAY;
 const chinh = (bang) => bang.filter((r) => r["Mô hình"] === ten || r["Mô hình"] === BL);   // phần chính: mô hình + mốc
+// Một hàng của bảng kết quả: MAPE (%), KTC 95%, MdAPE, tỷ lệ trong ±20%, MAE (tỷ), R², số căn
 const hang = (r) => [r["Mô hình"], s(r["MAPE (%)"]), `${s(r["MAPE thấp (95%)"])}–${s(r["MAPE cao (95%)"])}`, s(r["MdAPE (%)"]), `${s0(r["Trong ±20% (%)"])}%`, s(r["MAE (tỷ)"], 2), s(r["R²"], 2), s0(r["Số căn"])];
 const COT_KQ = ["Mô hình", "MAPE (%)", "KTC 95%", "MdAPE (%)", "Trong ±20%", "MAE (tỷ)", "R²", "Số căn"], TI_KQ = [0.3, 0.09, 0.12, 0.1, 0.1, 0.1, 0.07, 0.12];
 // So sánh CẶP với mốc trên cùng các căn test (notebook, Bước 9): chỉ nói "tốt hơn" khi KTC 95% của chênh lệch không chứa 0

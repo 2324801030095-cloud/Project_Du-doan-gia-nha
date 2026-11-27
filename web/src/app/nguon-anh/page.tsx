@@ -1,3 +1,4 @@
+// Nguồn và giấy phép của ảnh minh họa (ảnh không phải ảnh thật của các tin rao).
 import type { Metadata } from "next";
 import Image from "next/image";
 import nguon from "@/lib/nguon-anh.json";

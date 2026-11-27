@@ -1,3 +1,5 @@
+// Trang chủ (máy chủ kết xuất mỗi lần yêu cầu): số liệu tóm tắt từ /tong-quan và 3 tin "rẻ hơn thị trường".
+// Mọi con số lấy từ API mô hình (kết quả notebook), không gõ tay trong trang.
 import { BarChart3, Bot, Calculator, Map, ShieldCheck, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

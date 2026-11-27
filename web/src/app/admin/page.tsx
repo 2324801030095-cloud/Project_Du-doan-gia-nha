@@ -1,3 +1,5 @@
+// Trang quản trị: chỉ tài khoản role = admin (canAdmin kiểm ở máy chủ; người dùng thường bị chuyển về trang chủ).
+// Thống kê người dùng / lượt định giá từ CSDL, cấp - bỏ quyền admin, khóa tài khoản (BangNguoiDung).
 import { count, desc, sql } from "drizzle-orm";
 import type { Metadata } from "next";
 import { BangNguoiDung } from "@/components/bang-nguoi-dung";

@@ -133,6 +133,7 @@ Trong Phú Hòa, vị trí và lối vào tạo chênh lệch lớn. Định gi�
 """)
 
 code(r"""
+# Giá căn chuẩn ở Phú Hòa theo 3 kiểu lối vào (cùng thông số khác) – minh họa yếu tố lối vào ảnh hưởng giá ra sao.
 ph = df[df["phuong"] == "phu hoa"]
 rows = []
 lat0, lon0 = ph["lat"].median(), ph["lon"].median()
@@ -207,6 +208,7 @@ Các ô "Phú Hòa" có rất ít tin nên chỉ để tham khảo; con số c�
 """)
 
 code(r"""
+# Tín hiệu giá từ căn hộ: tin Chợ Tốt có giá gốc lúc đăng khác giá hiện tại -> người bán đã tăng / giảm giá bao nhiêu (bỏ thay đổi > 40%).
 ch = pd.read_csv(RAW / "chotot_can_ho_raw.csv")
 ch = ch[(ch["loai_tin"] == "ban") & ch["gia_goc_luc_dang"].notna() & (ch["gia"] > 0)].copy()
 ch["r"] = np.log(ch["gia"] / ch["gia_goc_luc_dang"])
@@ -227,6 +229,7 @@ Mỗi căn có **giá rao** và **giá ước lượng** (do mô hình định g
 """)
 
 code(r"""
+# Giá rao lệch so với giá mô hình theo TUẦN đăng tin (chỉ tuần >= 15 tin, KTC bootstrap): có xu hướng tăng / giảm theo thời gian không.
 d3 = df[df["nguon"].isin(["chotot", "alonhadat"]) & df["ngay_dang"].notna()].copy()
 d3["ngay_dang"] = pd.to_datetime(d3["ngay_dang"])
 d3["lech"] = np.log(d3["gia_ty"] / d3["gia_uoc_luong_ty"])
@@ -260,6 +263,7 @@ md(r"""
 """)
 
 code(r"""
+# Áp lực giá theo khu vực: tỷ lệ tin "bán gấp/giảm giá", tỷ lệ rẻ hơn / cao hơn thị trường và độ lệch trung vị so với giá mô hình.
 df["khu_vuc"] = np.where(df["phuong"] == "phu hoa", "Phú Hòa", np.where(df["quan"] == "thu dau mot", "TDM (phường khác)", "Ngoài TDM"))
 AP_LUC = df.groupby("khu_vuc").agg(so_can=("y", "size"), ban_gap_pt=("t_ban_gap", "mean"),
                                     re_hon_pt=("chan_doan", lambda s: (s == "Rẻ hơn thị trường").mean()),
@@ -278,6 +282,7 @@ Các số liệu dưới đây đã được đối chiếu với **nguyên văn
 """)
 
 code(r"""
+# Bối cảnh thị trường từ báo cáo đã công bố (nguồn ghi kèm link) – thông tin tham khảo, KHÔNG phải dữ liệu học của mô hình.
 BOI_CANH = pd.DataFrame([
     ["2025 (tổng kết năm)", "Nhà phố, biệt thự – thứ cấp", "+12 – 19% so với đầu năm", "Tiếp Thị Gia Đình, 12/01/2026 (số liệu năm 2025 không ghi rõ đơn vị; phần dự báo ghi DKRA)",
      "https://tiepthigiadinh.vn/du-bao-thi-truong-bat-dong-san-nam-2026-d30043.html"],
@@ -413,6 +418,7 @@ else:
 """)
 
 code(r"""
+# Ghi kết quả xu hướng cho web (models/xu_huong_gia.json): mọi số tính từ tin rao thật và nguồn đã công bố, không có số giả lập.
 xuat = {
     "nguon_du_lieu": "THAT",
     "ghi_chu": "Toàn bộ tính từ tin rao thật (các kỳ thu thập trong dataset/history) và số liệu DKRA đã công bố. Không có số liệu giả lập.",

@@ -1,3 +1,5 @@
+// Trang định giá: form nhà phố / căn hộ (?loai=can-ho). Danh mục dự án, phường lấy từ /danh-muc;
+// kết quả do API mô hình tính (route /api/dinh-gia/[loai]), đã đăng nhập thì lưu vào lịch sử.
 import type { Metadata } from "next";
 import { FormDinhGia } from "@/components/form-dinh-gia";
 import { goiApi, type DanhMuc, type TongQuan } from "@/lib/api";

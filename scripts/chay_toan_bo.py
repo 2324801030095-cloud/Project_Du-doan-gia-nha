@@ -97,6 +97,7 @@ def kiem_api_dang_chay(url=None, goc=None):
     tep_ky_vong = set(bk["tep"])
 
     def goi(duong, du_lieu=None):
+        """Gọi API (GET khi du_lieu=None, POST JSON khi có) và trả JSON; lỗi HTTP / mạng để người gọi phân loại."""
         req = urllib.request.Request(url + duong, data=json.dumps(du_lieu).encode() if du_lieu is not None else None,
                                      headers={"content-type": "application/json"})
         with urllib.request.urlopen(req, timeout=60) as r:
@@ -136,6 +137,7 @@ def kiem_api_dang_chay(url=None, goc=None):
 
 
 def bao_cao_api():
+    """In kết quả kiểm chứng API đang chạy; chỉ LỖI mới dừng pipeline (BỎ QUA = API tắt, không coi là lỗi)."""
     tt, chi_tiet = kiem_api_dang_chay()
     print(f"Kiểm chứng API đang chạy: {tt} – {chi_tiet}")
     if tt == "LỖI":
@@ -188,6 +190,7 @@ def cap_nhat_readme():
 
 
 def chon_buoc(ds, ten):
+    """Các bước của chế độ `ds` bắt đầu từ bước `ten` (dùng cho --tu); sai tên -> thoát, in danh sách bước hợp lệ."""
     ten_cac_buoc = [b[0] for b in ds]
     if ten not in ten_cac_buoc:
         sys.exit(f"Không có bước '{ten}' trong chế độ này; các bước: {ten_cac_buoc}")

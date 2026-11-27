@@ -1,4 +1,5 @@
 "use client";
+// Khung chat của trợ lý (trình duyệt): gửi lịch sử hội thoại tới /api/chat, hiển thị markdown tối giản an toàn.
 import { LoaderCircle, Send, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";

@@ -1,4 +1,5 @@
 "use client";
+// Menu thả xuống của người dùng đã đăng nhập: tài khoản, quản trị (nếu admin), đăng xuất.
 import { ChevronDown, LogOut, Shield, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

@@ -1,3 +1,5 @@
+// Trang mô hình: bảng đánh giá đọc từ /danh-gia (= models/danh_gia_mo_hinh.json do notebook ghi).
+// MAPE / MAE tính trên GIÁ RAO sau khi đổi dự đoán log về tỷ đồng; tập test giữ riêng khỏi huấn luyện và chọn mô hình.
 import type { Metadata } from "next";
 import { Bang } from "@/components/bang";
 import { goiApi, type TongQuan } from "@/lib/api";

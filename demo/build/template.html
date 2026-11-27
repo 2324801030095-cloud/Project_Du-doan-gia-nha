@@ -1300,6 +1300,15 @@ table.cmp td.best { color: var(--green-600); font-weight: 700; }
 </footer>
 
 <script>
+/* ================= BẢN TĨNH (demo cũ, chạy offline, không cần máy chủ) =================
+   demo/build/build_site.py thay dòng @@DATA@@ bên dưới bằng dữ liệu JSON (MODEL, LISTINGS, CH_*, TREND, THUE, DAT_*...)
+   rồi ghi ra demo/index.html. Sửa giao diện ở TỆP NÀY (template), không sửa demo/index.html (tệp sinh tự động).
+   LƯU Ý DỄ HIỂU SAI:
+   - Form "Định giá" của bản tĩnh chạy mô hình RÚT GỌN bằng JavaScript (Ridge trên 11 thông số, hàm predict),
+     KHÔNG phải Random Forest của đề tài. Giá mô hình của từng tin trong danh sách (ai_full) mới là của mô hình chính.
+     Sản phẩm chính và số liệu báo cáo: web Next.js + API FastAPI (Random Forest).
+   - Trang đất nền (cuối tệp, DAT_*) là phần CŨ: đề tài đã bỏ định giá đất nền khỏi bài chính, API và web Next.js.
+   - Đơn vị: g = giá rao (tỷ đồng), dt = diện tích đất (m²), unit = đơn giá (triệu đồng / m²). Giá là GIÁ RAO, không phải giá giao dịch. */
 /*@@DATA@@*/
 const LABEL = {
   _rest: "Các yếu tố nhỏ khác", _full: "Vị trí & mô tả tin (mô hình đầy đủ)", dt_dat: "Diện tích đất", mat_tien_x: "Mặt tiền", so_tang_x: "Số tầng", dt_san_x: "Diện tích sàn",
@@ -1326,7 +1335,10 @@ function predict(x) {
   const y = MODEL.intercept + contrib.reduce((a, b) => a + b, 0);
   return { y, price: Math.exp(y), contrib, xi, z };
 }
+// Thứ tự 11 thông số PHẢI khớp MODEL.features (mo_hinh_gia_nha.json): diện tích, mặt tiền, tầng, sàn, PN, WC, lối vào, hẻm, 2 trục đường, nội thất
 const vecOf = (o) => [o.dt, o.mt, o.st, o.san, o.pn, o.wc, o.vt, o.hr, o.ntmk, o.lhp, o.nt].map((v) => (v === null ? NaN : v));
+// Mỗi tin: ai = giá mô hình chính (ai_full, dự đoán ngoài-fold của Random Forest) nếu có, không thì mô hình rút gọn;
+// diff = giá rao / giá mô hình − 1 (âm = rao rẻ hơn); unit = đơn giá triệu/m².
 for (const o of LISTINGS) {
   const r = predict(vecOf(o));
   o.ai = fin(o.ai_full) ? o.ai_full : r.price; o.z = r.z; o.diff = o.g / o.ai - 1; o.unit = o.g * 1000 / o.dt;
@@ -1508,7 +1520,9 @@ $("dlg-analyze").addEventListener("click", () => { $("dlg").close(); location.ha
 const num = (id) => { const v = $(id).value.trim(); return v === "" ? NaN : Number(v); };
 const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
 const setRadio = (name, v) => { const el = document.querySelector(`input[name="${name}"][value="${v}"]`); if (el) el.checked = true; };
+// Diện tích sàn để trống: ước lượng ≈ 85% diện tích đất × số tầng (quy ước riêng của bản tĩnh, hiện gợi ý cho người dùng)
 function estSan() { const dt = num("dt_dat"), t = radio("so_tang") === "" ? MODEL.medians[2] : Number(radio("so_tang")); return Number.isFinite(dt) ? Math.round(dt * 0.85 * t) : NaN; }
+// Form -> vectơ 11 thông số theo thứ tự của vecOf; ô trống = NaN (predict điền trung vị của tập học)
 function readInputs() {
   const truc = $("truc").value; let san = num("dt_san"); const est = estSan();
   $("dt_san_hint").textContent = Number.isFinite(san) ? "" : (Number.isFinite(est) ? `Ước lượng ≈ ${est} m² (85% đất × số tầng)` : "");
@@ -1562,6 +1576,7 @@ function syncRange() {
 /* ---------- Định giá: kết quả ---------- */
 const logPos = (v, a = 1, b = 30) => Math.min(100, Math.max(0, (Math.log(v) - Math.log(a)) / (Math.log(b) - Math.log(a)) * 100));
 let lastRange = null;
+// Tính lại toàn bộ khung kết quả mỗi khi form đổi: giá, khoảng 80%, đơn giá, so với tin cùng khu, thác đóng góp
 function update() {
   syncRange();
   const x = readInputs(), dt = x[0];
@@ -1904,7 +1919,9 @@ document.addEventListener("change", (e) => {
   favUi();
 });
 
-/* ---------- Đất nền (notebook du_doan_gia_dat): đơn giá phường + Ridge 7 thông số ---------- */
+/* ---------- Đất nền (notebook du_doan_gia_dat): đơn giá phường + Ridge 7 thông số ----------
+   PHẦN CŨ: notebook đất đã chuyển vào notebooks/luu_tru/, không còn trong bài chính / API / web Next.js.
+   Giữ ở bản tĩnh để xem lại kết quả phiên bản trước; không dùng cho số liệu báo cáo. */
 const DAT_PH = Object.fromEntries((DAT_MODEL.phuong || []).map((p) => [p.ma, p]));
 const DAT_QUAN = { "thu dau mot": "Thủ Dầu Một", "di an": "Dĩ An", "thuan an": "Thuận An", "ben cat": "Bến Cát", "tan uyen": "Tân Uyên", "bau bang": "Bàu Bàng", "dau tieng": "Dầu Tiếng", "phu giao": "Phú Giáo", "bac tan uyen": "Bắc Tân Uyên" };
 function datDuDoan(p) {

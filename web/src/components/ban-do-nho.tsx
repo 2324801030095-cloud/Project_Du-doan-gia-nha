@@ -1,9 +1,11 @@
 "use client";
+// Bọc bản đồ Leaflet để nạp động phía trình duyệt (Leaflet cần window, không kết xuất được ở máy chủ).
 import dynamic from "next/dynamic";
 import type { Diem } from "./ban-do-leaflet";
 
 const BanDo = dynamic(() => import("./ban-do-leaflet"), { ssr: false, loading: () => <div className="h-full animate-pulse rounded-2xl bg-navy-50" /> });
 
+/** Bản đồ nhỏ một điểm (trang chi tiết tin). */
 export function BanDoNho({ lat, lon, nhan }: { lat: number; lon: number; nhan: string }) {
   return (
     <div style={{ height: 260 }}>
@@ -12,6 +14,7 @@ export function BanDoNho({ lat, lon, nhan }: { lat: number; lon: number; nhan: s
   );
 }
 
+/** Bản đồ lớn nhiều điểm, tâm ở Thủ Dầu Một (trang bản đồ). */
 export function BanDoLon({ diem, cao = 600 }: { diem: Diem[]; cao?: number }) {
   return (
     <div style={{ height: cao }}>

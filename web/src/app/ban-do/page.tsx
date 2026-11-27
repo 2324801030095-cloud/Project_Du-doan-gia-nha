@@ -1,3 +1,5 @@
+// Bản đồ đơn giá: điểm nhà phố (màu theo đơn giá triệu/m²) và tòa căn hộ, dữ liệu từ /ban-do của API.
+// Chỉ vẽ tin có tọa độ đủ tin cậy; vị trí là gần đúng.
 import type { Metadata } from "next";
 import { BanDoLon } from "@/components/ban-do-nho";
 import type { Diem } from "@/components/ban-do-leaflet";

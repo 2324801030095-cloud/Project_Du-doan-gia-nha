@@ -53,7 +53,7 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// Tin người dùng lưu lại (loai: nha_pho | can_ho | dat)
+// Tin người dùng lưu lại (loai: nha_pho | can_ho). Định giá đất nền đã bỏ nên không còn lưu loại đất.
 export const yeuThich = pgTable(
   "yeu_thich",
   {

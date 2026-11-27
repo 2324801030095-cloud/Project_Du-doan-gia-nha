@@ -25,6 +25,7 @@ exit /b
 :chay
 chcp 65001 >nul
 cd /d "%~dp0.."
+rem Dung Python cua .venv o thu muc mon hoc (3 cap tren scripts) neu co, khong thi python tren PATH; nhat ky ghi vao dataset\history
 set "PY=%~dp0..\..\..\.venv\Scripts\python.exe"
 if not exist "%PY%" set "PY=python"
 echo ==== %date% %time% ====>> "dataset\history\nhat_ky_thu_thap.txt"

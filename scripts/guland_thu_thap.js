@@ -8,6 +8,7 @@
 // Ngày chạy để tạo dữ liệu của đề tài: 12/11/2026.
 
 (async () => {
+  // sleep: nghỉ giữa các lần tải trang; parse: chuỗi HTML -> tài liệu DOM để đọc bằng querySelector
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const parse = (html) => new DOMParser().parseFromString(html, "text/html");
 
@@ -69,6 +70,7 @@
     "tang_ham", "nam_xay", "loai_ct", "vi_tri", "hem_rong", "hien_trang_duong", "loai_so", "tinh_trang_so",
     "noi_that", "pn_mota", "wc_mota", "tret_lau_mota", "url", "ngay_thu_thap", "mo_ta"];
   const homNay = new Date().toISOString().slice(0, 10);
+  // Chuẩn hóa một ô CSV: gộp khoảng trắng, bỏ đơn vị "m²" / "m" ở cuối số, bọc ngoặc kép khi có dấu phẩy / xuống dòng
   const q = (v) => {
     v = (v ?? "").toString().replace(/\s+/g, " ").trim().replace(/ m²$/, "").replace(/^(\d+(\.\d+)?) m$/, "$1");
     return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;

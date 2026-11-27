@@ -1,4 +1,5 @@
 "use client";
+// Bảng người dùng của trang quản trị (thành phần phía trình duyệt).
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";

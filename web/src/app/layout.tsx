@@ -1,3 +1,5 @@
+// Khung chung của mọi trang: phông chữ Be Vietnam Pro, thanh menu (Header) và chân trang.
+// Trang con được Next.js đặt vào {children}.
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro } from "next/font/google";
 import Link from "next/link";

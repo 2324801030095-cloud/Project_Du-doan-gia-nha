@@ -1,3 +1,5 @@
+// Trang trợ lý: khung chat gọi /api/chat. Có GROQ_API_KEY trên máy chủ -> chế độ AI (gọi công cụ là API mô hình),
+// không có -> mô hình ý định ngoại tuyến của đề tài.
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { KhungChat } from "@/components/khung-chat";

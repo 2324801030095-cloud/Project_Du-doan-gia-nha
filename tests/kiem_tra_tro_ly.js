@@ -4,6 +4,7 @@
 // 3) con số trả lời khớp đúng mô hình  4) nhớ ngữ cảnh khi hỏi tiếp.
 const T = require("./nap_trang_demo.js");
 const kq = [];
+// kiem(tên, f): f trả về chuỗi lỗi (hoặc rỗng = đạt); ghi kết quả vào kq. kiemAsync: phép kiểm bất đồng bộ chạy sau.
 const kiem = (ten, f) => { try { const loi = f(); kq.push([ten, !loi, loi || ""]); } catch (e) { kq.push([ten, false, "LỖI " + e.message]); } };
 
 // ---------- 1. ý định ----------
@@ -146,6 +147,7 @@ kiem("Hỏi tiếp sau tìm nhà: 'rẻ hơn thị trường thôi' giữ khoả
 // ---------- 5. chế độ AI (Claude gọi công cụ của trang) – dùng client giả lập, không gọi API thật, không tốn phí ----------
 const kiemSau = [];   // phép kiểm bất đồng bộ
 const kiemAsync = (ten, f) => kiemSau.push([ten, f]);
+// Đọc số "x,yz tỷ" đầu tiên trong câu trả lời của trợ lý -> số tỷ đồng (NaN nếu không có)
 const giaTy = (s) => { const m = /(\d+,\d+) tỷ/.exec(s); return m ? parseFloat(m[1].replace(",", ".")) : NaN; };
 const chuCua = (html) => html.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
 kiem("Chế độ AI: công cụ định giá trả ĐÚNG số của mô hình (giống trợ lý ngoại tuyến)", () => {
@@ -186,6 +188,7 @@ kiem("Mọi phần tử mã trang gọi bằng $('id') đều có trong HTML (DO
   return thieu.length ? "thiếu id: " + thieu.join(", ") : "";
 });
 kiem("Chế độ AI: nhập khóa một lần – mở lại trang tự bật (ghi nhớ mặc định); tắt thì xóa sạch", () => {
+  // localStorage giả (Map trong bộ nhớ) để kiểm việc ghi nhớ khóa / chế độ AI mà không cần trình duyệt
   const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
   const cu = [global.localStorage, global.sessionStorage];
   global.localStorage = kho(); global.sessionStorage = kho();
@@ -218,6 +221,7 @@ function claudeGia(kichBan, loi) {
   class Client { constructor(o) { this.o = o; Client.tuyChon = o; this.messages = { stream }; this.beta = { messages: { stream } }; } }
   return { mod: { default: Client, APIError, AuthenticationError }, yeuCau, Client };
 }
+// Giao diện chat giả: gom chữ trợ lý in ra (chu) và các thẻ kết quả (the) để kiểm nội dung
 function uiGia() { const u = { chu: "", the: [] }; u.chu_ = (d) => { u.chu += d; }; return { u, ui: { chu: (d) => u.chu_(d), the: (h) => u.the.push(h) } }; }
 
 kiemAsync("Chế độ AI: vòng lặp công cụ – Claude gọi định giá, trang chạy hàm thật, Claude trả lời; hội thoại nhớ ngữ cảnh", async () => {
@@ -290,6 +294,7 @@ kiem("Gemini: mô hình mặc định là Flash ổn định mới nhất (bỏ 
   return a === "gemini-3.8-flash" && b === "gemini-flash-latest" ? "" : `${a} / ${b}`;
 });
 kiemAsync("Gemini: bật bằng khóa – gọi models.list kiểm khóa, lọc mô hình trò chuyện, lưu; khóa sai thì giữ nguyên trạng thái cũ", async () => {
+  // localStorage giả (Map trong bộ nhớ) để kiểm việc ghi nhớ khóa / chế độ AI mà không cần trình duyệt
   const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
   const cu = [global.localStorage, global.sessionStorage]; global.localStorage = kho(); global.sessionStorage = kho();
   try {
@@ -354,6 +359,7 @@ kiemAsync("Gemini: bị chặn vì an toàn thì bỏ lượt; lỗi 429 báo l�
 
 // ---------- 7. chế độ AI với Groq (gói miễn phí) – fetch giả lập ----------
 const traVeH = (status, data, h = {}) => ({ ok: status >= 200 && status < 300, status, json: async () => data, headers: { get: (k) => h[k] ?? null } });
+// Máy chủ Groq GIẢ theo kịch bản (mã HTTP, dữ liệu): ghi lại mọi yêu cầu để kiểm khóa, mô hình, công cụ được gọi
 function groqGia(kichBan) {
   const yeuCau = [];
   const goi = async (url, init) => { yeuCau.push({ url, headers: init.headers, body: init.body ? JSON.parse(init.body) : null }); const [st, d, h] = kichBan.shift(); return traVeH(st, d, h); };
@@ -366,6 +372,7 @@ kiem("Groq: nhận khóa gsk_; mô hình mặc định gpt-oss-120b; bảng mark
   return /<table><tr><td>Căn<\/td><td>Giá<\/td><\/tr><tr><td>1<\/td><td><b>1,9 tỷ<\/b><\/td><\/tr><\/table><p>Hết.<\/p>/.test(h) ? "" : h;
 });
 kiemAsync("Groq: bật khóa (lọc mô hình trò chuyện, gửi thử), vòng lặp công cụ đúng chuẩn OpenAI, hết hạn mức thì chuyển mô hình", async () => {
+  // localStorage giả (Map trong bộ nhớ) để kiểm việc ghi nhớ khóa / chế độ AI mà không cần trình duyệt
   const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
   const cu = [global.localStorage, global.sessionStorage]; global.localStorage = kho(); global.sessionStorage = kho();
   const ds = { data: ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "whisper-large-v3", "meta-llama/llama-prompt-guard-2-86m", "allam-2-7b"].map((id) => ({ id, active: true, context_window: /allam/.test(id) ? 4096 : 131072 })) };
@@ -411,6 +418,7 @@ kiemAsync("Groq: câu hỏi sau rút gọn kết quả công cụ cũ; tạo l�
 });
 
 kiem("Khóa mặc định của máy (demo/khoa_ai.local.js): tự bật Groq; đã tắt thì không tự bật; khóa đã lưu được ưu tiên; file khóa không lên git", () => {
+  // localStorage giả (Map trong bộ nhớ) để kiểm việc ghi nhớ khóa / chế độ AI mà không cần trình duyệt
   const kho = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
   const cu = [global.localStorage, globalThis.PHH_KHOA_MAC_DINH]; global.localStorage = kho(); globalThis.PHH_KHOA_MAC_DINH = "gsk_khoa-mac-dinh";
   try {

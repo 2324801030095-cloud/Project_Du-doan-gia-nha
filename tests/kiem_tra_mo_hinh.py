@@ -41,6 +41,7 @@ MUC_CO_DINH = {80.0, 95.0}          # mức của khoảng giá 80% và khoảng
 
 
 def _so(chuoi):
+    """Tập mọi số (dạng 12 hoặc 12.5) xuất hiện trong chuỗi."""
     return {float(x) for x in re.findall(r"\d+(?:\.\d+)?", chuoi)}
 
 
@@ -53,6 +54,8 @@ def _chu_tinh(nx_f):
 
 
 def kiem_markdown(duong_dan):
+    """Tìm số VIẾT TAY trong chữ markdown của notebook: mọi con số kết quả phải được in từ biến (nhận xét nx(f'''...''')),
+    chỉ hằng số có thật trong mã (ngưỡng, tham số) mới được gõ thẳng trong chữ. Trả về các đoạn vi phạm."""
     nb = json.load(open(duong_dan, encoding="utf-8"))
     ma = "\n".join("".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code")
     ma = NX.sub("", ma)                     # chữ của nhận xét không phải hằng số của mã
@@ -73,6 +76,7 @@ def kiem_markdown(duong_dan):
 
 def _so_viet_tay(i, md, co_dinh):
     # khoảng "a–b%" là nhận định về kết quả (ngưỡng cố định luôn là một số); không tra hằng số vì 0.25 trong mã trùng "25%"
+    """Các số trong ô markdown thứ i không phải hằng số của mã (co_dinh) và không phải năm / số thứ tự -> nghi viết tay."""
     sai = [(i, md[max(0, m.start() - 60):m.end() + 20].replace("\n", " "))
            for m in re.finditer(r"(?<![\w.,{])\d+(?:,\d+)?\s*[–-]\s*\d+(?:,\d+)?\s*%", md)]
     for m in re.finditer(rf"(?<![\w.,{{])(\d+(?:[.,]\d+)*)(\s*%|\s+(?:{DON_VI})\b)?", md):
@@ -103,6 +107,7 @@ KQ = []           # (tên, "ĐẠT" | "KHÔNG ĐẠT" | "BỎ QUA", chi tiết)
 def kiem(ten, mo_rong=False):
     """mo_rong=True: phép kiểm của phần mở rộng (căn hộ...) -> bỏ qua ở chế độ --nha-pho."""
     def boc(f):
+        """Chạy hàm kiểm f ngay khi khai báo và ghi kết quả (ĐẠT / KHÔNG ĐẠT kèm lỗi, hoặc BỎ QUA cho phần mở rộng ở chế độ --nha-pho)."""
         if mo_rong and NHA_PHO:
             KQ.append((ten, "BỎ QUA", "phần mở rộng, không thuộc chế độ --nha-pho")); return f
         try:
@@ -113,6 +118,7 @@ def kiem(ten, mo_rong=False):
     return boc
 
 def du_lieu_gia(n=300, seed=0):
+    """Dữ liệu giả lập n căn quanh Thủ Dầu Một để kiểm lớp mô hình (giá ≈ 0,04 tỷ/m² × diện tích, nhiễu log 0,1)."""
     rng = np.random.default_rng(seed)
     d = pd.DataFrame({"lat": 10.95 + rng.random(n) * 0.05, "lon": 106.65 + rng.random(n) * 0.05, "dt_dat": rng.uniform(50, 200, n),
                       "quan": "thu dau mot", "phuong": rng.choice(["a", "b", "c"], n), "duong": rng.choice(["x", "y", None], n)})
@@ -145,7 +151,8 @@ def _():
     d = du_lieu_gia(); d["nhom"] = np.arange(len(d)) // 3
     vi_pham = []
     class Ghi(BaseEstimator, RegressorMixin):
-        def fit(self, X, y): self.nhom_ = set(X["nhom"]); return self
+        """Mô hình "gián điệp": nhớ các nhóm đã học, khi dự đoán ghi lại nhóm nào xuất hiện cả ở tập học (= rò rỉ)."""
+        def fit(self, X, y): self.nhom_ = set(X["nhom"]); return self   # chỉ ghi nhóm của tập học
         def predict(self, X):
             vi_pham.extend(set(X["nhom"]) & self.nhom_); return np.zeros(len(X))
     M.du_doan_cheo_lap(Ghi, d, so_lan=2)
@@ -181,6 +188,7 @@ def _():
         assert 0.77 < phu < 0.83, f"nhóm {k} phủ {phu:.2f}"
 
 def kiem_du_lieu_sach(ds):
+    """Kiểm từng tệp CSV đã xử lý: không còn tin cho thuê / giá hay đơn giá vô lý, và train / test không chung nhóm tin gần trùng."""
     for f, cot_dt in ds:
         d = pd.read_csv(GOC / "dataset" / "processed" / f)
         assert d["gia_ty"].between(0.3, 60).all(), f"{f}: có giá ngoài phạm vi"
@@ -197,6 +205,7 @@ def _():
     kiem_du_lieu_sach([("can_ho_da_xu_ly.csv", "dt_dat")])
 
 def kiem_mo_hinh_luu(ds):
+    """Nạp lại từng mô hình .joblib đã lưu, dự đoán trên dữ liệu học: sai số trung vị phải < 50% (mô hình không hỏng / không lệch cột)."""
     import joblib
 
     from mo_hinh_gia import khong_dau

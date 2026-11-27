@@ -1,4 +1,5 @@
 "use client";
+// Nút trái tim lưu / bỏ lưu tin (cần đăng nhập). Cập nhật giao diện ngay rồi gọi /api/yeu-thich; lỗi thì hoàn tác.
 import { Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";

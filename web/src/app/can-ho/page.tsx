@@ -1,3 +1,4 @@
+// Danh sách tin căn hộ (phần mở rộng) với bộ lọc trên URL (?gia_min=…); lọc / phân trang làm ở API.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BoLoc, PhanTrang, TheTinRao } from "@/components/tin";

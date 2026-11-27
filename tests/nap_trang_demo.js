@@ -7,6 +7,7 @@
 const fs = require("fs"), path = require("path");
 const html = fs.readFileSync(path.join(__dirname, "..", "demo", "index.html"), "utf8");
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+// Phần tử DOM giả: mọi thuộc tính / phương thức đều tồn tại (Proxy) để mã của trang chạy được trong Node
 function el() {
   const store = { innerHTML: "", textContent: "", value: "", hidden: false, checked: false, dataset: {}, style: { setProperty() {} }, scrollTop: 0, scrollHeight: 0 };
   return new Proxy(store, {

@@ -78,6 +78,8 @@ def trich_dac_trung_chu(van_ban):
         F[ten] = van_ban.str.contains(mau, regex=True).astype(int)
 
     def lay_so(mau, lo, hi):
+        """Đọc một số trong mô tả theo biểu thức `mau`; dấu phẩy thập phân đổi thành chấm; số nằm ngoài [lo, hi]
+        (đọc nhầm, ví dụ số điện thoại) bị bỏ thành NaN."""
         v = pd.to_numeric(van_ban.str.extract(mau, expand=False).str.replace(",", "."), errors="coerce").astype(float)
         return v.where(v.between(lo, hi))
 
@@ -117,9 +119,12 @@ class GiaLangGieng(BaseEstimator, TransformerMixin):
     def __init__(self, k=12, tang_bac=False):
         # tang_bac=True (dùng cho căn hộ): đơn giá dự án co về đơn giá PHƯỜNG (thay vì toàn vùng) khi dự án ít tin,
         # và thêm cột n_duong = số tin của dự án trong tập học, để mô hình tự quyết định tin con số đó đến đâu.
+        """k: số láng giềng gần nhất; tang_bac: xem chú thích bên dưới (căn hộ)."""
         self.k, self.tang_bac = k, tang_bac
 
     def fit(self, X, y):
+        """Học từ TẬP TRAIN: tọa độ (radian) cho BallTree, u_ = log đơn giá TRIỆU/m² của từng căn
+        (y = log giá TỶ, nên u = y − log(dt) + log(1000)), trung vị chung g_, và tổng / số tin theo phường, theo đường."""
         self.xy_ = np.radians(X[["lat", "lon"]].to_numpy(float))
         self.u_ = np.asarray(y, float) - np.log(X["dt_dat"].to_numpy(float)) + np.log(1000)
         self.tree_ = BallTree(self.xy_, metric="haversine")
@@ -130,6 +135,7 @@ class GiaLangGieng(BaseEstimator, TransformerMixin):
         return self
 
     def _kp(self, X):
+        """Khóa phường 'quan|phuong' (căn hộ khi tang_bac: thêm '|noxh' để tách nhà ở xã hội)."""
         k = X["quan"].astype(str) + "|" + X["phuong"].astype(str)
         if getattr(self, "tang_bac", False) and "noxh" in X:      # getattr: mô hình lưu từ phiên bản cũ không có thuộc tính này
             # căn hộ: tách nhà ở xã hội và thương mại thành hai "phường" riêng -> giá trị nền đúng phân khúc
@@ -138,10 +144,13 @@ class GiaLangGieng(BaseEstimator, TransformerMixin):
 
     @staticmethod
     def _kd(X):
+        """Khóa tuyến đường 'quan|duong' (không biết đường -> '?')."""
         return (X["quan"].astype(str) + "|" + X["duong"].fillna("?").astype(str)).to_numpy()
 
     def _ma_hoa(self, keys, bang, own=None, m=5.0, nen=None):
         # own = (tổng u, số tin) của chính nhóm căn đó trong cùng khóa -> trừ ra khi tính cho tập học
+        """Target encoding có làm trơn: (tổng u + m × nền) / (số tin + m). Ít tin thì co về `nen`
+        (mặc định trung vị chung); `own` là phần của chính nhóm căn đang tính, trừ ra khi tính cho tập học."""
         s = bang.reindex(keys)
         tong, n = s["sum"].fillna(0).to_numpy(), s["count"].fillna(0).to_numpy()
         if own is not None:
@@ -150,6 +159,9 @@ class GiaLangGieng(BaseEstimator, TransformerMixin):
         return (tong + m * nen) / (n + m)
 
     def _tinh(self, X, loo):
+        """Tính các cột lg_knn, lg_knn_med, kc_knn_km, lg_phuong, lg_duong (+ n_duong khi tang_bac).
+        loo=True (tập học): bỏ chính căn và các tin cùng nhóm gần trùng; loo=False (căn mới): dùng đủ dữ liệu học.
+        Trọng số láng giềng = 1 / (khoảng cách km + 0,3) để căn trùng tọa độ không có trọng số vô hạn."""
         q = np.radians(X[["lat", "lon"]].to_numpy(float))
         # chỉ khi tính cho tập học mới cần nhom_ (mô hình lưu từ phiên bản cũ không có thuộc tính này vẫn dự đoán được)
         k = min(self.k + (int(pd.Series(self.nhom_).value_counts().max()) if loo else 0), len(self.u_))
@@ -179,14 +191,17 @@ class GiaLangGieng(BaseEstimator, TransformerMixin):
 
     def _cua_nhom(self, keys):
         # (tổng u, số tin) của các tin CÙNG NHÓM và cùng khóa với từng dòng tập học
+        """(tổng u, số tin) của các tin CÙNG NHÓM và cùng khóa với từng dòng tập học (để trừ ra khi leave-group-out)."""
         g = pd.DataFrame({"k": keys, "n": self.nhom_, "u": self.u_}).groupby(["k", "n"])["u"]
         tong, dem = g.transform("sum").to_numpy(), g.transform("size").to_numpy()
         return tong, dem
 
     def fit_transform(self, X, y):
+        """Học rồi tính cho CHÍNH tập học theo kiểu leave-group-out (không rò rỉ giá của căn đang tính)."""
         return self.fit(X, y)._tinh(X, loo=True)
 
     def transform(self, X):
+        """Tính cho căn mới / tập test bằng toàn bộ dữ liệu đã học."""
         return self._tinh(X, loo=False)
 
 
@@ -199,10 +214,13 @@ class MoHinhGia(BaseEstimator, RegressorMixin):
     muc_tieu='don_gia': học log(đơn giá) rồi cộng lại log(diện tích); 'gia': học thẳng log(giá)."""
 
     def __init__(self, est, features, khong_gian=True, chuan_hoa=False, muc_tieu="gia", tang_bac=False):
+        """est: mô hình sklearn; features: danh sách cột đặc trưng của chính căn; khong_gian=False: KHÔNG ghép
+        đặc trưng giá khu vực (mô hình cuối của đề tài – Random Forest Phần A – dùng khong_gian=False)."""
         self.est, self.features, self.khong_gian, self.chuan_hoa, self.muc_tieu = est, features, khong_gian, chuan_hoa, muc_tieu
         self.tang_bac = tang_bac
 
     def _Z(self, X, y=None):
+        """Ma trận đặc trưng: cột `features` (+ đặc trưng giá khu vực nếu khong_gian; khi học, truyền y để tính leave-group-out)."""
         Z = X[list(self.features)].astype(float)
         if self.khong_gian:
             K = self.kg_.fit_transform(X, y) if y is not None else self.kg_.transform(X)
@@ -210,6 +228,8 @@ class MoHinhGia(BaseEstimator, RegressorMixin):
         return Z
 
     def fit(self, X, y):
+        """Học: y = log(giá rao, tỷ). muc_tieu='don_gia' thì học log(giá) − log(diện tích). chuan_hoa thêm
+        điền thiếu trung vị + cờ thiếu + chuẩn hóa trước mô hình."""
         y = np.asarray(y, float)
         self.kg_ = GiaLangGieng(tang_bac=getattr(self, "tang_bac", False))
         Z = self._Z(X, y)
@@ -223,6 +243,7 @@ class MoHinhGia(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, X):
+        """Dự đoán log(giá rao, tỷ) – đổi ra tỷ bằng np.exp(); 'don_gia' thì cộng lại log(diện tích)."""
         p = self.m_.predict(self._Z(X))
         return p + np.log(X["dt_dat"].to_numpy(float)) if self.muc_tieu == "don_gia" else p
 
@@ -233,9 +254,11 @@ class XepChongChu(BaseEstimator, RegressorMixin):
     Dùng OOF khi huấn luyện để mô hình chính không học trên dự đoán đã 'thuộc bài'."""
 
     def __init__(self, base, alpha=3.0):
+        """base: mô hình chính (nhận thêm cột t_chu); alpha: hệ số phạt của Ridge trong mô hình chữ."""
         self.base, self.alpha = base, alpha
 
     def _mo_hinh_chu(self):
+        """Mô hình chữ: TF-IDF n-gram ký tự 2–5 trên văn bản đã bỏ dấu + Ridge, dự đoán log đơn giá."""
         return make_pipeline(TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), min_df=3,
                                              sublinear_tf=True, max_features=40000), Ridge(alpha=self.alpha))
 
@@ -251,6 +274,7 @@ class XepChongChu(BaseEstimator, RegressorMixin):
         return cross_val_predict(self._mo_hinh_chu(), X["van_ban"], u, cv=cv)
 
     def fit(self, X, y):
+        """Học mô hình chữ (dự đoán ngoài-fold làm cột t_chu cho mô hình chính) rồi học mô hình chính."""
         u = np.asarray(y, float) - np.log(X["dt_dat"].to_numpy(float))
         oof = self.chu_ngoai_fold(X, u)
         self.chu_ = self._mo_hinh_chu().fit(X["van_ban"], u)
@@ -258,6 +282,7 @@ class XepChongChu(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, X):
+        """Căn mới: t_chu = dự đoán của mô hình chữ học trên toàn tập; trả log(giá, tỷ)."""
         return self.m_.predict(X.assign(t_chu=self.chu_.predict(X["van_ban"])))
 
 
@@ -265,13 +290,16 @@ class TrungBinhMoHinh(BaseEstimator, RegressorMixin):
     """Ensemble: trung bình dự đoán (trên thang log) của nhiều mô hình."""
 
     def __init__(self, models):
+        """models: danh sách mô hình sklearn chưa học (được clone khi fit)."""
         self.models = models
 
     def fit(self, X, y):
+        """Học từng mô hình trên cùng dữ liệu."""
         self.fitted_ = [clone(m).fit(X, y) for m in self.models]
         return self
 
     def predict(self, X):
+        """Trung bình dự đoán log(giá) của các mô hình (= trung bình nhân trên thang tỷ)."""
         return np.mean([m.predict(X) for m in self.fitted_], axis=0)
 
 
@@ -279,12 +307,14 @@ class BaselineDonGiaPhuong(BaseEstimator, RegressorMixin):
     """Mốc so sánh: giá = đơn giá trung vị của phường (trên tập train) × diện tích đất."""
 
     def fit(self, X, y):
+        """Học trung vị log đơn giá (tỷ/m²) theo phường và trung vị chung (phường chưa gặp)."""
         u = np.asarray(y, float) - np.log(X["dt_dat"].to_numpy(float))
         self.g_ = float(np.median(u))
         self.p_ = pd.Series(u).groupby((X["quan"].astype(str) + "|" + X["phuong"].astype(str)).to_numpy()).median()
         return self
 
     def predict(self, X):
+        """log(giá) = log đơn giá trung vị của phường + log(diện tích đất)."""
         k = X["quan"].astype(str) + "|" + X["phuong"].astype(str)
         return k.map(self.p_).fillna(self.g_).to_numpy() + np.log(X["dt_dat"].to_numpy(float))
 
@@ -329,6 +359,7 @@ def nhom_gan_trung(df, sai_dt=0.03, sai_gia=0.12, nguong_chu=0.45, dung_vi_tri=T
     cha = np.arange(len(d))
 
     def goc(i):
+        """Tìm gốc nhóm (union-find có nén đường đi): hai tin cùng gốc = cùng nhóm gần trùng."""
         while cha[i] != i:
             cha[i] = cha[cha[i]]
             i = cha[i]
@@ -419,6 +450,7 @@ def mo_hinh_co_ban(tr, dac_trung, baseline=None, seed=0):
     fold = list(GroupKFold(5, shuffle=True, random_state=seed).split(X, groups=tr["nhom"]))
 
     def ong(est, chuan=True):      # điền thiếu bằng trung vị (+ chuẩn hóa cho mô hình dựa trên khoảng cách / gradient)
+        """Pipeline: điền thiếu bằng trung vị (+ chuẩn hóa nếu chuan) rồi tới mô hình est."""
         return make_pipeline(SimpleImputer(strategy="median"), *([StandardScaler()] if chuan else []), est)
     LUOI = {
         "Hồi quy tuyến tính": (lambda: ong(LinearRegression()), {}),
@@ -467,6 +499,7 @@ class BaselineDonGiaDuAn(BaseEstimator, RegressorMixin):
     nếu không thì của phường, nhân diện tích sử dụng."""
 
     def fit(self, X, y):
+        """Học trung vị log đơn giá theo dự án (chỉ dự án >= 3 căn), theo phường, và trung vị chung."""
         u = pd.Series(np.asarray(y, float) - np.log(X["dt_dat"].to_numpy(float)), index=X.index)
         self.g_ = float(u.median())
         da = u.groupby(X["du_an"])
@@ -475,6 +508,7 @@ class BaselineDonGiaDuAn(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, X):
+        """log(giá) = log đơn giá của dự án (không có thì phường, rồi chung) + log(diện tích sử dụng)."""
         k = X["quan"].astype(str) + "|" + X["phuong"].astype(str)
         return (X["du_an"].map(self.da_).fillna(k.map(self.ph_)).fillna(self.g_).to_numpy(float)
                 + np.log(X["dt_dat"].to_numpy(float)))

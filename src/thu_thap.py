@@ -38,6 +38,7 @@ LA_SO = r"^-?\d+(?:\.\d+)?$"
 
 
 def che_sdt(s):
+    """Thay mọi chuỗi giống số điện thoại Việt Nam trong s bằng '[SĐT]' (giá trị không phải chữ giữ nguyên)."""
     return SDT.sub("[SĐT]", s) if isinstance(s, str) else s
 
 
@@ -51,6 +52,7 @@ def dong_jsonl(obj):
 def _che_moi_chuoi(x, khoa=""):
     # che số điện thoại ở MỌI trường chữ (người đăng hay ghi số vào cả ô địa chỉ, tên đường), trừ đường dẫn
     # và mã định danh (unique_street_id là chuỗi hex, videos[].id là số dài: trông giống SĐT nhưng không phải)
+    """Đệ quy qua dict / list của một tin, che SĐT ở mọi chuỗi; `khoa` = tên trường hiện tại (để bỏ qua URL, mã định danh)."""
     if isinstance(x, dict):
         return {k: _che_moi_chuoi(v, k) for k, v in x.items()}
     if isinstance(x, list):
@@ -102,6 +104,7 @@ def an_danh_toan_bo():
 
 
 def _bang_an_danh(rows_or_df):
+    """Danh sách dict hoặc DataFrame -> DataFrame toàn chuỗi đã che SĐT (ô rỗng = '') trước khi ghi CSV thô."""
     import pandas as pd
     d = pd.DataFrame(rows_or_df)
     return an_danh_bang(d.astype(object).where(d.notna(), "").astype(str))[0]       # che SĐT ở mọi cột chữ (kể cả địa chỉ)
@@ -116,6 +119,8 @@ def chotot(loai="nha", chi_dung_lai_csv=False):
            + "&region_v2=2011&limit=50&o={o}&key_param_included=true")
 
     def get(url):
+        """Tải JSON của một trang danh sách Chợ Tốt; lỗi mạng thì thử lại tối đa 5 lần, chờ lâu dần;
+        vẫn lỗi thì thoát mã 2 mà KHÔNG ghi đè dữ liệu cũ."""
         for k in range(5):
             try:
                 with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30) as r:
@@ -206,6 +211,8 @@ def alonhadat(loai="nha"):
     loi_tai = []          # có trang nào tải thất bại hẳn không -> nếu có thì KHÔNG ghi đè dữ liệu cũ
 
     def get(url):
+        """Tải HTML một trang danh sách alonhadat; bị chặn tạm (HTTP 429) thì chờ 30s, 60s, 120s…; lỗi hẳn thì ghi vào loi_tai và trả chuỗi rỗng
+        (người gọi ghi nhận để KHÔNG ghi đè dữ liệu cũ bằng dữ liệu thiếu)."""
         for k in range(5):
             try:
                 with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30) as r:
@@ -217,6 +224,7 @@ def alonhadat(loai="nha"):
         return ""
 
     def txt(pat, s, default=None):
+        """Lấy nhóm 1 của biểu thức `pat` trong HTML s, bỏ thẻ và giải mã ký tự HTML; không khớp -> `default`."""
         m = re.search(pat, s, re.DOTALL)
         return html.unescape(re.sub(r"<[^>]+>", " ", m.group(1))).strip() if m else default
 

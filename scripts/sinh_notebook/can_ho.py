@@ -149,6 +149,7 @@ Ngoài ra đọc **số tầng của căn** ("tầng 12") và số phòng ngủ 
 """)
 
 code(r"""
+# Đặc trưng từ chữ của tin (đã bỏ dấu): từ khóa chung + 4 cờ riêng cho căn hộ (view đẹp, tầng cao, bán sơ cấp từ chủ đầu tư, nhà ở xã hội).
 T = trich_dac_trung_chu(df["van_ban"])
 v = df["van_ban"]
 T["t_view"] = v.str.contains(r"view (?:song|ho|cong vien|thanh pho|landmark|ho boi)|huong song|nhin ra song").astype(int)
@@ -292,6 +293,7 @@ Chia theo nhóm bảo đảm một căn được đăng nhiều lần (cùng n�
 """)
 
 code(r"""
+# Chia train / test 80/20 THEO NHÓM tin gần trùng (cả nhóm về một phía) -> mô hình không gặp lại chính căn hộ đang kiểm tra.
 from sklearn.model_selection import GroupShuffleSplit
 _, vt_test = next(GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=RANDOM_STATE).split(df, groups=df["nhom"]))
 df["tap"] = np.where(df.index.isin(vt_test), "test", "train")

@@ -1,4 +1,6 @@
 "use client";
+// Form định giá nhà phố / căn hộ phía trình duyệt. Gửi tới /api/dinh-gia/<loại> của chính web (không gọi
+// thẳng API mô hình); hiển thị kết quả bằng KetQuaDinhGia. Đơn vị: diện tích m², độ rộng hẻm m, giá trả về tỷ đồng.
 import { Building2, House, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import type { DanhMuc } from "@/lib/api";
@@ -12,6 +14,7 @@ const TAB: { k: Loai; ten: string; icon: React.ReactNode }[] = [
   { k: "can-ho", ten: "Căn hộ", icon: <Building2 size={16} /> },
 ];
 
+/** Một ô của form: nhãn + điều khiển + gợi ý nhỏ bên dưới. */
 function O({ ten, children, goiY, rong }: { ten: string; children: React.ReactNode; goiY?: string; rong?: boolean }) {
   return (
     <label className={rong ? "block sm:col-span-full" : "block"}>
@@ -21,6 +24,7 @@ function O({ ten, children, goiY, rong }: { ten: string; children: React.ReactNo
     </label>
   );
 }
+/** Ô nhập số (bàn phím số trên điện thoại); để trống = không biết. */
 const So = (p: { name: string; ph?: string; min?: number; max?: number; step?: number; req?: boolean; def?: number }) => (
   <input name={p.name} type="number" inputMode="decimal" className="o-nhap" placeholder={p.ph && `VD: ${p.ph}`} min={p.min} max={p.max} step={p.step ?? "any"} required={p.req} defaultValue={p.def} />
 );

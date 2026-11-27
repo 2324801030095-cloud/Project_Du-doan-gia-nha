@@ -271,6 +271,8 @@ Một số tin Chợ Tốt ghi **chiều dài vào ô diện tích** (ví dụ t
 """)
 
 code(r"""
+# Sửa diện tích GHI NHẦM: người đăng hay ghi chiều dài (hoặc chiều ngang) vào ô diện tích. Nếu diện tích ≈ chiều dài / ngang
+# và nhỏ hơn 60% của ngang × dài (25–1000 m²) thì thay bằng ngang × dài; tin thiếu diện tích cũng lấy ngang × dài.
 nd = df["ngang"] * df["dai"]
 ghi_nham = ((df["dt_dat"] - df["dai"]).abs() <= 1) | ((df["dt_dat"] - df["ngang"]).abs() <= 0.5)
 sua = nd.between(25, 1000) & (df["dt_dat"].isna() | (ghi_nham & (df["dt_dat"] < 0.6 * nd)))
@@ -427,6 +429,8 @@ Bảng dưới trả lời: mỗi dòng là gì, mỗi cột dùng vào việc g
 """)
 
 code(r"""
+# Từ điển cột: vai trò của từng cột trong mô hình (mục tiêu / đặc trưng / chỉ dùng chia nhóm), đơn vị, và cách xử lý khi thiếu.
+# Mục tiêu y = log(giá rao, TỶ đồng); mọi ô thiếu của đặc trưng được điền trung vị của TẬP TRAIN (không dùng tập test).
 VAI_TRO = {
     "gia_ty": ("Mục tiêu (y = log giá)", "tỷ đồng", "Không được thiếu (tin thiếu giá đã bỏ ở Bước 2)"),
     "dt_dat": ("Đặc trưng (qua log_dt)", "m²", "Không được thiếu"),
@@ -463,6 +467,7 @@ md(r"""
 """)
 
 code(r"""
+# Thống kê theo phường của Thủ Dầu Một (chỉ phường có >= 8 tin): số tin, giá trung vị (tỷ), đơn giá trung vị (triệu/m²), diện tích trung vị.
 tdm = df[df["tdm"] == 1]
 bang = (tdm.groupby("phuong").agg(so_can=("y", "size"), gia_tv_ty=("gia_ty", "median"), don_gia_tv=("don_gia", "median"),
                                    dt_tv=("dt_dat", "median"))
@@ -517,6 +522,8 @@ Như các bài thực hành TH12–TH15: không dùng nhãn, gom các căn ở T
 """)
 
 code(r"""
+# Phân cụm KMeans (bài giảng học không giám sát) trên tọa độ + log đơn giá đã chuẩn hóa: chọn số cụm k theo hệ số silhouette lớn nhất.
+# Chỉ để KHÁM PHÁ các vùng giá; cụm không được dùng làm đặc trưng của mô hình cuối.
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
@@ -685,6 +692,7 @@ print(export_text(cay_tot.named_steps["decisiontreeregressor"], feature_names=DT
 """)
 
 code(r"""
+# Đọc bảng kiểm định chéo của Phần A (sai số trên phần học vs phần kiểm định) để nhận xét quá khớp / thiếu khớp; số in từ biến, không gõ tay.
 bc = bang_cheo.sort_values("MAE log – kiểm định")
 pct = lambda t: vn(bc.loc[t, "MAE ≈ sai số %"], 0)
 ml = [t for t in bc.index if not t.startswith("Baseline")]
@@ -812,6 +820,7 @@ display(so_sanh.round(2))
 """)
 
 code(r"""
+# So mô hình đối chứng ngoài bài giảng với mô hình cuối: chênh MAPE kèm khoảng tin cậy 95%; chỉ nói "tốt hơn rõ" khi KTC không chứa 0.
 dc = so_sanh.loc[TEN_DOI_CHUNG]
 vung = [("Thủ Dầu Một", dc["Chênh so với mô hình cuối (TDM)"], dc["KTC thấp"], dc["KTC cao"]),
         ("Phú Hòa", dc["Chênh so với mô hình cuối (PH)"], dc["KTC thấp (PH)"], dc["KTC cao (PH)"])]
@@ -863,6 +872,7 @@ for nhan, ape_khac in [("chia ngẫu nhiên", sai_so_tung_can(train, P_thuong)[l
 """)
 
 code(r"""
+# Nhận xét ba phép thử (rò rỉ khi chia ngẫu nhiên, chỉ học Phú Hòa, cách làm phiên bản 1) – kết luận chỉ khi KTC của chênh lệch không chứa 0.
 ktc_ = lambda c: f"{vn(c[1], 2)} … {vn(c[2], 2)}"
 chua_0 = lambda c: c[1] <= 0 <= c[2]
 r_, p_, v_ = CHENH["chia ngẫu nhiên"], CHENH["chỉ học Phú Hòa"], CHENH["phiên bản 1"]
@@ -879,6 +889,8 @@ Tập test được **giữ riêng khỏi bước huấn luyện và chọn mô 
 """)
 
 code(r"""
+# CHẤM TẬP TEST (lần duy nhất): học lại mô hình cuối, đối chứng, baseline, cách làm phiên bản 1 trên toàn tập train rồi dự đoán tập test.
+# Dự đoán là log(giá tỷ); bang_danh_gia đổi về tỷ đồng (exp) trước khi tính MAPE / MAE.
 mo_hinh_tot = MO_HINH[ten_tot_nhat]().fit(train, train["y"])
 doi_chung = MO_HINH[TEN_DOI_CHUNG]().fit(train, train["y"])
 baseline = BaselineDonGiaPhuong().fit(train, train["y"])
@@ -933,6 +945,7 @@ plt.tight_layout(); plt.show()
 """)
 
 code(r"""
+# Nhận xét kết quả test: xét các khoảng tin cậy riêng có chồng nhau không (phép thử thô); kết luận chặt hơn ở ô so sánh cặp ngay sau.
 A_, B0_, V1_ = TEN_DOI_CHUNG, "Baseline (đơn giá phường)", "Cách làm phiên bản 1 (Ridge, chỉ Phú Hòa)"
 mp = lambda b, t: vn(b.loc[t, "MAPE (%)"])
 chong = lambda b, a, c: b.loc[a, "MAPE thấp (95%)"] <= b.loc[c, "MAPE cao (95%)"] and b.loc[c, "MAPE thấp (95%)"] <= b.loc[a, "MAPE cao (95%)"]
@@ -952,6 +965,8 @@ So hai khoảng tin cậy riêng lẻ có chồng nhau hay không là phép th�
 """)
 
 code(r"""
+# So sánh CẶP mô hình cuối với baseline trên CÙNG các căn test: sai số từng căn (mô hình − baseline), KTC 95% bằng bootstrap theo nhóm
+# tin gần trùng. KTC nằm hẳn dưới 0 -> mô hình cuối tốt hơn có ý nghĩa; chứa 0 -> chưa đủ bằng chứng. Tính cho cả MAPE (%) và MAE (tỷ).
 gia_t, nh_t = test["gia_ty"].to_numpy(), test["nhom"].to_numpy()
 cap = []
 for vung, m in (("Phú Hòa", m_ph), ("Thủ Dầu Một", m_tdm)):
@@ -978,6 +993,8 @@ Kiểm tra **sai lệch có dấu** của dự đoán ngoài-fold (dương = mô
 """)
 
 code(r"""
+# Sai lệch CÓ DẤU của dự đoán ngoài-fold (dương = mô hình đoán cao hơn giá rao) theo loại lối vào và theo mức giá:
+# kiểm tra mô hình có định giá lệch có hệ thống cho một loại nhà không (thường: đoán cao nhà rẻ, đoán thấp nhà đắt).
 tr_tdm = train[la_tdm].copy()
 tr_tdm["lech_pt"] = (np.exp(OOF[ten_tot_nhat].mean(0)[la_tdm] - tr_tdm["y"]) - 1) * 100
 tr_tdm["Loại"] = np.where(tr_tdm["mat_tien_duong"] == 1, "Mặt tiền đường", "Trong hẻm")
@@ -1095,6 +1112,7 @@ display(pd.DataFrame({"Số căn test": [int((m_te == k).sum()) for k in NHOM_KH
 """)
 
 code(r"""
+# Nhận xét độ phủ khoảng 80% (biên độ chung vs theo nhóm) trên sai số ngoài-fold và trên tập test; p-value kiểm định nhị thức.
 sk = so_sanh_kh
 c_, t_ = "Độ phủ – biên độ chung (%)", "Độ phủ – biên độ theo nhóm (%)"
 (k1, n1, p1), (k2, n2, p2) = PHU_TEST["test TDM"], PHU_TEST["test Phú Hòa"]
@@ -1130,6 +1148,8 @@ print("5 căn giá rao cao nhất so với thị trường:"); display(ph.sort_v
 """)
 
 code(r"""
+# Xuất kết quả cho các căn Phú Hòa: results/input.csv (thông số đầu vào) và results/output.csv (giá rao, giá ước lượng, khoảng 80%,
+# chênh lệch %, chẩn đoán). Mọi giá tính bằng TỶ đồng; giá ước lượng là dự đoán ngoài-fold (mô hình không học chính căn đó).
 xuat = ph.assign(dien_tich_m2=ph["dt_dat"]).rename(columns={"id": "ma_tin", "url": "link_tin", "gia_ty": "gia_rao_ty"})
 xuat[["ma_tin", "nguon", "link_tin", "tieu_de", "dien_tich_m2", "ngang", "so_tang", "phong_ngu", "so_wc", "cap_loi_vao",
       "hem_rong", "duong", "t_kdc", "t_hem_xe_hoi", "t_so_rieng", "t_ban_gap"]].to_csv(KET_QUA / "input.csv", index=False, encoding="utf-8-sig")
@@ -1155,6 +1175,7 @@ Một con số MAPE chung có thể che giấu chỗ mô hình yếu. Ba phép k
 """)
 
 code(r"""
+# Chất lượng dữ liệu: sai số % (APE) theo nguồn tin, độ đủ thông số, mức tọa độ, mức giá, phường; nhóm < 20 căn ghi "chưa đủ mẫu".
 d_ = df.assign(ape=np.abs(df["gia_uoc_luong_ty"] / df["gia_ty"] - 1) * 100,
                thong_so=np.where(df[["dt_san", "so_tang", "ngang", "cap_loi_vao"]].notna().sum(axis=1) >= 3,
                                  "Đủ thông số (≥ 3 trong 4: sàn, tầng, ngang, lối vào)", "Thiếu thông số (≤ 2 trong 4)"),
@@ -1254,6 +1275,7 @@ else:
 """)
 
 code(r"""
+# Nhận xét bảng chất lượng dữ liệu: chỉ nói hai nhóm khác nhau khi khoảng tin cậy không chồng nhau.
 kt = lambda b, k: tuple(float(x) for x in b.loc[k, "KTC 95%"].split(" – "))
 chong2 = lambda a, b: a[0] <= b[1] and b[0] <= a[1]
 ng, tsx, td, mg, pw = TC["nguon"], TC["thong_so"], TC["muc_toa_do"], TC["muc_gia"], TC["phuong"].dropna(subset=["MAPE (%)"])
@@ -1418,6 +1440,8 @@ Hàm dự đoán cho một căn nhà mới. Thông số nào không biết thì 
 """)
 
 code(r"""
+# Dùng thử mô hình đã lưu: hàm du_doan_gia dựng MỘT hàng đặc trưng giống hệt lúc học (API dùng cùng cách, xem api/dinh_gia.py).
+# Đầu vào: diện tích đất m², kích thước m, hẻm rộng m; thiếu tọa độ thì lấy theo tên đường, rồi theo phường. Kết quả: tỷ đồng.
 goi = joblib.load(MODEL_DIR / "mo_hinh_gia_nha.joblib")
 
 def du_doan_gia(dt_dat, ngang=None, dai=None, so_tang=None, dt_san=None, phong_ngu=None, so_wc=None,

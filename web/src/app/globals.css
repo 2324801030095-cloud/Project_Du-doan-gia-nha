@@ -1,3 +1,6 @@
+/* Giao diện chung: Tailwind CSS 4 + bảng màu riêng (navy / gold) khai báo trong @theme; các lớp tiện ích dùng lại
+   (.the, .nut-vien, .o-nhap, .nhan...) khai báo bằng @utility (Tailwind 4 không cho @apply lớp tự định nghĩa).
+   Hiệu ứng tiền / xu của MinhHoaTien tự tắt khi người dùng bật "giảm chuyển động". */
 @import "tailwindcss";
 
 @theme {
