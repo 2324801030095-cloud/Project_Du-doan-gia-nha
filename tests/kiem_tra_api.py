@@ -1,6 +1,9 @@
 """Kiểm thử dịch vụ mô hình (api/): chạy trong tiến trình bằng TestClient, không cần Docker.
-Chạy từ thư mục gốc đề tài:  python tests/kiem_tra_api.py"""
+Chạy từ thư mục gốc đề tài:  python tests/kiem_tra_api.py
+Chế độ bài chính:  python tests/kiem_tra_api.py --nha-pho  -> chỉ cần dữ liệu/mô hình nhà phố; phép kiểm phần mở rộng
+(căn hộ, trợ lý, dự báo xu hướng) được BỎ QUA có ghi lý do. Kiểm thử công bố bộ tệp: tests/kiem_tra_cong_bo.py"""
 import json
+import os
 import sys
 import warnings
 from pathlib import Path
@@ -9,20 +12,25 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 warnings.filterwarnings("ignore")
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC / "api"))
+os.environ.setdefault("PHH_UNG_VIEN", "1")    # kiểm bộ tệp làm việc (ỨNG VIÊN) trên đĩa, không phải bộ đã công bố
 from fastapi.testclient import TestClient  # noqa: E402
 
 import main  # noqa: E402
 
 c = TestClient(main.app)
-KQ = []
+NHA_PHO = "--nha-pho" in sys.argv
+KQ = []           # (tên, "ĐẠT" | "KHÔNG ĐẠT" | "BỎ QUA", chi tiết)
 
 
-def kiem(ten):
+def kiem(ten, mo_rong=False):
+    """mo_rong=True: phép kiểm của phần mở rộng -> bỏ qua ở chế độ --nha-pho."""
     def boc(f):
+        if mo_rong and NHA_PHO:
+            KQ.append((ten, "BỎ QUA", "phần mở rộng, không thuộc chế độ --nha-pho")); return f
         try:
-            f(); KQ.append((ten, True, ""))
+            f(); KQ.append((ten, "ĐẠT", ""))
         except Exception as e:
-            KQ.append((ten, False, f"{type(e).__name__}: {e}"))
+            KQ.append((ten, "KHÔNG ĐẠT", f"{type(e).__name__}: {e}"))
         return f
     return boc
 
@@ -36,12 +44,14 @@ def _():
     r = c.post("/dinh-gia/nha-pho", json=NHA).json()
     dg = json.loads((GOC / "models" / "danh_gia_mo_hinh.json").read_text(encoding="utf-8"))
     assert r["mo_hinh"] == dg["ten_mo_hinh"], r["mo_hinh"]
+    assert r["phien_ban"] == c.get("/health").json()["phien_ban"]
     lo, hi = r["khoang_80_ty"]
     assert lo < r["gia_ty"] < hi and r["khoang_50_ty"][0] >= lo and r["khoang_50_ty"][1] <= hi
     import math
     tong = math.log(r["giai_thich"]["nen_ty"]) + sum(x["log"] for x in r["giai_thich"]["nhom"])
     assert abs(math.exp(tong) - r["gia_ty"]) / r["gia_ty"] < 0.01, (math.exp(tong), r["gia_ty"])
-    assert r["thue_trieu_thang"] > 0
+    if not NHA_PHO:                      # tiền thuê ước tính cần notebook giá thuê (phần mở rộng)
+        assert r["thue_trieu_thang"] > 0
 
 
 @kiem("Định giá hợp lý theo hướng: diện tích lớn hơn, mặt tiền -> giá cao hơn; thông số thiếu vẫn định giá được")
@@ -58,7 +68,7 @@ def _():
         assert c.post("/dinh-gia/nha-pho", json=sai).status_code == 422, sai
 
 
-@kiem("Căn hộ: nhận ra dự án có trong dữ liệu; nhà ở xã hội rẻ hơn căn thương mại cùng thông số")
+@kiem("Căn hộ (mở rộng): nhận ra dự án có trong dữ liệu; nhà ở xã hội rẻ hơn căn thương mại cùng thông số", mo_rong=True)
 def _():
     r = c.post("/dinh-gia/can-ho", json={"dt_su_dung": 68, "du_an": "Happy One Central", "phong_ngu": 2, "so_wc": 2}).json()
     assert r["du_an_nhan_ra"] and r["khoang_80_ty"][0] < r["gia_ty"] < r["khoang_80_ty"][1]
@@ -87,24 +97,37 @@ def _():
     assert {x["id"] for x in c.get("/nha-pho-theo-ma", params={"ma": ma}).json()} == set(ma)
 
 
-@kiem("Trợ lý: mô hình ý định phân loại đúng câu hỏi định giá và lời chào")
+@kiem("Trợ lý (mở rộng): mô hình ý định phân loại đúng câu hỏi định giá và lời chào", mo_rong=True)
 def _():
     assert c.post("/tro-ly/y-dinh", json={"cau": "nhà 80m2 hẻm xe hơi giá bao nhiêu"}).json()["y_dinh"] == "dinh_gia"
     assert c.post("/tro-ly/y-dinh", json={"cau": "xin chào"}).json()["y_dinh"] == "chao"
 
 
-@kiem("Các endpoint dữ liệu trả đủ phần: tổng quan, đánh giá 3 notebook, bản đồ, xu hướng, danh mục")
+@kiem("Endpoint bài chính trả đủ phần: health (bộ tệp đang phục vụ), tổng quan, đánh giá nhà phố, bản đồ, danh mục")
 def _():
-    assert c.get("/tong-quan").json()["so_lieu"]["BEST"]
-    assert set(c.get("/danh-gia").json()) == {"nha_pho", "can_ho"}
+    h = c.get("/health").json()
+    assert h["ok"] and h["loi_nap_moi_nhat"] is None and "models/mo_hinh_gia_nha.joblib" in h["tep"], h
     tq = c.get("/tong-quan").json()
+    assert tq["so_lieu"]["BEST"]
     phu = tq["do_phu_test_80"]["test Phú Hòa"]
     assert 0 < phu["trong"] <= phu["tong"] and tq["chat_luong_du_lieu"]["so_tin_phu_hoa"] > 0
+    assert "nha_pho" in c.get("/danh-gia").json()
     assert len(c.get("/ban-do").json()["diem"]) > 100
+    assert c.get("/xu-huong").status_code == 200 and c.get("/danh-muc").status_code == 200
+    if NHA_PHO:                          # thiếu phần mở rộng: API báo 503 rõ ràng, không 500
+        for duong, body in (("/dinh-gia/can-ho", {"dt_su_dung": 60}), ("/tro-ly/y-dinh", {"cau": "xin chào"})):
+            r = c.post(duong, json=body)
+            assert r.status_code in (200, 503), (duong, r.status_code)
+
+
+@kiem("Endpoint phần mở rộng: đánh giá căn hộ, dự báo xu hướng, danh mục dự án", mo_rong=True)
+def _():
+    assert set(c.get("/danh-gia").json()) == {"nha_pho", "can_ho"}
     assert c.get("/xu-huong").json()["du_bao"] and c.get("/danh-muc").json()["du_an"]
 
 
-for ten, ok, loi in KQ:
-    print(("ĐẠT       " if ok else "KHÔNG ĐẠT ") + ten + ("" if ok else f"\n           -> {loi}"))
-print(f"\n{sum(ok for _, ok, _ in KQ)}/{len(KQ)} phép kiểm đạt")
-sys.exit(0 if all(ok for _, ok, _ in KQ) else 1)
+for ten, tt, ct in KQ:
+    print(f"{tt:<10}{ten}" + (f"\n           -> {ct}" if ct else ""))
+dat, bo_qua = sum(t == "ĐẠT" for _, t, _ in KQ), sum(t == "BỎ QUA" for _, t, _ in KQ)
+print(f"\n{dat}/{len(KQ) - bo_qua} phép kiểm đạt, {bo_qua} bỏ qua" + (" (chế độ --nha-pho)" if NHA_PHO else ""))
+sys.exit(0 if all(t != "KHÔNG ĐẠT" for _, t, _ in KQ) else 1)

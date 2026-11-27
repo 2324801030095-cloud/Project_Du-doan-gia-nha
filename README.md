@@ -6,9 +6,10 @@ Học máy có giám sát ước lượng **giá rao bán** của **nhà ở (nh
 Phần mở rộng: căn hộ, giá thuê, xu hướng, trợ lý. Kèm khoảng giá 80%, chẩn đoán giá rao rẻ / hợp lý / cao, phân tích xu hướng, và **ứng dụng web đầy đủ** (đăng nhập, định giá bằng mô hình thật trên máy chủ, lưu tin, lịch sử, quản trị, trợ lý AI).
 Dữ liệu là tin rao thật (Chợ Tốt Nhà, alonhadat, guland), đã ẩn danh. **Giá rao không phải giá giao dịch**: giá giao dịch là mức hai bên chốt sau thương lượng, còn tổng chi phí người mua có thể gồm thêm thuế, phí. Mọi con số của đề tài là **giá rao bán ước tính**.
 
-**Phạm vi:** đề tài định giá NHÀ. Tin chủ yếu bán đất ("bán đất tặng nhà", tin "bán đất" không có thông tin căn nhà) bị loại khi làm sạch, có ghi lý do. Định giá lô đất trống đã bỏ khỏi bài chính và web; notebook và kết quả cũ để ở `notebooks/luu_tru/` để truy xuất.
+**Phạm vi:** đề tài định giá NHÀ. Tin có tiêu đề "bán đất" (kể cả "bán đất tặng nhà") được **giữ** nếu có thông tin căn nhà (số tầng, diện tích sàn, số phòng ngủ, hoặc mô tả trệt/lầu/phòng/cấp 4/nhà vườn); bị **loại** (có ghi lý do trong `dataset/processed/tin_bi_loai.csv`) nếu kèm dãy trọ / phòng trọ / ki-ốt / kho, nếu nhà sẽ đập bỏ hoặc xây mới, hoặc nếu không có thông tin căn nhà nào. Định giá lô đất trống đã bỏ khỏi bài chính, API và ứng dụng web Next.js; notebook và kết quả cũ để ở `notebooks/luu_tru/` để truy xuất.
+**Ranh giới web:** ứng dụng web (`web/` Next.js + `api/` FastAPI) là sản phẩm chính và **không** còn định giá đất. Bản tĩnh `demo/index.html` là bản demo cũ chạy offline, **vẫn còn** trang đất nền của phiên bản trước; nó không phải sản phẩm bàn giao chính và không được dùng cho số liệu báo cáo.
 
-**Tài liệu bàn giao (Word, số liệu của lần chạy bàn giao): [docs/Tai_lieu_ban_giao.docx](docs/Tai_lieu_ban_giao.docx)** – dataset, mô hình, kết quả, kiến trúc, kiểm thử, chia việc nhóm, câu hỏi bảo vệ. Tài liệu cũ (chi tiết kỹ thuật, một số số liệu của lần chạy trước): [docs/Tai_lieu_ky_thuat_tong_hop.docx](docs/Tai_lieu_ky_thuat_tong_hop.docx) – cấu trúc, cài đặt, công nghệ, thuật toán, logic dữ liệu, đầu vào/đầu ra, huấn luyện và kết quả, web demo, trợ lý, kiểm thử, hạn chế, checklist, câu hỏi bảo vệ.
+**Tài liệu bàn giao (Word, số liệu đọc tự động từ lần chạy bàn giao): [docs/Tai_lieu_ban_giao_2026-11-28.docx](docs/Tai_lieu_ban_giao_2026-11-28.docx)** – dataset, mô hình, kết quả (kèm so sánh cặp với baseline), kiến trúc, kiểm thử (ĐẠT / KHÔNG ĐẠT / BỎ QUA theo mã thoát thật), chia việc nhóm, câu hỏi bảo vệ. Bản bàn giao trước [docs/Tai_lieu_ban_giao.docx](docs/Tai_lieu_ban_giao.docx) giữ nguyên để đối chiếu. Tài liệu cũ (chi tiết kỹ thuật, một số số liệu của lần chạy trước): [docs/Tai_lieu_ky_thuat_tong_hop.docx](docs/Tai_lieu_ky_thuat_tong_hop.docx) – cấu trúc, cài đặt, công nghệ, thuật toán, logic dữ liệu, đầu vào/đầu ra, huấn luyện và kết quả, web demo, trợ lý, kiểm thử, hạn chế, checklist, câu hỏi bảo vệ.
 
 ## Bắt đầu nhanh
 
@@ -19,15 +20,17 @@ docker compose up -d --build             # db + api + migrate + web
 ```
 Mở http://localhost:3000 · đăng nhập admin bằng ADMIN_EMAIL / ADMIN_PASSWORD trong `.env` · tài liệu API mô hình: http://localhost:8000/docs
 
-**Mô hình và kiểm thử** (Python 3.14, Node.js >= 18):
+**Mô hình và kiểm thử** (Python 3.14, Node.js >= 18). Kiểm thử chạy trên **máy** (không chạy trong container `api`: image đó chỉ cài `api/requirements.txt`, không có thư viện kiểm thử như `httpx2`). Cài `requirements.txt` vào **đúng** trình thông dịch sẽ chạy kiểm thử (ví dụ `.venv`: `.venv\Scripts\python -m pip install -r requirements.txt`; thiếu bước này thì `kiem_tra_api.py` báo thiếu `fastapi`).
 ```
 pip install -r requirements.txt
-python tests/kiem_tra_mo_hinh.py         # 12 phép: mã mô hình, dữ liệu, số liệu notebook/README
-python tests/kiem_tra_api.py             # 8 phép: API mô hình
-node tests/kiem_tra_tro_ly.js            # 46 phép: bản tĩnh + trợ lý
-node tests/kiem_tra_web.mjs              # 10 phép đầu-cuối, cần web đang chạy: đăng ký/đăng nhập thật, phân quyền, lịch sử...
+python tests/kiem_tra_mo_hinh.py         # mã mô hình, dữ liệu, số liệu notebook/README  (--nha-pho: chỉ bài chính)
+python tests/kiem_tra_api.py             # API mô hình chạy trong tiến trình             (--nha-pho: chỉ bài chính)
+python tests/kiem_tra_cong_bo.py         # công bố bộ tệp cho API: nạp A -> công bố B, tệp hỏng/thiếu, API tắt/lỗi (trên bản sao tạm)
+node tests/kiem_tra_tro_ly.js            # bản tĩnh + trợ lý
+node tests/kiem_tra_web.mjs              # đầu-cuối, cần web đang chạy: đăng ký/đăng nhập thật, phân quyền, lịch sử...
 ```
-Bản tĩnh chạy offline (không cần máy chủ): mở `demo/index.html`.
+Mỗi bộ in từng phép ĐẠT / KHÔNG ĐẠT / BỎ QUA (kèm lý do) và trả mã thoát khác 0 nếu có phép không đạt. Ở chế độ `--nha-pho`, phép kiểm phần mở rộng (căn hộ, trợ lý, dự báo xu hướng) được BỎ QUA chứ không tính là đạt.
+Bản tĩnh chạy offline (không cần máy chủ): mở `demo/index.html` (bản demo cũ, xem "Ranh giới web" ở trên).
 
 ## Ứng dụng web
 
@@ -72,8 +75,8 @@ web/                        ỨNG DỤNG WEB Next.js: src/app (trang + route han
 api/                        dịch vụ mô hình FastAPI (main.py, dinh_gia.py)
 demo/                       bản tĩnh chạy offline: index.html, assets/, build/ (build_site.py sinh index.html + models/du_lieu_web.json)
 docker-compose.yml          db + api + migrate + web; bí mật trong .env (mẫu: .env.example)
-tests/                      kiem_tra_mo_hinh.py, kiem_tra_api.py (Python) · kiem_tra_tro_ly.js, nap_trang_demo.js, kiem_tra_web.mjs (Node)
-docs/                       Tai_lieu_ky_thuat_tong_hop.docx
+tests/                      kiem_tra_mo_hinh.py, kiem_tra_api.py, kiem_tra_cong_bo.py (Python) · kiem_tra_tro_ly.js, nap_trang_demo.js, kiem_tra_web.mjs (Node)
+docs/                       Tai_lieu_ban_giao_2026-11-28.docx (bàn giao, sinh bằng scripts/tai_lieu/), Tai_lieu_ban_giao.docx (bản trước), Tai_lieu_ky_thuat_tong_hop.docx
 ```
 
 ## Chạy lại toàn bộ (đúng thứ tự, ~8 phút)
@@ -90,10 +93,18 @@ python demo/build/build_site.py
 jupyter nbconvert --to notebook --execute --inplace notebooks/tro_ly_y_dinh.ipynb        # cần Node.js
 python demo/build/build_site.py
 python scripts/chay_toan_bo.py --readme
-python tests/kiem_tra_mo_hinh.py && node tests/kiem_tra_tro_ly.js
+python tests/kiem_tra_mo_hinh.py && python tests/kiem_tra_api.py && python tests/kiem_tra_cong_bo.py && node tests/kiem_tra_tro_ly.js
+python api/dinh_gia.py --cong-bo                                                          # CUỐI CÙNG, chỉ khi mọi kiểm thử đạt
 ```
+**Công bố là bước cuối.** Kiểm thử chạy trên tệp làm việc vừa sinh (bộ **ứng viên**; `kiem_tra_api.py` đặt `PHH_UNG_VIEN=1` để API trong tiến trình bỏ qua bản kê). Chỉ khi mọi bộ kiểm thử của chế độ đạt, bước `cong_bo` mới chép bộ tệp vào `models/cong_bo/<mã bộ>/`, nạp thử đúng bản chép đó như API (cấu trúc dữ liệu + chạy thử định giá, danh sách tin, tổng quan, bản đồ, danh mục, health), rồi ghi `models/phien_ban.json` trỏ tới nó. Một kiểm thử lỗi -> lệnh dừng trước công bố, bản kê không đổi, API vẫn phục vụ bộ cũ. `--tu <bước>` bỏ qua bước kiểm thử nào thì trước khi công bố pipeline vẫn chạy lại các bước đó. `models/phien_ban.json` và `models/cong_bo/` là trạng thái của từng máy (không lên git, không vào image); chỉ giữ bộ đang phục vụ và bộ trước đó.
+Cuối lệnh, pipeline gọi API đang chạy (`PHH_API_URL`, mặc định http://127.0.0.1:8000) và in một trong ba kết quả: **ĐẠT** (API phục vụ đúng bộ vừa công bố: cùng mã bộ, cùng tập tệp và mã băm, POST /dinh-gia/nha-pho trả đúng mã bộ), **BỎ QUA** (API không chạy) hoặc **LỖI** (HTTP lỗi, /health thiếu trường vì image cũ, lệch bộ, nạp lỗi) – LỖI làm lệnh thoát khác 0. Không cần restart container `api`: nó tự nạp khi bản kê đổi.
+
+**Bài chính tách riêng (`--nha-pho`):** chỉ cần `dataset/raw` + `dataset/history` của nhà ở, `src/`, `scripts/`, `api/`, `demo/build/`, `tests/`; không cần dữ liệu hay mô hình căn hộ, thuê, xu hướng, trợ lý, cũng không cần Node.js. Các bước: notebook `2324801030095` → `xuat_du_lieu_web` (`build_site.py --chi-du-lieu`, chỉ ghi `models/du_lieu_web.json`, không sinh trang tĩnh) → `cap_nhat_readme` → kiểm thử `--nha-pho` + `kiem_tra_cong_bo` → `cong_bo`. `--thu-thap` đi với `--nha-pho` chỉ thu nguồn nhà ở (Chợ Tốt, alonhadat); `--thu-thap` kèm `--tu` một bước sau notebook bị từ chối (dữ liệu mới chỉ vào mô hình ở bước notebook). `--xu-huong` (notebook xu hướng → dựng trang → README → kiểm thử → công bố) không dùng chung với `--nha-pho`, `--tu`, `--thu-thap`; tổ hợp không hỗ trợ và cờ lạ bị từ chối trước khi chạy bất cứ bước nào.
+
+**API chạy với bộ tệp nào:** API không đọc thẳng từng tệp khi chúng đổi; nó chỉ chuyển bộ khi `models/phien_ban.json` đổi: đọc mỗi tệp của bản chép một lần, so mã băm, kiểm cấu trúc và kiểu của mọi phần endpoint dùng (kể cả tệp mở rộng nếu bản kê có), chạy thử các endpoint rồi mới thay bộ cũ. Lỗi (thiếu tệp, tệp hỏng, JSON đúng cú pháp nhưng thiếu khóa, mã băm lệch) thì **giữ bộ đang phục vụ** và báo ở `/health` (`loi_nap_moi_nhat`); chưa có bộ hợp lệ nào thì mọi endpoint dữ liệu và định giá trả **503** (không 500). `/health` và mỗi kết quả định giá có trường `phien_ban` = mã bộ. Chưa công bố lần nào (bản sao mới) thì API tự lập bản kê từ tệp làm việc. Chạy API chỉ với bài chính: `uvicorn main:app --app-dir api` khi chỉ có 4 tệp bắt buộc (mô hình nhà, `du_lieu_web.json`, `danh_gia_mo_hinh.json`, `nha_da_xu_ly.csv`) – endpoint căn hộ / trợ lý trả 503; image Docker cũng build được khi thiếu CSV căn hộ.
+
 Lý do của thứ tự và các bẫy thường gặp: tài liệu kỹ thuật tổng hợp, mục 8.4.
-GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử mỗi lần đẩy code.
+GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy kiểm thử mô hình và API (đủ và `--nha-pho`), kiểm thử công bố, bản tĩnh/trợ lý, rồi typecheck/lint/build web mỗi lần đẩy code.
 
 **Trợ lý của bản tĩnh (demo/) – chế độ AI:** trên trang `#/tro-ly`, bấm **Chế độ AI**, dán khóa **Groq** (gsk_…, **miễn phí**, tạo ở console.groq.com/keys), **Claude** (sk-ant-…, platform.claude.com) hoặc **Gemini** (aistudio.google.com) – trang tự nhận loại khóa. Groq mặc định openai/gpt-oss-120b (gói miễn phí ~8.000 token/phút mỗi mô hình; hết hạn mức thì trang tự chuyển sang gpt-oss-20b hoặc chờ rồi gửi lại); Claude mặc định Opus 5.5; Gemini tự chọn Flash ổn định mới nhất. Mô hình ngôn ngữ hiểu câu hỏi tự nhiên, nhớ hội thoại và gọi các hàm định giá, tìm nhà, giá thuê, xu hướng của trang như công cụ, nên con số vẫn là của mô hình đề tài. Chỉ cần nhập khóa **một lần**: khóa được ghi nhớ trên trình duyệt đó (mặc định), lần sau mở trang chế độ AI tự bật; nút "Tắt và xóa khóa" để gỡ. Khóa không nằm trong file trang; khi bật, câu hỏi được gửi tới nhà cung cấp của khóa (Groq, Anthropic hoặc Google). **Khóa mặc định trên máy riêng:** đặt khóa vào `demo/khoa_ai.local.js` (`window.PHH_KHOA_MAC_DINH = "gsk_...";`) thì trang tự bật chế độ AI, không cần nhập; file này nằm trong `.gitignore` nên không lên GitHub – xóa nó trước khi gửi thư mục cho người khác. Không có khóa, mất mạng hay lỗi API thì trợ lý tự quay về chế độ ngoại tuyến (chạy hoàn toàn trên trình duyệt).
 
@@ -108,6 +119,7 @@ GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy 2 bộ kiểm thử m�
 | MAPE mô hình trên test | 25,1% (KTC 95% 18,8–35,4) | 13,7% |
 | MAE mô hình trên test | 1,75 tỷ đồng | 0,27 tỷ đồng |
 | Mốc so sánh trên cùng tập test | Baseline (đơn giá phường): MAPE 25,9%, MAE 1,69 tỷ | Baseline (đơn giá dự án): MAPE 15,2%, MAE 0,33 tỷ |
+| Chênh mô hình − mốc trên từng căn test (so sánh cặp) | MAPE -0,8 điểm % (KTC -9,9 đến 5,8) – KTC chứa 0: chưa đủ bằng chứng; MAE 0,06 tỷ (KTC -0,49 đến 0,59) – KTC chứa 0: chưa đủ bằng chứng | – |
 | Kiểm định chéo trên tập train (mô hình / mốc) | 24,1% / 31,5% | 12,6% / 16,1% |
 | Khoảng giá 80%: độ phủ đo trên test | 32/43 căn (74%) | – |
 

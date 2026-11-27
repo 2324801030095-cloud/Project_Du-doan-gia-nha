@@ -20,11 +20,13 @@ jobs:
         with:
           node-version: "24"
       - run: pip install -r requirements.txt
-      - name: Kiểm thử mô hình và dữ liệu (12 phép)
-        run: python -X utf8 tests/kiem_tra_mo_hinh.py
-      - name: Kiểm thử API mô hình (8 phép)
-        run: python -X utf8 tests/kiem_tra_api.py
-      - name: Kiểm thử bản tĩnh và trợ lý (46 phép)
+      - name: Kiểm thử mô hình và dữ liệu (đủ phần mở rộng, rồi chế độ bài chính)
+        run: python -X utf8 tests/kiem_tra_mo_hinh.py && python -X utf8 tests/kiem_tra_mo_hinh.py --nha-pho
+      - name: Kiểm thử API mô hình (đủ phần mở rộng, rồi chế độ bài chính)
+        run: python -X utf8 tests/kiem_tra_api.py && python -X utf8 tests/kiem_tra_api.py --nha-pho
+      - name: Kiểm thử công bố bộ tệp của API (trên bản sao tạm)
+        run: python -X utf8 tests/kiem_tra_cong_bo.py
+      - name: Kiểm thử bản tĩnh và trợ lý
         run: node tests/kiem_tra_tro_ly.js
   web:
     runs-on: ubuntu-latest

@@ -30,3 +30,8 @@ web/node_modules/
 
 scripts/tai_lieu/node_modules/
 scripts/tai_lieu/so_lieu_ban_giao.json
+
+# trạng thái công bố của máy này (scripts/chay_toan_bo.py sinh): bản kê + bản chép bộ tệp API đang phục vụ
+models/phien_ban.json
+models/phien_ban.json.tam
+models/cong_bo/

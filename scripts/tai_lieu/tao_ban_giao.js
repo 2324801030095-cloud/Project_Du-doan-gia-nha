@@ -82,14 +82,22 @@ const ngay = SL.NGAY;
 const chinh = (bang) => bang.filter((r) => r["Mô hình"] === ten || r["Mô hình"] === BL);   // phần chính: mô hình + mốc
 const hang = (r) => [r["Mô hình"], s(r["MAPE (%)"]), `${s(r["MAPE thấp (95%)"])}–${s(r["MAPE cao (95%)"])}`, s(r["MdAPE (%)"]), `${s0(r["Trong ±20% (%)"])}%`, s(r["MAE (tỷ)"], 2), s(r["R²"], 2), s0(r["Số căn"])];
 const COT_KQ = ["Mô hình", "MAPE (%)", "KTC 95%", "MdAPE (%)", "Trong ±20%", "MAE (tỷ)", "R²", "Số căn"], TI_KQ = [0.3, 0.09, 0.12, 0.1, 0.1, 0.1, 0.07, 0.12];
-const thangPH = tPH["MAPE (%)"] < bPH["MAPE (%)"], chongPH = tPH["MAPE thấp (95%)"] <= bPH["MAPE cao (95%)"] && bPH["MAPE thấp (95%)"] <= tPH["MAPE cao (95%)"];
-const thangT = tT["MAPE cao (95%)"] < bT["MAPE thấp (95%)"];
+// So sánh CẶP với mốc trên cùng các căn test (notebook, Bước 9): chỉ nói "tốt hơn" khi KTC 95% của chênh lệch không chứa 0
+const CAP = DG.so_sanh_cap_test;
+if (!CAP) throw new Error("models/danh_gia_mo_hinh.json chưa có so_sanh_cap_test: chạy lại notebook 2324801030095");
+const cap = (vung, cs) => CAP.find((r) => r["Vùng"] === vung && r["Chỉ số"] === cs);
+const cPHm = cap("Phú Hòa", "MAPE (%)"), cPHa = cap("Phú Hòa", "MAE (tỷ)"), cTm = cap("Thủ Dầu Một", "MAPE (%)"), cTa = cap("Thủ Dầu Một", "MAE (tỷ)");
+const yNghia = (c) => (c["KTC cao"] < 0 ? "Random Forest tốt hơn, có ý nghĩa" : c["KTC thấp"] > 0 ? "mốc tốt hơn, có ý nghĩa" : "chưa đủ bằng chứng (KTC chứa 0)");
+const ktcCap = (c, d) => `${s(c["Chênh (cuối − baseline)"], d)} (${s(c["KTC thấp"], d)} đến ${s(c["KTC cao"], d)})`;
+const thangT = cTm["KTC cao"] < 0, chongPH = !(cPHm["KTC cao"] < 0 || cPHm["KTC thấp"] > 0);
+// mô tả số quan sát (không kèm kết luận ý nghĩa): thấp hơn / cao hơn
+const soVoi = (a, b, d, dv) => `${s(a, d)}${dv} so với ${s(b, d)}${dv} (${a < b ? "thấp hơn" : a > b ? "cao hơn" : "bằng"})`;
 
 // ================= Bìa =================
 add(new Paragraph({ spacing: { before: 2200, after: 240 }, alignment: AlignmentType.CENTER, children: [new TextRun({ text: "TÀI LIỆU BÀN GIAO", bold: true, size: 44, color: "1F3A5F" })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 240 }, children: [new TextRun({ text: "Mô hình học máy ước tính giá rao bán nhà ở phường Phú Hòa – Thủ Dầu Một", size: 28, color: "1F3A5F" })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 600 }, children: [new TextRun({ text: "Dataset · mô hình · kết quả · cách chạy · kiểm thử · chia việc nhóm", size: 22, italics: true, color: "1F3A5F" })] }),
-  ...[["Môn học", "Học máy"], ["Sinh viên", "Nguyễn Quang Long – MSSV 2324801030095 – Lớp D23KTPM01"], ["Ngày lập", "27/11/2026"],
+  ...[["Môn học", "Học máy"], ["Sinh viên", "Nguyễn Quang Long – MSSV 2324801030095 – Lớp D23KTPM01"], ["Ngày lập", D.moi_truong.ngay_lap],
       ["Lần chạy bàn giao", `dữ liệu đến ${ngay}; mã nguồn commit ${D.moi_truong.commit}; Python ${D.moi_truong.python}, Node ${D.moi_truong.node}`],
       ["Tài liệu cũ", "docs/Tai_lieu_ky_thuat_tong_hop.docx (giữ nguyên để đối chiếu; tài liệu này thay thế khi bàn giao)"]]
     .map(([k, v]) => new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [new TextRun({ text: k + ": ", bold: true }), new TextRun(v)] })),
@@ -112,7 +120,14 @@ add(H1("1. Tóm tắt – bốn câu hỏi của giảng viên"),
     ["Toàn Thủ Dầu Một", s0(tT["Số căn"]), `${s(tT["MAPE (%)"])}% / ${s(tT["MAE (tỷ)"], 2)} tỷ`, `${s(bT["MAPE (%)"])}% / ${s(bT["MAE (tỷ)"], 2)} tỷ`, `${s(tT["MAPE thấp (95%)"])}–${s(tT["MAPE cao (95%)"])}%`],
   ], [0.2, 0.1, 0.25, 0.25, 0.2]),
   P(`Bằng chứng bổ trợ (kiểm định chéo lặp trên tập train, ${s0(cvPH["Số căn"])} căn Phú Hòa): Random Forest ${s(cvPH["MAPE (%)"])}% so với mốc ${s(cvBPH["MAPE (%)"])}%. Con số kiểm định chéo **không** đặt cạnh con số test trong cùng một so sánh, vì hai cách đo dùng tập căn khác nhau.`),
-  LUU_Y(`**Kết luận trung thực:** ${thangT ? "trên toàn Thủ Dầu Một, Random Forest tốt hơn mốc rõ ràng (khoảng tin cậy không chồng nhau)." : "trên toàn Thủ Dầu Một, khoảng tin cậy của Random Forest và mốc còn chồng nhau."} Ở riêng Phú Hòa trên tập test này, Random Forest ${thangPH ? "có MAPE thấp hơn" : "có MAPE cao hơn"} mốc${(tPH["MAE (tỷ)"] < bPH["MAE (tỷ)"]) !== thangPH ? (thangPH ? " nhưng MAE cao hơn" : " nhưng MAE thấp hơn") + ` (MAE ${s(tPH["MAE (tỷ)"], 2)} so với ${s(bPH["MAE (tỷ)"], 2)} tỷ: hai thước đo xếp hạng ngược nhau)` : ""}${chongPH ? `; khoảng tin cậy chồng nhau: ${s0(tPH["Số căn"])} căn test quá ít để khẳng định mô hình hơn mốc ở riêng Phú Hòa` : ""}. Ở lần chạy ngày 26/11/2026 (trước khi rà quy tắc lọc tin đất), cùng phép đo cho Random Forest 26,4% và mốc 26,1%: thứ hạng đổi theo cách chia tập, đúng như khoảng tin cậy rộng cho thấy. Kiểm định chéo (nhiều căn hơn) lần nào cũng xếp Random Forest trên mốc. **Phạm vi kết luận:** tin rao nhà ở **đã qua làm sạch** (mục 3.6).`));
+  P("**So sánh cặp trên cùng các căn test.** Với mỗi căn, lấy sai số của Random Forest trừ sai số của mốc, rồi tính khoảng tin cậy 95% của chênh lệch trung bình (bootstrap theo nhóm tin gần trùng). Chênh âm = Random Forest sai ít hơn. Chỉ khi khoảng tin cậy **không chứa 0** mới nói được mô hình nào tốt hơn; còn lại chỉ mô tả con số quan sát được."),
+  ...TB(["Tập test", "Chỉ số", "Random Forest", "Mốc", "Chênh RF − mốc (KTC 95%)", "Kết luận"], [
+    ["Phú Hòa", "MAPE", `${s(cPHm["Mô hình cuối"])}%`, `${s(cPHm["Baseline"])}%`, ktcCap(cPHm, 1), yNghia(cPHm)],
+    ["Phú Hòa", "MAE", `${s(cPHa["Mô hình cuối"], 2)} tỷ`, `${s(cPHa["Baseline"], 2)} tỷ`, ktcCap(cPHa, 2), yNghia(cPHa)],
+    ["Toàn Thủ Dầu Một", "MAPE", `${s(cTm["Mô hình cuối"])}%`, `${s(cTm["Baseline"])}%`, ktcCap(cTm, 1), yNghia(cTm)],
+    ["Toàn Thủ Dầu Một", "MAE", `${s(cTa["Mô hình cuối"], 2)} tỷ`, `${s(cTa["Baseline"], 2)} tỷ`, ktcCap(cTa, 2), yNghia(cTa)],
+  ], [0.17, 0.08, 0.13, 0.12, 0.25, 0.25]),
+  LUU_Y(`**Kết luận trung thực:** trên toàn Thủ Dầu Một (${s0(cTm["Số căn"])} căn test), MAPE ${soVoi(cTm["Mô hình cuối"], cTm["Baseline"], 1, "%")}: ${yNghia(cTm)}; MAE ${soVoi(cTa["Mô hình cuối"], cTa["Baseline"], 2, " tỷ")}: ${yNghia(cTa)}. Ở riêng Phú Hòa (${s0(cPHm["Số căn"])} căn test), Random Forest có MAPE ${soVoi(cPHm["Mô hình cuối"], cPHm["Baseline"], 1, "%")} và MAE ${soVoi(cPHa["Mô hình cuối"], cPHa["Baseline"], 2, " tỷ")} so với mốc; ${[cPHm, cPHa].every((c) => !(c["KTC cao"] < 0 || c["KTC thấp"] > 0)) ? "cả hai khoảng tin cậy của chênh lệch đều chứa 0, nên với số căn này **không kết luận được** Random Forest hơn hay kém mốc ở riêng Phú Hòa – chỉ mô tả được số quan sát" : `MAPE: ${yNghia(cPHm)}; MAE: ${yNghia(cPHa)}`}. **Phạm vi kết luận:** giá **rao bán** của tin nhà ở **đã qua làm sạch** (mục 3.6), trên một lần chia train/test.`));
 
 // ================= 2. Phạm vi =================
 add(H1("2. Phạm vi và cách hiểu con số"),
@@ -242,22 +257,28 @@ add(H1("6. Kiến trúc, cách chạy và web"),
     ["demo/", "HTML tĩnh", "Bản cũ chạy offline, KHÔNG thuộc bài chính: vẫn có tab đất nền (dữ liệu lưu trữ); tính giá nhập mới bằng Ridge rút gọn, khác web chính"],
   ], [0.3, 0.27, 0.43], 17),
   H2("6.3 Lệnh chạy"),
-  ...CODE(["python scripts/chay_toan_bo.py --nha-pho   # chỉ bài chính (chỉ cần dữ liệu nhà ở): notebook -> dữ liệu cho API -> README -> kiểm thử",
+  ...CODE(["python scripts/chay_toan_bo.py --nha-pho   # chỉ bài chính (chỉ cần dữ liệu nhà ở): notebook -> dữ liệu cho API -> README -> kiểm thử -> công bố",
            "python scripts/chay_toan_bo.py             # toàn bộ (gồm phần mở rộng)",
            "copy .env.example .env                      # điền mật khẩu CSDL, BETTER_AUTH_SECRET, tài khoản admin",
            "docker compose up -d --build                # db + api + migrate + web -> http://localhost:3000"]),
-  P("**API tự nạp bản mới:** dịch vụ mô hình đọc lại mô hình / dữ liệu khi file thay đổi (bộ nhớ đệm theo thời điểm sửa file), và /health trả mã băm của file đang phục vụ. Sau khi chạy, scripts/chay_toan_bo.py so mã băm đó với file trên đĩa và dừng báo lỗi nếu API còn phục vụ bản cũ. Lệnh --nha-pho chỉ cần dữ liệu nhà ở: bước xuất dữ liệu cho API (build_site.py --chi-du-lieu) bỏ qua phần mở rộng còn thiếu; trang HTML tĩnh chỉ dựng khi chạy toàn bộ."),
+  P("**Công bố là bước cuối:** kiểm thử chạy trên tệp vừa sinh (bộ ứng viên). Chỉ khi mọi bộ kiểm thử của chế độ đạt, bước `cong_bo` mới chép bộ tệp (mô hình nhà, du_lieu_web.json, danh_gia_mo_hinh.json, CSV nhà phố, và tệp mở rộng nếu có) vào `models/cong_bo/<mã bộ>/`, nạp thử đúng bản chép đó như API, rồi ghi `models/phien_ban.json` (mã SHA-256 từng tệp). Một kiểm thử lỗi -> dừng trước công bố, bản kê không đổi, API vẫn phục vụ bộ cũ; `--tu` bỏ qua kiểm thử nào thì trước khi công bố vẫn chạy lại. API chỉ chuyển bộ khi bản kê đổi: so mã băm, kiểm cấu trúc và kiểu của mọi phần endpoint dùng, chạy thử định giá, danh sách tin, tổng quan, bản đồ, danh mục rồi mới thay bộ cũ; lỗi (thiếu tệp, tệp hỏng, JSON đúng cú pháp nhưng thiếu khóa, lệch mã băm) thì **giữ bộ đang phục vụ** và báo ở /health; chưa có bộ hợp lệ nào thì các endpoint trả 503. /health và mỗi kết quả định giá có `phien_ban` = mã bộ. Cuối lệnh, scripts/chay_toan_bo.py gọi /health và POST /dinh-gia/nha-pho của API đang chạy: ĐẠT, BỎ QUA (API tắt) hoặc LỖI (lệnh thoát khác 0). Các tình huống được kiểm bằng tests/kiem_tra_cong_bo.py trên bản sao tạm."),
+  P("**Bài chính tách riêng (`--nha-pho`):** chỉ cần dữ liệu nhà ở, không cần dữ liệu / mô hình căn hộ, thuê, xu hướng, trợ lý hay Node.js. Bước xuất dữ liệu cho API (build_site.py --chi-du-lieu) bỏ qua phần mở rộng còn thiếu; trang HTML tĩnh chỉ dựng khi chạy toàn bộ; kiểm thử chạy ở chế độ --nha-pho (phép kiểm phần mở rộng ghi BỎ QUA). API vẫn chạy khi chỉ có 4 tệp bắt buộc; endpoint căn hộ / trợ lý trả 503."),
   P("Web: đăng ký / đăng nhập bằng email + mật khẩu (Better Auth, phiên trong CSDL, cookie httpOnly); tài khoản admin tạo tự động từ ADMIN_EMAIL / ADMIN_PASSWORD trong .env. Trợ lý dùng Groq phía máy chủ nếu có GROQ_API_KEY, không có thì dùng mô hình ý định của đề tài; giới hạn 20 câu hỏi / phút mỗi IP."));
 
 // ================= 7. Kiểm thử =================
 add(H1("7. Kiểm thử của lần chạy bàn giao"),
-  ...TB(["Bộ kiểm thử", "Lệnh", "Kết quả thực tế"], [
-    ["Mô hình, dữ liệu, số liệu notebook/README", "python tests/kiem_tra_mo_hinh.py", D.kiem_thu["kiem_tra_mo_hinh.py"]],
-    ["API mô hình (trong tiến trình)", "python tests/kiem_tra_api.py", D.kiem_thu["kiem_tra_api.py"]],
-    ["Bản tĩnh + trợ lý (luật)", "node tests/kiem_tra_tro_ly.js", D.kiem_thu["kiem_tra_tro_ly.js"]],
-    ["Web đầu-cuối (cần docker compose up)", "node tests/kiem_tra_web.mjs", D.kiem_thu["kiem_tra_web.mjs"]],
-  ], [0.34, 0.36, 0.3]),
-  P(`Môi trường: Python ${D.moi_truong.python}, Node ${D.moi_truong.node}, Windows 11 + Docker Desktop; commit ${D.moi_truong.commit}. Phụ thuộc kiểm thử khai báo trong requirements.txt (gồm starlette và httpx2 cho TestClient của FastAPI). Kiểm thử web gồm: mọi trang trả 200, trang đất nền trả 404, đăng ký / đăng nhập thật, sai mật khẩu bị từ chối, phân quyền user / admin, lịch sử định giá, lưu tin, đăng xuất hủy phiên, trợ lý.`));
+  P("Mỗi bộ được chạy lại ngay khi sinh tài liệu (không dùng kết quả cũ). Trạng thái lấy theo **mã thoát** của lệnh: PASS (mã 0), FAIL (mã khác 0, kèm phép không đạt), SKIPPED (không chạy được vì thiếu điều kiện, kèm lý do – không tính là đạt)."),
+  ...TB(["Bộ kiểm thử", "Lệnh", "Trạng thái", "Chi tiết"], [
+    ["Mô hình, dữ liệu, số liệu notebook/README", "python tests/kiem_tra_mo_hinh.py", "kiem_tra_mo_hinh.py"],
+    ["Như trên, chế độ bài chính", "python tests/kiem_tra_mo_hinh.py --nha-pho", "kiem_tra_mo_hinh.py --nha-pho"],
+    ["API mô hình (trong tiến trình)", "python tests/kiem_tra_api.py", "kiem_tra_api.py"],
+    ["Như trên, chế độ bài chính", "python tests/kiem_tra_api.py --nha-pho", "kiem_tra_api.py --nha-pho"],
+    ["Công bố bộ tệp cho API (bản sao tạm)", "python tests/kiem_tra_cong_bo.py", "kiem_tra_cong_bo.py"],
+    ["Bản tĩnh + trợ lý (luật)", "node tests/kiem_tra_tro_ly.js", "kiem_tra_tro_ly.js"],
+    ["Web đầu-cuối (cần docker compose up)", "node tests/kiem_tra_web.mjs", "kiem_tra_web.mjs"],
+    ["API đang chạy phục vụ đúng bộ đã công bố", "(hàm kiem_api_dang_chay của pipeline)", "API đang chạy = bộ đã công bố"],
+  ].map(([a, b, k]) => { const r = D.kiem_thu[k]; if (!r) throw new Error("thiếu kết quả kiểm thử " + k); return [a, b, r.trang_thai, r.chi_tiet || ""]; }), [0.27, 0.28, 0.1, 0.35], 17),
+  P(`Môi trường: Python ${D.moi_truong.python}, Node ${D.moi_truong.node}, Windows 11 + Docker Desktop; commit ${D.moi_truong.commit}${D.moi_truong.thay_doi_chua_commit ? ` (cộng ${D.moi_truong.thay_doi_chua_commit} tệp thay đổi chưa commit lúc chạy)` : ""}. Kiểm thử chạy trên máy, không trong container api (image đó chỉ cài api/requirements.txt). Phụ thuộc kiểm thử khai báo trong requirements.txt (gồm starlette và httpx2 cho TestClient của FastAPI). Kiểm thử web gồm: mọi trang trả 200, trang đất nền trả 404, đăng ký / đăng nhập thật, sai mật khẩu bị từ chối, phân quyền user / admin, lịch sử định giá, lưu tin, đăng xuất hủy phiên, trợ lý.`));
 
 // ================= 8. Hạn chế =================
 add(H1("8. Hạn chế cần nêu khi trình bày"),
@@ -296,7 +317,7 @@ add(H1("10. Chia việc để cả nhóm nắm dự án"),
 add(H1("11. Câu hỏi bảo vệ thường gặp"),
   HOI("Vì sao huấn luyện trên log(giá)?", "Giá lệch phải; trên thang log, chênh lệch giữa căn rẻ và căn đắt được đối xử theo tỷ lệ, nên vài căn rất đắt không chi phối mô hình. Khi đánh giá, dự đoán được đổi về tỷ đồng rồi mới tính MAPE, MAE."),
   HOI("Vì sao chọn Random Forest?", `Tốt nhất trong 6 mô hình của môn học theo kiểm định chéo trên tập train (mục 4.3). Đối chứng ngoài bài giảng (${DC}) không tốt hơn rõ, nên giữ mô hình của môn học: dễ giải thích, không cần đặc trưng giá khu vực.`),
-  HOI("Mô hình có thắng mốc đơn giản không?", `Trên toàn Thủ Dầu Một: ${s(tT["MAPE (%)"])}% so với ${s(bT["MAPE (%)"])}%${thangT ? ", khác biệt rõ" : ""}. Riêng ${s0(tPH["Số căn"])} căn Phú Hòa: MAPE ${s(tPH["MAPE (%)"])}% so với ${s(bPH["MAPE (%)"])}%, MAE ${s(tPH["MAE (tỷ)"], 2)} so với ${s(bPH["MAE (tỷ)"], 2)} tỷ${chongPH ? ", khoảng tin cậy chồng nhau nên chưa khẳng định được" : ""}. Phú Hòa khá đồng đều nên đơn giá phường đã là ước lượng tốt.`),
+  HOI("Mô hình có thắng mốc đơn giản không?", `So sánh cặp trên cùng các căn test (mục 1.1). Toàn Thủ Dầu Một: MAPE ${soVoi(cTm["Mô hình cuối"], cTm["Baseline"], 1, "%")}, chênh ${ktcCap(cTm, 1)} – ${yNghia(cTm)}. Riêng ${s0(cPHm["Số căn"])} căn Phú Hòa: MAPE ${soVoi(cPHm["Mô hình cuối"], cPHm["Baseline"], 1, "%")}, MAE ${soVoi(cPHa["Mô hình cuối"], cPHa["Baseline"], 2, " tỷ")}${chongPH ? "; khoảng tin cậy của chênh lệch chứa 0 nên chưa khẳng định được" : ""}. Phú Hòa khá đồng đều nên đơn giá phường đã là ước lượng khá tốt.`),
   HOI("Vì sao chia train/test theo nhóm?", `Cùng một căn thường đăng nhiều lần; nếu một tin ở train và tin kia ở test, mô hình \"thấy đáp án\". ${NB.ro_ri}`),
   HOI("Khoảng 80% có bảo đảm không?", `Không. Đó là mục tiêu dựng từ sai số ngoài-fold; đo trên test Phú Hòa: ${pPH ? `${pPH.trong}/${pPH.tong} căn` : "–"} (mục 5.4).`),
   HOI("Vì sao bỏ định giá đất nền?", "Đề tài định giá nhà ở. Lô đất trống là đối tượng khác. Tin \"bán đất tặng nhà\" vẫn giữ nếu mô tả căn nhà ở được; chỉ loại khi công trình không phải nhà để ở, khi tin để xây mới, hoặc không có thông tin nhà. Notebook đất cũ vẫn lưu để truy xuất."),
@@ -321,7 +342,10 @@ add(H1("Phụ lục A. Danh sách file dữ liệu và kết quả"),
     "Thêm từ điển cột, bảng chất lượng dữ liệu Phú Hòa, kiểm tra rò rỉ train/test in ra trong notebook.",
     "Bảng kết quả chính đặt mô hình và mốc trên cùng tập test (MAE, MAPE, số căn); kiểm định chéo để riêng.",
     "Ghi rõ khoảng 80% là mục tiêu, kèm độ phủ đo được; phân biệt mô hình chấm test với file triển khai.",
-    "Kiến trúc mới: web Next.js + API FastAPI + PostgreSQL là bản minh họa chính; bản tĩnh ở demo/.",
+    "Kiến trúc mới: web Next.js + API FastAPI + PostgreSQL là bản minh họa chính; bản tĩnh ở demo/ là bản cũ, vẫn còn trang đất nền, không dùng cho số liệu.",
+    "Kết luận mô hình so với mốc dựa trên **so sánh cặp** trên cùng các căn test (KTC của chênh lệch), thay cho việc xem hai khoảng tin cậy riêng có chồng nhau không; bỏ câu so sánh với số của một lần chạy trước (không cùng tập test).",
+    "API phục vụ theo bản kê đã công bố (models/phien_ban.json) và pipeline kiểm chứng API đang chạy (ĐẠT / BỎ QUA / LỖI); bài chính chạy và kiểm thử được riêng (--nha-pho).",
+    "Bảng kiểm thử ghi PASS / FAIL / SKIPPED theo mã thoát của lần chạy khi sinh tài liệu.",
     "Mọi số liệu đọc tự động từ cùng một lần chạy.",
   ]));
 

@@ -7,7 +7,8 @@ COPY api/requirements.txt api/requirements.txt
 RUN pip install --no-cache-dir -r api/requirements.txt
 COPY src ./src
 COPY models ./models
-COPY dataset/processed/nha_da_xu_ly.csv dataset/processed/can_ho_da_xu_ly.csv ./dataset/processed/
+# CSV căn hộ là phần mở rộng: .dockerignore chỉ cho 2 tệp đã xử lý vào ngữ cảnh, tệp nào không có thì bỏ qua
+COPY dataset/processed ./dataset/processed/
 COPY api ./api
 RUN useradd -r api && chown -R api /app
 USER api

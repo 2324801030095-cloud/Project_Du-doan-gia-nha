@@ -12,6 +12,7 @@ cho biết người bán đã tăng hay giảm giá). Càng nhiều ảnh chụp
 Cách dùng (từ thư mục đề tài):  python scripts/cap_nhat_dinh_ky.py
 Chỉ lưu ảnh chụp, không thu thập lại:  python scripts/cap_nhat_dinh_ky.py --chi-luu
 Thu thập nhưng không chạy lại notebook:  python scripts/cap_nhat_dinh_ky.py --khong-chay-lai
+Chỉ nguồn nhà ở (bài chính):            thêm --chi-nha
 """
 import datetime as dt
 import sys as _sys
@@ -29,6 +30,8 @@ NGUON = {"chotot": ("chotot", "chotot_binh_duong_raw.csv"),              # tham 
          "alonhadat": ("alonhadat", "alonhadat_tdm_raw.csv"),
          "chotot_can_ho": ("chotot --can-ho", "chotot_can_ho_raw.csv"),
          "alonhadat_can_ho": ("alonhadat --can-ho", "alonhadat_can_ho_tdm_raw.csv")}
+if "--chi-nha" in sys.argv:          # scripts/chay_toan_bo.py --nha-pho --thu-thap: chỉ nguồn nhà ở của bài chính
+    NGUON = {k: v for k, v in NGUON.items() if k in ("chotot", "alonhadat")}
 # Đất nền đã bỏ khỏi đề tài (chỉ định giá nhà ở): không thu thập đất định kỳ nữa. Dữ liệu đất cũ giữ ở dataset/raw, dataset/history
 # để truy xuất; muốn thu lại thì chạy tay: python src/thu_thap.py chotot --dat / alonhadat --dat
 

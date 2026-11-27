@@ -1,10 +1,10 @@
 """Dịch vụ mô hình (FastAPI): đọc dữ liệu và mô hình do notebook sinh ra, trả JSON cho ứng dụng web.
 Chạy:  uvicorn main:app --app-dir api --port 8000      (tài liệu API tự sinh: http://localhost:8000/docs)
 Không có đăng nhập ở đây: dịch vụ chỉ mở trong mạng nội bộ của Docker; web (Next.js) kiểm tra phiên người dùng."""
-import json
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 import dinh_gia as DG
@@ -14,20 +14,45 @@ app = FastAPI(title="API định giá nhà Phú Hòa", version="1.0",
 
 
 def _web():
-    return DG.du_lieu_web()
+    return DG.bo()["web"]
+
+
+def _kiem_endpoint(B):
+    """Chạy thử đường xử lý của các endpoint dữ liệu trên bộ ỨNG VIÊN trước khi API chuyển sang bộ đó (dinh_gia.KIEM_BO)."""
+    _health(B); _tong_quan(B); _ban_do(B["web"]); _danh_muc(B["web"]); _can_ho_ds(B["web"])
+    ds = _nha_ds(B["web"])
+    _loc(ds, "g", "dt", None, None, None, None, None, "chan_doan", "a", ("t", "duong"), "re_nhat", 1, 12)
+
+
+@app.exception_handler(DG.LoiNapBo)
+def _loi_nap(_: Request, e: DG.LoiNapBo):
+    return JSONResponse(status_code=503, content={"detail": str(e)})
 
 
 @app.get("/health")
 def health():
-    """ngay_du_lieu + phien_ban (mã băm mô hình / dữ liệu ĐANG phục vụ) để kiểm chứng API đã nạp bản mới nhất."""
-    return {"ok": True, "ngay_du_lieu": _web()["SO_LIEU"]["NGAY"], "phien_ban": DG.phien_ban()}
+    """Bộ tệp ĐANG phục vụ (đã nạp xong, kể cả Random Forest): mã bộ = id của models/phien_ban.json đã công bố,
+    mã băm từng tệp, thời điểm nạp; loi_nap_moi_nhat khác null nghĩa là bản kê mới nhất KHÔNG nạp được (đang giữ bộ cũ)."""
+    try:
+        B = DG.bo()
+    except DG.LoiNapBo as e:                     # chưa có bộ hợp lệ nào
+        return JSONResponse(status_code=503, content={"ok": False, "loi_nap_moi_nhat": str(e)})
+    return {**_health(B), "loi_nap_moi_nhat": DG.trang_thai()["loi_nap"]}
+
+
+def _health(B):
+    return {"ok": True, "phien_ban": B["id"], "tep": B["tep"], "cong_bo_luc": B["cong_bo_luc"], "nap_luc": B["nap_luc"] if "nap_luc" in B else None,
+            "mo_hinh": B["nha"][0]["ten"], "ngay_du_lieu": B["web"]["SO_LIEU"]["NGAY"]}
 
 
 @app.get("/tong-quan")
 def tong_quan():
     """Các con số tóm tắt cho trang chủ và trang mô hình."""
-    w = _web()
-    dg = json.loads((DG.MODELS / "danh_gia_mo_hinh.json").read_text(encoding="utf-8"))
+    return _tong_quan(DG.bo())
+
+
+def _tong_quan(B):
+    w, dg = B["web"], B["danh_gia"]
     return {"so_lieu": w["SO_LIEU"], "do_phu_test_80": dg.get("do_phu_test_80"), "chat_luong_du_lieu": dg.get("chat_luong_du_lieu"), "bang_mo_hinh": [dict(zip(["mo_hinh", "mae_ty", "mape", "r2"], r)) for r in w["MODEL_TABLE"]],
             "giai_thich": w["GT_META"], "web_model": {k: w["MODEL"][k] for k in ("model", "cv_mape", "mo_hinh_day_du", "mo_hinh_day_du_mape_cv_phu_hoa")},
             "can_ho": {k: w["CH_MODEL"].get(k) for k in ("mo_hinh_day_du", "mo_hinh_day_du_mape", "cv_mape", "so_can")},
@@ -38,8 +63,8 @@ def tong_quan():
 def danh_gia():
     """Bảng đánh giá của notebook nhà phố (bài chính) và căn hộ (mở rộng): kiểm định chéo, tập test, chọn mô hình."""
     # căn hộ là phần mở rộng: chỉ trả nếu notebook căn hộ đã chạy
-    return {k: json.loads((DG.MODELS / f"danh_gia_mo_hinh{s}.json").read_text(encoding="utf-8"))
-            for k, s in (("nha_pho", ""), ("can_ho", "_can_ho")) if (DG.MODELS / f"danh_gia_mo_hinh{s}.json").exists()}
+    B = DG.bo()
+    return {"nha_pho": B["danh_gia"], **({"can_ho": B["danh_gia_can_ho"]} if B["danh_gia_can_ho"] else {})}
 
 
 # ---------------- danh sách tin ----------------
@@ -61,8 +86,8 @@ def _loc(ds, khoa_gia, khoa_dt, gia_min, gia_max, dt_min, dt_max, chan_doan, kho
     return {"tong": len(ra), "trang": trang, "so_dong": so_dong, "ket_qua": ra[(trang - 1) * so_dong: trang * so_dong]}
 
 
-def _nha_ds():
-    return [{**x, "id": str(x["id"]), "_lech": x["g"] / x["ai_full"] - 1} for x in _web()["LISTINGS"]]
+def _nha_ds(w=None):
+    return [{**x, "id": str(x["id"]), "_lech": x["g"] / x["ai_full"] - 1} for x in (w or _web())["LISTINGS"]]
 
 
 SAP_XEP = Literal["gia_tang", "gia_giam", "dt_giam", "re_nhat"]
@@ -91,18 +116,24 @@ def nha_pho_theo_ma(ma: list[str] = Query(default=[])):
     return [x for x in _nha_ds() if x["id"] in tap]
 
 
+def _can_ho_ds(w):
+    return [{**x, "_lech": x["diff"]} for x in w["CH_LIST"]]
+
+
 @app.get("/can-ho")
 def can_ho(gia_min: float | None = None, gia_max: float | None = None, dt_min: float | None = None, dt_max: float | None = None,
            chan_doan: CHAN_DOAN | None = None, q: str | None = None, sap_xep: SAP_XEP = "re_nhat",
            trang: int = Query(1, ge=1), so_dong: int = Query(12, ge=1, le=200)):
-    ds = [{**x, "_lech": x["diff"]} for x in _web()["CH_LIST"]]
-    return _loc(ds, "g", "dt", gia_min, gia_max, dt_min, dt_max, chan_doan, "cd", q, ("da", "ph"), sap_xep, trang, so_dong)
+    return _loc(_can_ho_ds(_web()), "g", "dt", gia_min, gia_max, dt_min, dt_max, chan_doan, "cd", q, ("da", "ph"), sap_xep, trang, so_dong)
 
 
 @app.get("/ban-do")
 def ban_do():
     """Điểm trên bản đồ: [lat, lon, đơn giá triệu/m², loại, giá, tiêu đề, link] (nhà phố, cho thuê) + tòa căn hộ."""
-    w = _web()
+    return _ban_do(_web())
+
+
+def _ban_do(w):
     return {"diem": [d for d in w["MAP_PTS"] if d[3] != "dat"], "toa_can_ho": [{k: v for k, v in t.items() if k != "can"} for t in w["CH_TOA"]]}
 
 
@@ -114,7 +145,10 @@ def xu_huong():
 @app.get("/danh-muc")
 def danh_muc():
     """Danh mục cho các ô chọn của form: dự án và phường (căn hộ), tuyến đường Phú Hòa."""
-    w = _web()
+    return _danh_muc(_web())
+
+
+def _danh_muc(w):
     return {"du_an": [{k: d[k] for k in ("ma", "ten", "so_tin", "quan", "phuong")} for d in w["CH_MODEL"].get("du_an", [])],
             "phuong_can_ho": w["CH_PHUONG"],
             "duong_phu_hoa": ["Nguyễn Thị Minh Khai", "Lê Hồng Phong", "Phú Lợi", "Nguyễn Thái Bình", "30/4", "Đại lộ Bình Dương", "Trần Văn Ơn", "Huỳnh Thị Hiếu"]}
@@ -158,8 +192,6 @@ def dinh_gia_nha_pho(x: NhaPho):
 
 @app.post("/dinh-gia/can-ho")
 def dinh_gia_can_ho(x: CanHo):
-    if not (DG.MODELS / "mo_hinh_gia_can_ho.joblib").exists():
-        raise HTTPException(503, "Chưa có mô hình căn hộ (phần mở rộng): chạy notebook du_doan_gia_can_ho")
     return DG.dinh_gia_can_ho(**x.model_dump())
 
 
@@ -171,3 +203,6 @@ class Cau(BaseModel):
 def tro_ly_y_dinh(x: Cau):
     """Ý định của câu hỏi theo mô hình TF-IDF + Logistic Regression (notebook trợ lý)."""
     return DG.y_dinh(x.cau)
+
+
+DG.KIEM_BO.append(_kiem_endpoint)

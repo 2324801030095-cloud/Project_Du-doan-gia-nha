@@ -947,6 +947,31 @@ nx(f'''**Con số nên trình bày:** MAPE trên tập test kèm khoảng tin c�
 """)
 
 md(r"""
+### So sánh cặp với baseline trên **cùng các căn** của tập test
+So hai khoảng tin cậy riêng lẻ có chồng nhau hay không là phép thử **yếu** (hai mô hình chấm trên cùng căn nên sai số của chúng đi cùng nhau). Cách đúng là lấy **chênh lệch trên từng căn** (sai số mô hình cuối − sai số baseline) rồi tính khoảng tin cậy 95% của chênh lệch trung bình (bootstrap theo nhóm tin gần trùng). Khoảng tin cậy nằm hẳn dưới 0 thì mô hình cuối tốt hơn có ý nghĩa; chứa 0 thì **chưa đủ bằng chứng** để nói mô hình nào tốt hơn, chỉ mô tả được số quan sát. Làm cho cả hai chỉ số: MAPE (sai số theo %) và MAE (sai số theo tỷ đồng), vì hai chỉ số có thể cho kết luận khác nhau.
+""")
+
+code(r"""
+gia_t, nh_t = test["gia_ty"].to_numpy(), test["nhom"].to_numpy()
+cap = []
+for vung, m in (("Phú Hòa", m_ph), ("Thủ Dầu Một", m_tdm)):
+    g_cuoi, g_bl = np.exp(p_test[ten_tot_nhat][m]), np.exp(p_test[B0_][m])
+    for chi_so, a, b in (("MAPE (%)", np.abs(g_cuoi / gia_t[m] - 1) * 100, np.abs(g_bl / gia_t[m] - 1) * 100),
+                         ("MAE (tỷ)", np.abs(g_cuoi - gia_t[m]), np.abs(g_bl - gia_t[m]))):
+        lo, hi = ktc_bootstrap(a - b, nh_t[m])
+        cap.append({"Vùng": vung, "Chỉ số": chi_so, "Số căn": int(m.sum()), "Mô hình cuối": a.mean(), "Baseline": b.mean(),
+                    "Chênh (cuối − baseline)": (a - b).mean(), "KTC thấp": lo, "KTC cao": hi,
+                    "Kết luận": ("mô hình cuối tốt hơn có ý nghĩa" if hi < 0 else "baseline tốt hơn có ý nghĩa" if lo > 0
+                                 else "chưa đủ bằng chứng (KTC chứa 0)")})
+so_sanh_cap = pd.DataFrame(cap)
+display(so_sanh_cap.round(3))
+c_ = lambda v, cs: so_sanh_cap.set_index(["Vùng", "Chỉ số"]).loc[(v, cs)]
+dong = lambda v, cs, dv: (f'{cs.split()[0]} {vn(c_(v, cs)["Mô hình cuối"], 2 if dv else 1)}{dv or "%"} so với {vn(c_(v, cs)["Baseline"], 2 if dv else 1)}{dv or "%"}, '
+                          f'chênh {vn(c_(v, cs)["Chênh (cuối − baseline)"], 2 if dv else 1)} (KTC {vn(c_(v, cs)["KTC thấp"], 2 if dv else 1)} đến {vn(c_(v, cs)["KTC cao"], 2 if dv else 1)}): {c_(v, cs)["Kết luận"]}')
+nx(f'''**Kết quả so sánh cặp.** Phú Hòa ({c_("Phú Hòa", "MAPE (%)")["Số căn"]} căn): {dong("Phú Hòa", "MAPE (%)", "")}; {dong("Phú Hòa", "MAE (tỷ)", " tỷ")}. Thủ Dầu Một ({c_("Thủ Dầu Một", "MAPE (%)")["Số căn"]} căn): {dong("Thủ Dầu Một", "MAPE (%)", "")}; {dong("Thủ Dầu Một", "MAE (tỷ)", " tỷ")}. Câu "mô hình cuối tốt hơn baseline" chỉ được dùng cho dòng có kết luận "có ý nghĩa"; các dòng còn lại chỉ mô tả con số quan sát được.''')
+""")
+
+md(r"""
 
 ### Mô hình có định giá lệch theo loại nhà không?
 Kiểm tra **sai lệch có dấu** của dự đoán ngoài-fold (dương = mô hình đoán cao hơn giá rao) theo loại lối vào và theo mức giá. Nếu mô hình lệch có hệ thống với một loại nhà, trung vị sai lệch của loại đó sẽ xa 0.
@@ -1295,6 +1320,7 @@ json.dump({"ten_mo_hinh": ten_tot_nhat, "mo_hinh_mape_thap_nhat": tot_nhat, "so_
            "kiem_dinh_cheo_phu_hoa": ghi(bang_cv_ph), "kiem_dinh_cheo_tdm": ghi(bang_cv_tdm),
            "kiem_chung_phu_hoa": ghi(kiem_chung), "chon_mo_hinh": ghi(so_sanh.astype(float)),
            "test_phu_hoa": ghi(bang_test_ph), "test_tdm": ghi(bang_test_tdm),
+           "so_sanh_cap_test": so_sanh_cap.round(4).to_dict("records"),
            "phan_vi_sai_so_log": Q, "khoang_theo_muc": KHOANG, "do_phu_test_80": {ten: {"trong": k, "tong": n} for ten, (k, n, _) in PHU_TEST.items()}, "chat_luong_du_lieu": CHAT_LUONG, "do_phu_theo_muc": so_sanh_kh.round(2).reset_index(names="Mức giá").to_dict("records"), "mo_hinh_web": {"MAPE (%)": round(cv_demo["MAPE (%)"], 2), "Số căn": len(Xd)},
            "so_can": {"tat_ca": len(df), "tdm": int(df["tdm"].sum()), "phu_hoa": int(df["phu_hoa"].sum()), "so_nhom": int(df["nhom"].nunique())}},
           open(MODEL_DIR / "danh_gia_mo_hinh.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)

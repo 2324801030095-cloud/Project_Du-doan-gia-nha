@@ -104,18 +104,45 @@ idx = [0, len(t_) // 2, len(t_) - 1]
 S["tin_that"] = [{"tieu_de": str(t_.loc[i, "tieu_de"])[:70], "dt": float(t_.loc[i, "dt_dat"]), "gia_rao": float(t_.loc[i, "gia_ty"]),
                   "gia_mh": round(float(t_.loc[i, "gia_uoc_luong_ty"]), 2), "lech": round(float(t_.loc[i, "lech"]), 1)} for i in idx]
 
-# ---- kiểm thử: chạy thật, lấy dòng tổng kết ----
+# ---- kiểm thử: chạy thật NGAY LÚC NÀY (không dùng kết quả cũ); trạng thái theo MÃ THOÁT, không theo chữ in ra ----
 def chay(lenh):
     r = subprocess.run(lenh, cwd=GOC, capture_output=True, text=True, encoding="utf-8", errors="replace")
-    return (re.findall(r"(\d+/\d+ phép kiểm đạt)", r.stdout) or ["LỖI: " + (r.stdout + r.stderr)[-200:]])[-1]
+    tom_tat = (re.findall(r"(\d+/\d+ phép kiểm đạt(?:, \d+ bỏ qua)?)", r.stdout) or [None])[-1]
+    if r.returncode == 0 and tom_tat:
+        return {"trang_thai": "PASS", "ma_thoat": 0, "chi_tiet": tom_tat}
+    loi = [d.strip() for d in r.stdout.splitlines() if d.startswith("KHÔNG ĐẠT")]
+    return {"trang_thai": "FAIL", "ma_thoat": r.returncode,
+            "chi_tiet": (tom_tat or "không in dòng tổng kết") + (": " + "; ".join(loi)[:300] if loi else f" – {(r.stderr or r.stdout)[-200:].strip()}")}
+
+
+def web_dang_chay(url="http://localhost:3000"):
+    import urllib.request
+    try:
+        urllib.request.urlopen(url, timeout=10); return None
+    except Exception as e:
+        return f"web không chạy ở {url} ({type(e).__name__}); cần docker compose up -d"
+
+
 PY = sys.executable
 S["kiem_thu"] = {
     "kiem_tra_mo_hinh.py": chay([PY, "-X", "utf8", "tests/kiem_tra_mo_hinh.py"]),
+    "kiem_tra_mo_hinh.py --nha-pho": chay([PY, "-X", "utf8", "tests/kiem_tra_mo_hinh.py", "--nha-pho"]),
     "kiem_tra_api.py": chay([PY, "-X", "utf8", "tests/kiem_tra_api.py"]),
+    "kiem_tra_api.py --nha-pho": chay([PY, "-X", "utf8", "tests/kiem_tra_api.py", "--nha-pho"]),
+    "kiem_tra_cong_bo.py": chay([PY, "-X", "utf8", "tests/kiem_tra_cong_bo.py"]),
     "kiem_tra_tro_ly.js": chay(["node", "tests/kiem_tra_tro_ly.js"]),
-    "kiem_tra_web.mjs": chay(["node", "tests/kiem_tra_web.mjs"]),
 }
+ly_do = web_dang_chay()
+S["kiem_thu"]["kiem_tra_web.mjs"] = {"trang_thai": "SKIPPED", "ma_thoat": None, "chi_tiet": ly_do} if ly_do else chay(["node", "tests/kiem_tra_web.mjs"])
+# API đang chạy có phục vụ đúng bộ tệp đã công bố không (cùng hàm pipeline dùng): ĐẠT / BỎ QUA (API tắt) / LỖI
+sys.path.insert(0, str(GOC / "scripts"))
+from chay_toan_bo import kiem_api_dang_chay  # noqa: E402
+tt, ct = kiem_api_dang_chay(goc=GOC)
+S["kiem_thu"]["API đang chạy = bộ đã công bố"] = {"trang_thai": {"ĐẠT": "PASS", "BỎ QUA": "SKIPPED"}.get(tt, "FAIL"), "ma_thoat": None, "chi_tiet": ct}
+git = lambda *a: subprocess.run(["git", *a], cwd=GOC, capture_output=True, text=True).stdout.strip()
 S["moi_truong"] = {"python": sys.version.split()[0], "node": subprocess.run(["node", "--version"], capture_output=True, text=True).stdout.strip(),
-                   "commit": subprocess.run(["git", "log", "-1", "--format=%h"], cwd=GOC, capture_output=True, text=True).stdout.strip()}
+                   "commit": git("log", "-1", "--format=%h"), "thay_doi_chua_commit": len(git("status", "--porcelain").splitlines()),
+                   "ngay_lap": __import__("datetime").date.today().strftime("%d/%m/%Y")}
 json.dump(S, open(Path(__file__).parent / "so_lieu_ban_giao.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=str, allow_nan=False)  # NaN không hợp lệ trong JSON
-print("ok", {k: S["kiem_thu"][k] for k in S["kiem_thu"]}, S["nb"]["phu_ph"])
+print("ok", {k: v["trang_thai"] for k, v in S["kiem_thu"].items()}, S["nb"]["phu_ph"])
+sys.exit(1 if any(v["trang_thai"] == "FAIL" for v in S["kiem_thu"].values()) else 0)   # lần chạy có kiểm thử lỗi: báo mã thoát khác 0

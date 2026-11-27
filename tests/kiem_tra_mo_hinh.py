@@ -1,6 +1,8 @@
 """Kiểm thử tự động cho mã dùng chung (src/mo_hinh_gia.py) và kết quả đã sinh ra.
 Chạy từ thư mục gốc đề tài:  python tests/kiem_tra_mo_hinh.py
-Mỗi phép kiểm in ĐẠT / KHÔNG ĐẠT; mã thoát khác 0 nếu có phép kiểm không đạt.
+Mỗi phép kiểm in ĐẠT / KHÔNG ĐẠT / BỎ QUA; mã thoát khác 0 nếu có phép kiểm không đạt.
+Chế độ bài chính (chỉ cần dữ liệu và mô hình nhà phố):  python tests/kiem_tra_mo_hinh.py --nha-pho
+  -> các phép kiểm phần mở rộng (căn hộ...) được BỎ QUA có ghi lý do; chế độ mặc định chạy đủ và đòi đủ tệp.
 Xem các số kết quả còn viết tay trong markdown của một notebook:
     python tests/kiem_tra_mo_hinh.py --markdown notebooks/2324801030095.ipynb"""
 import sys
@@ -96,13 +98,17 @@ if "--markdown" in sys.argv:
     print(len(s), "số kết quả viết tay trong markdown")
     sys.exit(0)
 
-KQ = []
-def kiem(ten):
+NHA_PHO = "--nha-pho" in sys.argv
+KQ = []           # (tên, "ĐẠT" | "KHÔNG ĐẠT" | "BỎ QUA", chi tiết)
+def kiem(ten, mo_rong=False):
+    """mo_rong=True: phép kiểm của phần mở rộng (căn hộ...) -> bỏ qua ở chế độ --nha-pho."""
     def boc(f):
+        if mo_rong and NHA_PHO:
+            KQ.append((ten, "BỎ QUA", "phần mở rộng, không thuộc chế độ --nha-pho")); return f
         try:
-            f(); KQ.append((ten, True, ""))
+            f(); KQ.append((ten, "ĐẠT", ""))
         except Exception as e:
-            KQ.append((ten, False, f"{type(e).__name__}: {e}"))
+            KQ.append((ten, "KHÔNG ĐẠT", f"{type(e).__name__}: {e}"))
         return f
     return boc
 
@@ -174,21 +180,27 @@ def _():
         m = g[1::2] == k; phu = np.mean((rr[m] >= q["q10"][m]) & (rr[m] <= q["q90"][m]))
         assert 0.77 < phu < 0.83, f"nhóm {k} phủ {phu:.2f}"
 
-@kiem("Dữ liệu sạch: không có tin cho thuê / giá vô lý; tập test không chung nhóm với tập train")
-def _():
-    for f, cot_dt in [("nha_da_xu_ly.csv", "dt_dat"), ("can_ho_da_xu_ly.csv", "dt_dat")]:
+def kiem_du_lieu_sach(ds):
+    for f, cot_dt in ds:
         d = pd.read_csv(GOC / "dataset" / "processed" / f)
         assert d["gia_ty"].between(0.3, 60).all(), f"{f}: có giá ngoài phạm vi"
         assert (d["gia_ty"] * 1000 / d[cot_dt]).between(5, 250).all(), f"{f}: có đơn giá vô lý"
         if "tap" in d:
             assert not set(d.loc[d["tap"] == "train", "nhom"]) & set(d.loc[d["tap"] == "test", "nhom"]), f"{f}: nhóm chung giữa train và test"
 
-@kiem("Mô hình đã lưu nạp lại được và dự đoán ra số hợp lý")
+@kiem("Dữ liệu sạch nhà phố: không có tin cho thuê / giá vô lý; tập test không chung nhóm với tập train")
 def _():
+    kiem_du_lieu_sach([("nha_da_xu_ly.csv", "dt_dat")])
+
+@kiem("Dữ liệu sạch căn hộ (mở rộng): không có giá / đơn giá vô lý; train và test không chung nhóm", mo_rong=True)
+def _():
+    kiem_du_lieu_sach([("can_ho_da_xu_ly.csv", "dt_dat")])
+
+def kiem_mo_hinh_luu(ds):
     import joblib
 
     from mo_hinh_gia import khong_dau
-    for f, du_lieu in [("mo_hinh_gia_nha.joblib", "nha_da_xu_ly.csv"), ("mo_hinh_gia_can_ho.joblib", "can_ho_da_xu_ly.csv")]:
+    for f, du_lieu in ds:
         goi = joblib.load(GOC / "models" / f)
         d = pd.read_csv(GOC / "dataset" / "processed" / du_lieu).head(20)
         d["van_ban"] = d["tieu_de"].fillna("").map(khong_dau)
@@ -196,6 +208,14 @@ def _():
         assert np.isfinite(p).all() and (p > 0.1).all() and (p < 100).all(), f"{f}: dự đoán bất thường"
         sai = np.median(np.abs(p / d["gia_ty"] - 1))
         assert sai < 0.5, f"{f}: sai số trung vị trên dữ liệu học {sai:.0%} – mô hình có vẻ hỏng"
+
+@kiem("Mô hình nhà phố đã lưu nạp lại được và dự đoán ra số hợp lý")
+def _():
+    kiem_mo_hinh_luu([("mo_hinh_gia_nha.joblib", "nha_da_xu_ly.csv")])
+
+@kiem("Mô hình căn hộ (mở rộng) đã lưu nạp lại được và dự đoán ra số hợp lý", mo_rong=True)
+def _():
+    kiem_mo_hinh_luu([("mo_hinh_gia_can_ho.joblib", "can_ho_da_xu_ly.csv")])
 
 @kiem("Khoảng 80% đã lưu cho nhà phố theo mức giá: nhà đắt có biên độ rộng hơn nhà rẻ")
 def _():
@@ -279,7 +299,8 @@ def _():
     assert bang.loc["Baseline", "MAE log – kiểm định"] > bang.loc[tot, "MAE log – kiểm định"]
     assert np.isfinite(tao["Cây quyết định"]().fit(d[["a", "b"]], d["y"]).predict(d[["a", "b"]])).all()
 
-for ten, ok, loi in KQ:
-    print(("ĐẠT       " if ok else "KHÔNG ĐẠT ") + ten + ("" if ok else f"\n           -> {loi}"))
-print(f"\n{sum(ok for _, ok, _ in KQ)}/{len(KQ)} phép kiểm đạt")
-sys.exit(0 if all(ok for _, ok, _ in KQ) else 1)
+for ten, tt, ct in KQ:
+    print(f"{tt:<10}{ten}" + (f"\n           -> {ct}" if ct else ""))
+dat, bo_qua = sum(t == "ĐẠT" for _, t, _ in KQ), sum(t == "BỎ QUA" for _, t, _ in KQ)
+print(f"\n{dat}/{len(KQ) - bo_qua} phép kiểm đạt, {bo_qua} bỏ qua" + (" (chế độ --nha-pho)" if NHA_PHO else ""))
+sys.exit(0 if all(t != "KHÔNG ĐẠT" for _, t, _ in KQ) else 1)

@@ -20,7 +20,9 @@ services:
   api:
     build: { context: ., dockerfile: api/Dockerfile }
     restart: unless-stopped
-    volumes:   # dùng mô hình / dữ liệu mới nhất do notebook sinh ra (scripts/chay_toan_bo.py tự restart api sau khi chạy)
+    # API KHÔNG được restart: nó tự nạp bộ tệp mới khi scripts/chay_toan_bo.py công bố models/phien_ban.json (sau khi kiểm thử đạt),
+    # đọc từ models/cong_bo/<mã bộ>/; bộ mới lỗi thì giữ bộ đang phục vụ. Chưa công bố lần nào thì dùng thẳng tệp trong models/, dataset/processed/
+    volumes:
       - ./models:/app/models:ro
       - ./dataset/processed:/app/dataset/processed:ro
     ports: ["127.0.0.1:8000:8000"]   # tài liệu API: http://localhost:8000/docs

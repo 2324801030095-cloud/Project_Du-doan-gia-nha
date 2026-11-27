@@ -6,3 +6,5 @@
 !dataset/processed/can_ho_da_xu_ly.csv
 !api/**
 **/__pycache__
+models/phien_ban.json
+models/cong_bo
