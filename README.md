@@ -9,7 +9,7 @@ Dữ liệu là tin rao thật (Chợ Tốt Nhà, alonhadat, guland), đã ẩn 
 **Phạm vi:** đề tài định giá NHÀ. Tin có tiêu đề "bán đất" (kể cả "bán đất tặng nhà") được **giữ** nếu có thông tin căn nhà (số tầng, diện tích sàn, số phòng ngủ, hoặc mô tả trệt/lầu/phòng/cấp 4/nhà vườn); bị **loại** (có ghi lý do trong `dataset/processed/tin_bi_loai.csv`) nếu kèm dãy trọ / phòng trọ / ki-ốt / kho, nếu nhà sẽ đập bỏ hoặc xây mới, hoặc nếu không có thông tin căn nhà nào. Định giá lô đất trống đã bỏ khỏi bài chính, API và ứng dụng web Next.js; notebook và kết quả cũ để ở `notebooks/luu_tru/` để truy xuất.
 **Ranh giới web:** ứng dụng web (`web/` Next.js + `api/` FastAPI) là sản phẩm chính và **không** còn định giá đất. Bản tĩnh `demo/index.html` là bản demo cũ chạy offline, **vẫn còn** trang đất nền của phiên bản trước; nó không phải sản phẩm bàn giao chính và không được dùng cho số liệu báo cáo.
 
-**Tài liệu bàn giao (Word, số liệu đọc tự động từ lần chạy bàn giao): [docs/Tai_lieu_ban_giao_2026-11-28.docx](docs/Tai_lieu_ban_giao_2026-11-28.docx)** – dataset, mô hình, kết quả (kèm so sánh cặp với baseline), kiến trúc, kiểm thử (ĐẠT / KHÔNG ĐẠT / BỎ QUA theo mã thoát thật), chia việc nhóm, câu hỏi bảo vệ. Bản bàn giao trước [docs/Tai_lieu_ban_giao.docx](docs/Tai_lieu_ban_giao.docx) giữ nguyên để đối chiếu. Tài liệu cũ (chi tiết kỹ thuật, một số số liệu của lần chạy trước): [docs/Tai_lieu_ky_thuat_tong_hop.docx](docs/Tai_lieu_ky_thuat_tong_hop.docx) – cấu trúc, cài đặt, công nghệ, thuật toán, logic dữ liệu, đầu vào/đầu ra, huấn luyện và kết quả, web demo, trợ lý, kiểm thử, hạn chế, checklist, câu hỏi bảo vệ.
+**Tài liệu bàn giao (Word, số liệu đọc tự động từ lần chạy bàn giao): [docs/Tai_lieu_ban_giao_2026-11-28_v2.docx](docs/Tai_lieu_ban_giao_2026-11-28_v2.docx)** – dataset, mô hình, kết quả (kèm so sánh cặp với baseline), kiến trúc, kiểm thử (ĐẠT / KHÔNG ĐẠT / BỎ QUA theo mã thoát thật), chia việc nhóm, câu hỏi bảo vệ. Các bản trước giữ nguyên để đối chiếu: [docs/Tai_lieu_ban_giao_2026-11-28.docx](docs/Tai_lieu_ban_giao_2026-11-28.docx) (trước khi đổi thứ tự công bố; làm tròn khác: MAPE test Phú Hòa in 25,2% thay vì 25,1%), [docs/Tai_lieu_ban_giao.docx](docs/Tai_lieu_ban_giao.docx). Tài liệu cũ (chi tiết kỹ thuật, một số số liệu của lần chạy trước): [docs/Tai_lieu_ky_thuat_tong_hop.docx](docs/Tai_lieu_ky_thuat_tong_hop.docx) – cấu trúc, cài đặt, công nghệ, thuật toán, logic dữ liệu, đầu vào/đầu ra, huấn luyện và kết quả, web demo, trợ lý, kiểm thử, hạn chế, checklist, câu hỏi bảo vệ.
 
 ## Bắt đầu nhanh
 
@@ -76,7 +76,7 @@ api/                        dịch vụ mô hình FastAPI (main.py, dinh_gia.py)
 demo/                       bản tĩnh chạy offline: index.html, assets/, build/ (build_site.py sinh index.html + models/du_lieu_web.json)
 docker-compose.yml          db + api + migrate + web; bí mật trong .env (mẫu: .env.example)
 tests/                      kiem_tra_mo_hinh.py, kiem_tra_api.py, kiem_tra_cong_bo.py (Python) · kiem_tra_tro_ly.js, nap_trang_demo.js, kiem_tra_web.mjs (Node)
-docs/                       Tai_lieu_ban_giao_2026-11-28.docx (bàn giao, sinh bằng scripts/tai_lieu/), Tai_lieu_ban_giao.docx (bản trước), Tai_lieu_ky_thuat_tong_hop.docx
+docs/                       Tai_lieu_ban_giao_2026-11-28_v2.docx (bàn giao, sinh bằng scripts/tai_lieu/), các bản trước, Tai_lieu_ky_thuat_tong_hop.docx
 ```
 
 ## Chạy lại toàn bộ (đúng thứ tự, ~8 phút)
