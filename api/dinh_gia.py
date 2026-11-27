@@ -12,6 +12,7 @@ import os
 import shutil
 import sys
 import threading
+import time
 from pathlib import Path
 
 import joblib
@@ -93,16 +94,41 @@ def cong_bo(goc=None, kiem=True):
             raise
         except Exception as e:                           # tệp không giải mã được (JSON/joblib/CSV hỏng)
             raise LoiNapBo(f"bộ tệp không nạp được ({type(e).__name__}: {e})") from e
-    cu = goc / MANIFEST
-    giu = {bk["id"]} | ({json.loads(cu.read_text(encoding="utf-8")).get("id")} if cu.exists() else set())
-    tam = goc / (MANIFEST + ".tam")
-    tam.write_text(json.dumps(bk, ensure_ascii=False, indent=1), encoding="utf-8")
-    (dich / DAU_CONG_BO).write_text(json.dumps(bk, ensure_ascii=False, indent=1), encoding="utf-8")
-    os.replace(tam, cu)
-    for d in (goc / THU_MUC_CONG_BO).iterdir():         # chỉ giữ bộ vừa công bố và bộ trước đó
+    dau = _cac_dau(goc)                              # các bộ ĐÃ công bố, mới nhất trước (nguồn duy nhất cho phục hồi)
+    bk["cong_bo_ns"] = max([time.time_ns()] + [d["cong_bo_ns"] + 1 for d in dau if isinstance(d.get("cong_bo_ns"), int)])
+    _ghi_nguyen_tu(goc / MANIFEST, bk)                  # ĐIỂM CAM KẾT: lỗi trước/tại đây -> chưa công bố, không có dấu mới
+    try:
+        _ghi_nguyen_tu(dich / DAU_CONG_BO, bk)          # bằng chứng phục hồi chỉ ghi SAU khi bản kê đã trỏ tới bộ này
+    except OSError as e:
+        raise LoiNapBo(f"bản kê đã trỏ tới bộ {bk['id']} nhưng chưa ghi được dấu phục hồi ({e}); "
+                       "chạy lại: python api/dinh_gia.py --cong-bo") from e
+    giu = {bk["id"]} | ({dau[0]["id"]} if dau else set())   # giữ bộ vừa công bố + bộ công bố trước đó
+    for d in (goc / THU_MUC_CONG_BO).iterdir():
         if d.name not in giu:
             shutil.rmtree(d, ignore_errors=True)
     return bk
+
+
+def _ghi_nguyen_tu(f, du_lieu):
+    tam = f.with_name(f.name + ".tam")
+    tam.write_text(json.dumps(du_lieu, ensure_ascii=False, indent=1), encoding="utf-8")
+    os.replace(tam, f)
+
+
+def _cac_dau(goc=None):
+    """Bản kê của các bộ ĐÃ công bố (dấu da_cong_bo.json, chỉ ghi sau điểm cam kết), mới nhất trước theo cong_bo_ns
+    (số tăng ngặt; dấu kiểu cũ chưa có thì xếp sau, theo cong_bo_luc). Dấu hỏng / không phải object -> bỏ qua."""
+    ds = []
+    thu_muc = Path(goc or GOC) / THU_MUC_CONG_BO
+    for d in (thu_muc.iterdir() if thu_muc.exists() else []):
+        try:
+            bk = json.loads((d / DAU_CONG_BO).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if isinstance(bk, dict) and bk.get("id") == d.name:
+            ds.append(bk)
+    return sorted(ds, key=lambda b: (b.get("cong_bo_ns") if isinstance(b.get("cong_bo_ns"), int) else 0,
+                                     str(b.get("cong_bo_luc") or "")), reverse=True)
 
 
 def tao_ban_giao(goc=None):
@@ -226,26 +252,13 @@ _HIEN, _TT, _KHOA = None, {"moc": None, "loi_nap": None, "nguon": None}, threadi
 
 
 def _du_phong():
-    """Không có bản kê cục bộ (clone mới, hoặc models/phien_ban.json bị mất khi API khởi động): danh sách bản kê để thử,
-    theo thứ tự chắc chắn: các bộ ĐÃ công bố trên máy này (có dấu da_cong_bo.json, mới nhất trước), rồi bộ bàn giao trong git.
-    Bộ chỉ được chép vào models/cong_bo/ nhưng chưa công bố (công bố lỗi) không có dấu nên không bao giờ được chọn."""
-    ds = []
-    thu_muc = GOC / THU_MUC_CONG_BO
-    if thu_muc.exists():
-        for d in thu_muc.iterdir():
-            f = d / DAU_CONG_BO
-            if f.exists():
-                try:
-                    ds.append(("bộ đã công bố gần nhất " + d.name, json.loads(f.read_text(encoding="utf-8"))))
-                except ValueError:
-                    pass
-        ds.sort(key=lambda x: x[1].get("cong_bo_luc") or "", reverse=True)
-    f = GOC / BAN_GIAO / "phien_ban.json"
-    if f.exists():
-        try:
-            ds.append(("bộ bàn giao " + BAN_GIAO, json.loads(f.read_text(encoding="utf-8"))))
-        except ValueError:
-            pass
+    """Nguồn phục hồi khi không dùng được bản kê hiện tại: bộ ĐÃ công bố gần nhất, rồi bộ bàn giao trong git.
+    Bộ chép vào models/cong_bo/ nhưng công bố lỗi (chưa qua điểm cam kết) không có dấu nên không bao giờ được chọn."""
+    ds = [("bộ đã công bố gần nhất " + bk["id"], bk) for bk in _cac_dau()]
+    try:
+        ds.append(("bộ bàn giao " + BAN_GIAO, json.loads((GOC / BAN_GIAO / "phien_ban.json").read_text(encoding="utf-8"))))
+    except (OSError, ValueError):
+        pass
     return ds
 
 
@@ -259,12 +272,14 @@ def _moc_ban_ke():
 
 
 def _ung_vien_nap(moc):
-    """Danh sách (nguồn, hàm lấy bản kê) theo trạng thái moc."""
+    """Danh sách (nguồn, hàm lấy bản kê) theo trạng thái moc. Bản kê hiện tại lỗi (JSON hỏng, bộ không nạp được) khi API
+    CHƯA có bộ nào -> thử tiếp các nguồn phục hồi; đang có bộ thì bo() giữ bộ đó (danh sách chỉ dùng khi chưa có bộ)."""
     if moc[0] == "ung_vien":
         return [("tệp làm việc (PHH_UNG_VIEN=1)", tao_ban_ke)]
+    du_phong = [(nguon, (lambda b=bk: b)) for nguon, bk in _du_phong()]
     if moc[0] == "ban_ke":
-        return [(MANIFEST, lambda: json.loads((GOC / MANIFEST).read_text(encoding="utf-8")))]
-    return [(nguon, (lambda b=bk: b)) for nguon, bk in _du_phong()]
+        return [(MANIFEST, lambda: json.loads((GOC / MANIFEST).read_text(encoding="utf-8")))] +             [("phục hồi (bản kê hiện tại lỗi): " + n, f) for n, f in du_phong]
+    return du_phong
 
 
 def bo():
@@ -285,16 +300,21 @@ def bo():
                 _TT["loi_nap"] = f"không còn {MANIFEST}; giữ bộ đang phục vụ {_HIEN['id']}"
             else:
                 thu, loi = _ung_vien_nap(moc), []
-                if not thu:
-                    loi.append(f"không có {MANIFEST}, bộ đã công bố trong {THU_MUC_CONG_BO}/ hay bộ bàn giao {BAN_GIAO}/")
+                if moc[0] == "ban_ke" and _HIEN is not None:
+                    thu = thu[:1]                   # đang phục vụ: chỉ thử bản kê mới, lỗi thì GIỮ bộ đang phục vụ
                 for nguon, lay in thu:
                     try:
                         moi = _nap_bo(lay())
-                    except Exception as e:          # GIỮ bộ đang phục vụ (nếu có)
+                    except Exception as e:
                         loi.append(f"{nguon}: {type(e).__name__}: {e}")
                         continue
-                    _HIEN, _TT["nguon"], loi = moi, nguon, []
+                    _HIEN, _TT["nguon"] = moi, nguon
+                    if nguon in (MANIFEST, "tệp làm việc (PHH_UNG_VIEN=1)"):
+                        loi = []                    # nguồn chính nạp được: không còn lỗi
                     break
+                else:
+                    if not thu:
+                        loi.append(f"không có bộ đã công bố trong {THU_MUC_CONG_BO}/ hay bộ bàn giao {BAN_GIAO}/")
                 _TT["loi_nap"] = "; ".join(loi) or None
             _TT["moc"] = moc
         if _HIEN is None:

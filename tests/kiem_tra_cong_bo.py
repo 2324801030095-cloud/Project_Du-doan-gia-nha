@@ -218,19 +218,116 @@ def _():
     assert set(c.get("/health").json()["tep"]) == set(TEP)
 
 
-@kiem("Khởi động sạch khi chưa có bộ hợp lệ (JSON sai cú pháp): mọi endpoint phụ thuộc bộ tệp trả 503, không 500; "
-      "công bố bản hợp lệ -> phục vụ được")
+def phien_ban_sau_khoi_dong(xoa_ban_ke=False):
+    """(id /health, id POST dự đoán) ngay sau khi API khởi động lại; xoa_ban_ke: như models/phien_ban.json bị mất."""
+    if xoa_ban_ke and (TAM / DG.MANIFEST).exists():
+        (TAM / DG.MANIFEST).unlink()
+    khoi_dong_lai()
+    h = c.get("/health")
+    assert h.status_code == 200, h.text[:300]
+    return h.json()["phien_ban"], c.post("/dinh-gia/nha-pho", json=NHA).json()["phien_ban"], h.json()
+
+
+class LoiGhi:
+    """Mô phỏng lỗi ghi (PermissionError) ở os.replace có đích kết thúc bằng `duoi`; các os.replace khác chạy bình thường."""
+    def __init__(self, duoi):
+        self.duoi, self.goc = duoi, os.replace
+
+    def __enter__(self):
+        def gia(a, b, *k, **kw):
+            if str(b).endswith(self.duoi):
+                raise PermissionError(13, "mô phỏng: tệp đang bị khóa", str(b))
+            return self.goc(a, b, *k, **kw)
+        os.replace = gia
+
+    def __exit__(self, *a):
+        os.replace = self.goc
+
+
+@kiem("HỒI QUY 1 – công bố B lỗi TẠI os.replace bản kê (PermissionError mô phỏng): bản kê vẫn A, B không có dấu phục hồi; "
+      "/health + POST là A trước và sau khởi động lại, kể cả khi bản kê bị mất. Lỗi GIỮA hai bước (bản kê đã trỏ B, ghi dấu lỗi): "
+      "phục hồi về A an toàn, chạy lại công bố thì B có dấu. Hai lần công bố sát nhau: phục hồi đúng lần sau cùng")
 def _():
-    goc = WEB.read_bytes()
-    WEB.write_text("{hỏng", encoding="utf-8"); cong_bo(kiem=False)
-    khoi_dong_lai() # như tiến trình mới khởi động
-    for _ in range(2):                                            # lần 2: không nạp lại, vẫn 503
-        for ma in (c.get("/health"), c.get("/tong-quan"), c.get("/nha-pho"), c.get("/nha-pho/1"), c.get("/ban-do"),
-                   c.get("/danh-gia"), c.get("/xu-huong"), c.get("/danh-muc"), c.post("/dinh-gia/nha-pho", json=NHA),
-                   c.post("/dinh-gia/can-ho", json={"dt_su_dung": 60}), c.post("/tro-ly/y-dinh", json={"cau": "xin chào"})):
-            assert ma.status_code == 503, (ma.url, ma.status_code, ma.text[:200])
-    WEB.write_bytes(goc); moi = cong_bo()
-    dung_duoc(moi["id"])
+    goc_web = WEB.read_bytes()
+    doi_ngay("01/02/2099"); A = cong_bo()
+    assert phien_ban_sau_khoi_dong()[:2] == (A["id"], A["id"])
+    doi_ngay("02/02/2099")
+    with LoiGhi(DG.MANIFEST.split("/")[-1]):
+        try:
+            DG.cong_bo(); raise AssertionError("cong_bo không báo lỗi khi không ghi được bản kê")
+        except PermissionError:
+            pass
+    B_id = DG.tao_ban_ke()["id"]
+    assert json.loads((TAM / DG.MANIFEST).read_text(encoding="utf-8"))["id"] == A["id"]
+    assert (TAM / DG.THU_MUC_CONG_BO / B_id).exists() and not (TAM / DG.THU_MUC_CONG_BO / B_id / DG.DAU_CONG_BO).exists()
+    h = c.get("/health").json()
+    assert h["phien_ban"] == A["id"] and c.post("/dinh-gia/nha-pho", json=NHA).json()["phien_ban"] == A["id"], h
+    assert phien_ban_sau_khoi_dong()[:2] == (A["id"], A["id"])
+    hb, post, h = phien_ban_sau_khoi_dong(xoa_ban_ke=True)          # đúng kịch bản Codex: xóa bản kê rồi khởi động lại
+    assert (hb, post) == (A["id"], A["id"]) and h["ngay_du_lieu"] == "01/02/2099", h
+    # lỗi giữa hai bước: bản kê đã thay (điểm cam kết) nhưng ghi dấu lỗi
+    _ghi = DG._ghi_nguyen_tu(TAM / DG.MANIFEST, {**A, "thu_muc": f"{DG.THU_MUC_CONG_BO}/{A['id']}"})  # khôi phục bản kê A
+    with LoiGhi(DG.DAU_CONG_BO):
+        try:
+            DG.cong_bo(); raise AssertionError("cong_bo không báo lỗi khi không ghi được dấu")
+        except DG.LoiNapBo as e:
+            assert "chạy lại" in str(e), e
+    assert json.loads((TAM / DG.MANIFEST).read_text(encoding="utf-8"))["id"] == B_id   # B đã được công bố
+    assert phien_ban_sau_khoi_dong()[:2] == (B_id, B_id)
+    assert phien_ban_sau_khoi_dong(xoa_ban_ke=True)[:2] == (A["id"], A["id"])         # thiếu dấu B -> về A, không đoán B
+    B = cong_bo()                                                                      # chạy lại công bố -> B có dấu
+    assert B["id"] == B_id and (TAM / DG.THU_MUC_CONG_BO / B_id / DG.DAU_CONG_BO).exists()
+    assert phien_ban_sau_khoi_dong(xoa_ban_ke=True)[:2] == (B_id, B_id)
+    # hai lần công bố sát nhau (cùng một giây): thứ tự theo cong_bo_ns tăng ngặt
+    cong_bo(); doi_ngay("03/02/2099"); X = DG.cong_bo(); doi_ngay("04/02/2099"); Y = DG.cong_bo()
+    assert Y["cong_bo_ns"] > X["cong_bo_ns"]
+    assert phien_ban_sau_khoi_dong(xoa_ban_ke=True)[:2] == (Y["id"], Y["id"])
+    doi_ngay("03/02/2099"); X2 = DG.cong_bo()                                          # công bố lại X (đã có thư mục)
+    assert X2["id"] == X["id"] and phien_ban_sau_khoi_dong(xoa_ban_ke=True)[:2] == (X["id"], X["id"])
+    WEB.write_bytes(goc_web); cong_bo()
+
+
+@kiem("HỒI QUY 2 – bản kê hiện tại có nhưng HỎNG (JSON sai cú pháp; hoặc trỏ tới bộ hỏng): đang chạy -> giữ bộ đã nạp; "
+      "khởi động lạnh -> phục hồi bộ đã công bố gần nhất, rồi bộ bàn giao; /health nêu lỗi + nguồn phục hồi; chỉ 503 khi "
+      "không còn bộ hợp lệ; công bố thành công sau đó -> hệ thống bình thường")
+def _():
+    goc_web = WEB.read_bytes()
+    doi_ngay("01/03/2099"); P = cong_bo()
+    dung_duoc(P["id"])
+    (TAM / DG.MANIFEST).write_text("{hỏng", encoding="utf-8"); time.sleep(0.05)
+    h = c.get("/health").json()                                                       # đang chạy: giữ P
+    assert h["phien_ban"] == P["id"] and "JSONDecodeError" in (h["loi_nap_moi_nhat"] or ""), h
+    assert c.post("/dinh-gia/nha-pho", json=NHA).json()["phien_ban"] == P["id"]
+    for _ in range(2):                                                                 # khởi động lạnh (2 lần)
+        hb, post, h = phien_ban_sau_khoi_dong()
+        assert (hb, post) == (P["id"], P["id"]), h
+        assert h["nguon"].startswith("phục hồi") and "JSONDecodeError" in h["loi_nap_moi_nhat"], h
+        assert c.get("/nha-pho", params={"so_dong": 1}).status_code == 200
+    WEB.write_text("{hỏng", encoding="utf-8"); cong_bo(kiem=False)                    # bản kê hợp lệ nhưng trỏ tới bộ hỏng
+    hb, post, h = phien_ban_sau_khoi_dong()
+    assert (hb, post) == (P["id"], P["id"]) and h["nguon"].startswith("phục hồi"), h
+    # không còn bộ đã công bố -> bộ bàn giao; không còn gì -> 503 ở mọi endpoint
+    an = [(TAM / DG.THU_MUC_CONG_BO, TAM / "an_cong_bo")]
+    shutil.move(*an[0])
+    try:
+        hb, post, h = phien_ban_sau_khoi_dong()
+        assert h["nguon"].startswith("phục hồi (bản kê hiện tại lỗi): bộ bàn giao") and hb == post, h
+        shutil.move(TAM / DG.BAN_GIAO, TAM / "an_ban_giao")
+        try:
+            khoi_dong_lai()
+            for _ in range(2):
+                for ma in (c.get("/health"), c.get("/tong-quan"), c.get("/nha-pho"), c.get("/nha-pho/1"), c.get("/ban-do"),
+                           c.get("/danh-gia"), c.get("/xu-huong"), c.get("/danh-muc"), c.post("/dinh-gia/nha-pho", json=NHA),
+                           c.post("/dinh-gia/can-ho", json={"dt_su_dung": 60}), c.post("/tro-ly/y-dinh", json={"cau": "xin chào"})):
+                    assert ma.status_code == 503, (ma.url, ma.status_code, ma.text[:200])
+        finally:
+            shutil.move(TAM / "an_ban_giao", TAM / DG.BAN_GIAO)
+    finally:
+        shutil.move(TAM / "an_cong_bo", TAM / DG.THU_MUC_CONG_BO)
+    WEB.write_bytes(goc_web); Q = cong_bo()                                           # công bố thành công -> bình thường
+    dung_duoc(Q["id"])
+    assert c.get("/health").json()["nguon"] == DG.MANIFEST
+    assert phien_ban_sau_khoi_dong()[:2] == (Q["id"], Q["id"])
 
 
 @kiem("Công bố chép bộ vào models/cong_bo/<mã>/: pipeline ghi đè tệp làm việc (chưa công bố) rồi API khởi động lại -> "
