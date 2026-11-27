@@ -65,8 +65,8 @@ const HOI = (q, a) => new Paragraph({ spacing: { after: 140 }, children: [new Te
 
 // Nội dung tài liệu bàn giao. Mọi con số lấy từ D (so_lieu_ban_giao.json) – cùng một lần chạy, không gõ tay.
 // Được nạp bởi tao_ban_giao.js (cung cấp các hàm H1, H2, P, B, N, CODE, LUU_Y, TB, HOI, add, Paragraph, TextRun...).
-// làm tròn giống Python (README, notebook) để cùng một số hiển thị như nhau ở mọi nơi
-const s = (x, d = 1) => (x == null || Number.isNaN(Number(x)) ? "–" : (Math.round(Number(x) * 10 ** d) / 10 ** d).toLocaleString("vi-VN", { minimumFractionDigits: d, maximumFractionDigits: d }));
+// làm tròn giống Python f"{x:.1f}" (README, notebook): toFixed theo giá trị nhị phân thật (25.15 -> 25.1), Math.round thì ra 25.2
+const s = (x, d = 1) => (x == null || Number.isNaN(Number(x)) ? "–" : Number(Number(x).toFixed(d)).toLocaleString("vi-VN", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const s0 = (x) => s(x, 0);
 const DG = D.danh_gia, SL = D.so_lieu_web, MH = D.mo_hinh, DL = D.du_lieu, NB = D.nb;
 const dong = (bang, ten) => bang.find((r) => r["Mô hình"] === ten);
